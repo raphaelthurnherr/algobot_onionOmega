@@ -1,0 +1,51 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/* 
+ * File:   main.c
+ * Author: raph
+ *
+ * Created on 27. septembre 2017, 15:59
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "hwControl/hwManager.h"
+
+/*
+ * 
+ */
+
+int main(int argc, char** argv) {
+
+    printf("Test main width hwManager\n");
+    
+    int j;
+    long i;
+    
+    // Création de la tâche pour la gestion hardware
+	if(InitHwManager()) printf ("# Creation tâche hardware : ERREUR\n");
+		else printf ("# Demarrage tache hardware: OK\n");
+ 
+    
+    for(i=0;i<30000000;i++){
+    }
+ 
+    for(j=0;j<5;j++){
+        
+        printf("Led 0pc \n");
+   //     PCA9685_setLedPower(0x10, 100);
+        for(i=0;i<30000000;i++){
+        }
+        
+        printf("Led 100pc \n");
+ //       PCA9685_setLedPower(0x10, 0);
+        for(i=0;i<30000000;i++){
+        }
+    }
+    
+    return (EXIT_SUCCESS);
+}

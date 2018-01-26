@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <logicalFolder name="AlgoidCom" displayName="AlgoidCom" projectFiles="true">
+        <logicalFolder name="libs" displayName="libs" projectFiles="true">
+          <logicalFolder name="lib_json" displayName="lib_json" projectFiles="true">
+            <itemPath>AlgoidCom/libs/lib_json/jRead.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_json/jRead.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_json/jWrite.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_json/jWrite.h</itemPath>
+          </logicalFolder>
+          <logicalFolder name="lib_mqtt" displayName="lib_mqtt" projectFiles="true">
+            <itemPath>AlgoidCom/libs/lib_mqtt/Clients.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Clients.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Heap.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Heap.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/LinkedList.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/LinkedList.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Log.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Log.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTClient.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTClient.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTClientPersistence.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTPacket.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTPacket.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTPacketOut.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTPacketOut.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTPersistence.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTPersistence.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTProtocol.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Messages.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Messages.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/SSLSocket.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/SSLSocket.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Socket.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Socket.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/SocketBuffer.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/SocketBuffer.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/StackTrace.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/StackTrace.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Thread.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Thread.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Tree.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/Tree.h</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/utf-8.c</itemPath>
+            <itemPath>AlgoidCom/libs/lib_mqtt/utf-8.h</itemPath>
+          </logicalFolder>
+        </logicalFolder>
+        <itemPath>AlgoidCom/linux_JSON.c</itemPath>
+        <itemPath>AlgoidCom/linux_json.h</itemPath>
+        <itemPath>AlgoidCom/messagesManager.c</itemPath>
+        <itemPath>AlgoidCom/messagesManager.h</itemPath>
+        <itemPath>AlgoidCom/mqttProtocol.c</itemPath>
+        <itemPath>AlgoidCom/mqttProtocol.h</itemPath>
+        <itemPath>AlgoidCom/udpPublish.c</itemPath>
+        <itemPath>AlgoidCom/udpPublish.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="hwControl" displayName="hwControl" projectFiles="true">
+        <logicalFolder name="libs" displayName="libs" projectFiles="true">
+          <logicalFolder name="i2c" displayName="i2c" projectFiles="true">
+            <itemPath>hwControl/libs/i2c/onion-i2c.c</itemPath>
+            <itemPath>hwControl/libs/i2c/onion-i2c.h</itemPath>
+          </logicalFolder>
+          <logicalFolder name="onion-debug" displayName="onion-debug" projectFiles="true">
+            <itemPath>hwControl/libs/onion-debug/onion-debug.c</itemPath>
+            <itemPath>hwControl/libs/onion-debug/onion-debug.h</itemPath>
+          </logicalFolder>
+        </logicalFolder>
+        <itemPath>hwControl/boardHWctrl.c</itemPath>
+        <itemPath>hwControl/boardHWctrl.h</itemPath>
+        <itemPath>hwControl/hwManager.c</itemPath>
+        <itemPath>hwControl/hwManager.h</itemPath>
+      </logicalFolder>
+      <itemPath>algoid_2w_buggy.c</itemPath>
+      <itemPath>timerManager.c</itemPath>
+      <itemPath>tools.c</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>hwControl</Elem>
+    <Elem>AlgoidCom</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>GNU_Omega|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>hwControl/libs/i2c</pElem>
+            <pElem>hwControl/libs/onion-debug</pElem>
+            <pElem>AlgoidCom/libs/lib_json</pElem>
+            <pElem>AlgoidCom/libs/lib_mqtt</pElem>
+            <pElem>AlgoidCom</pElem>
+            <pElem>hwControl</pElem>
+          </incDir>
+          <commandLine>-pthread</commandLine>
+        </cTool>
+        <linkerTool>
+          <commandLine>-pthread</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="AlgoidCom/libs/lib_json/jRead.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_json/jRead.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_json/jWrite.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_json/jWrite.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Clients.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Clients.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Heap.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Heap.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/LinkedList.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/LinkedList.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Log.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Log.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTClient.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTClient.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTClientPersistence.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPacket.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPacket.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPacketOut.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPacketOut.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPersistence.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPersistence.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocol.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Messages.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Messages.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/SSLSocket.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/SSLSocket.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Socket.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Socket.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/SocketBuffer.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/SocketBuffer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/StackTrace.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/StackTrace.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Thread.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Thread.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Tree.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Tree.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/utf-8.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/utf-8.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/linux_JSON.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/linux_json.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/messagesManager.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/messagesManager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/mqttProtocol.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/mqttProtocol.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/udpPublish.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="algoid_2w_buggy.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="hwControl/boardHWctrl.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="hwControl/boardHWctrl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hwControl/hwManager.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="hwControl/hwManager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hwControl/libs/i2c/onion-i2c.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="hwControl/libs/i2c/onion-i2c.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hwControl/libs/onion-debug/onion-debug.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="hwControl/libs/onion-debug/onion-debug.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="timerManager.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="tools.c" ex="false" tool="0" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="AlgoidCom/libs/lib_json/jRead.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_json/jRead.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_json/jWrite.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_json/jWrite.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Clients.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Clients.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Heap.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Heap.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/LinkedList.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/LinkedList.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Log.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Log.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTClient.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTClient.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTClientPersistence.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPacket.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPacket.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPacketOut.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPacketOut.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPersistence.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPersistence.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocol.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Messages.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Messages.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/SSLSocket.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/SSLSocket.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Socket.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Socket.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/SocketBuffer.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/SocketBuffer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/StackTrace.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/StackTrace.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Thread.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Thread.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Tree.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/Tree.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/utf-8.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/libs/lib_mqtt/utf-8.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/linux_JSON.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/linux_json.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/messagesManager.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/messagesManager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/mqttProtocol.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/mqttProtocol.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/udpPublish.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="algoid_2w_buggy.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="hwControl/boardHWctrl.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="hwControl/boardHWctrl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hwControl/hwManager.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="hwControl/hwManager.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hwControl/libs/i2c/onion-i2c.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="hwControl/libs/i2c/onion-i2c.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hwControl/libs/onion-debug/onion-debug.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="hwControl/libs/onion-debug/onion-debug.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="timerManager.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="tools.c" ex="false" tool="0" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
