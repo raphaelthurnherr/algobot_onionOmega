@@ -88,7 +88,7 @@
         <itemPath>hwControl/hwManager.c</itemPath>
         <itemPath>hwControl/hwManager.h</itemPath>
       </logicalFolder>
-      <itemPath>algoid_2w_buggy.c</itemPath>
+      <itemPath>algobot_main.c</itemPath>
       <itemPath>timerManager.c</itemPath>
       <itemPath>tools.c</itemPath>
     </logicalFolder>
@@ -308,7 +308,7 @@
       </item>
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="algoid_2w_buggy.c" ex="false" tool="0" flavor2="0">
+      <item path="algobot_main.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="hwControl/boardHWctrl.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -533,7 +533,7 @@
       </item>
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="algoid_2w_buggy.c" ex="false" tool="0" flavor2="0">
+      <item path="algobot_main.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="hwControl/boardHWctrl.c" ex="false" tool="0" flavor2="0">
       </item>

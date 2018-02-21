@@ -60,7 +60,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/AlgoidCom/messagesManager.o \
 	${OBJECTDIR}/AlgoidCom/mqttProtocol.o \
 	${OBJECTDIR}/AlgoidCom/udpPublish.o \
-	${OBJECTDIR}/algoid_2w_buggy.o \
+	${OBJECTDIR}/algobot_main.o \
 	${OBJECTDIR}/hwControl/boardHWctrl.o \
 	${OBJECTDIR}/hwControl/hwManager.o \
 	${OBJECTDIR}/hwControl/libs/i2c/onion-i2c.o \
@@ -87,11 +87,11 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algo_hw_lib_test
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algo_hw_lib_test: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algo_hw_lib_test ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_json/jRead.o: AlgoidCom/libs/lib_json/jRead.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_json
@@ -218,10 +218,10 @@ ${OBJECTDIR}/AlgoidCom/udpPublish.o: AlgoidCom/udpPublish.c
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/udpPublish.o AlgoidCom/udpPublish.c
 
-${OBJECTDIR}/algoid_2w_buggy.o: algoid_2w_buggy.c
+${OBJECTDIR}/algobot_main.o: algobot_main.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/algoid_2w_buggy.o algoid_2w_buggy.c
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/algobot_main.o algobot_main.c
 
 ${OBJECTDIR}/hwControl/boardHWctrl.o: hwControl/boardHWctrl.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl

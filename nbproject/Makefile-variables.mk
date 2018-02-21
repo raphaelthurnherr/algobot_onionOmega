@@ -9,19 +9,19 @@ CND_DISTDIR=dist
 # Debug configuration
 CND_PLATFORM_Debug=GNU_Omega-Linux
 CND_ARTIFACT_DIR_Debug=dist/Debug/GNU_Omega-Linux
-CND_ARTIFACT_NAME_Debug=algo_hw_lib_test
-CND_ARTIFACT_PATH_Debug=dist/Debug/GNU_Omega-Linux/algo_hw_lib_test
+CND_ARTIFACT_NAME_Debug=algobot_onionomega
+CND_ARTIFACT_PATH_Debug=dist/Debug/GNU_Omega-Linux/algobot_onionomega
 CND_PACKAGE_DIR_Debug=dist/Debug/GNU_Omega-Linux/package
-CND_PACKAGE_NAME_Debug=algohwlibtest.tar
-CND_PACKAGE_PATH_Debug=dist/Debug/GNU_Omega-Linux/package/algohwlibtest.tar
+CND_PACKAGE_NAME_Debug=algobotonionomega.tar
+CND_PACKAGE_PATH_Debug=dist/Debug/GNU_Omega-Linux/package/algobotonionomega.tar
 # Release configuration
 CND_PLATFORM_Release=GNU-Linux
 CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux
-CND_ARTIFACT_NAME_Release=algo_hw_lib_test
-CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux/algo_hw_lib_test
+CND_ARTIFACT_NAME_Release=algobot_onionomega
+CND_ARTIFACT_PATH_Release=dist/Release/GNU-Linux/algobot_onionomega
 CND_PACKAGE_DIR_Release=dist/Release/GNU-Linux/package
-CND_PACKAGE_NAME_Release=algohwlibtest.tar
-CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/algohwlibtest.tar
+CND_PACKAGE_NAME_Release=algobotonionomega.tar
+CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/algobotonionomega.tar
 #
 # include compiler specific variables
 #

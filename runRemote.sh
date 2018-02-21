@@ -2,7 +2,7 @@
 # Indique au système que l'argument qui suit est le programme utilisé pour exécuter ce fichier
 # En règle générale, les "#" servent à mettre en commentaire le texte qui suit comme ici
 
-echo Transfère du fichier binaire...
+echo Transfere du fichier binaire...
 rsync -a /home/raph/NetBeansProjects/Algo_HW_lib_test/dist/Debug/GNU_Omega-Linux/algo_hw_lib_test  root@192.168.3.1:~/app
 
 echo "Lancement de l'application via SSH...\n"

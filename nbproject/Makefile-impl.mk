@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=Algo_HW_lib_test
+PROJECTNAME=Algobot_onionOmega
 
 # Active Configuration
 DEFAULTCONF=Debug
