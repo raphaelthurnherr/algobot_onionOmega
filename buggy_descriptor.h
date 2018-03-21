@@ -3,6 +3,7 @@
  *
  *  Created on: 25 nov. 2016
  *      Author: raph
+ * test Git
  */
 
 #ifndef ALGOIDCOM_BUGGY_DESCRIPTOR_H_
