@@ -82,7 +82,7 @@ void sendUDPHeartBit(char * udpMsg);
     		 	int fd;
 			    struct ifreq ifr;
 			    //char *iface = "wlan0";
-                            char *iface = "br-wlan";
+                            char *iface = "ra0";
 			    unsigned char *mac = NULL;
 
 			    memset(&ifr, 0, sizeof(ifr));
@@ -98,8 +98,8 @@ void sendUDPHeartBit(char * udpMsg);
 
 			    close(fd);
                             
-			    sprintf(&myMAC[0], "%02x%02x%02x%02x%02x%02x",mac[0], mac[1], mac[2], mac[3], mac[4],mac[5]);
- 
+//			    sprintf(&myMAC[0], "%02x%02x%02x%02x%02x%02x",mac[0], mac[1], mac[2], mac[3], mac[4],mac[5]);
+                            sprintf(&myMAC[0], "%02x%02x", mac[4],mac[5]);
 			    return myMAC;
 		}
 

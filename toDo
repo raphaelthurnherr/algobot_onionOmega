@@ -1,0 +1,11 @@
+
+
+boardHWctrl.h
+--------------
+
+Adaptation des define organes pour la carte Algobot
+ ->Remplacement des noms SRMx par LEDx
+
+boardHWctrl.c
+--------------
+Remplacement des adresses fixe des gpio par des define (ex. "Motor Enable" 0x10 -> MOTEN)

@@ -103,6 +103,7 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <itemPath>toDo</itemPath>
   </logicalFolder>
   <sourceRootList>
     <Elem>hwControl</Elem>
@@ -334,6 +335,8 @@
       </item>
       <item path="timerManager.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="toDo" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="tools.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
@@ -558,6 +561,8 @@
             flavor2="0">
       </item>
       <item path="timerManager.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="toDo" ex="false" tool="3" flavor2="0">
       </item>
       <item path="tools.c" ex="false" tool="0" flavor2="0">
       </item>

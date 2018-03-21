@@ -27,8 +27,9 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>sh -c "/home/raph/NetBeansProjects/crossTest1/runRemote.sh"</runcommandpicklistitem>
           <runcommandpicklistitem>sh -c "/home/raph/NetBeansProjects/Algo_HW_lib_test/runRemote.sh"</runcommandpicklistitem>
+          <runcommandpicklistitem>sh -c "/home/raph/NetBeansProjects/Algobot_onionOmega/runRemote.sh"</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>sh -c "/home/raph/NetBeansProjects/Algo_HW_lib_test/runRemote.sh"</runcommand>
+        <runcommand>sh -c "/home/raph/NetBeansProjects/Algobot_onionOmega/runRemote.sh"</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

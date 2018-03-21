@@ -17,7 +17,7 @@
 #include "linux_json.h"
 #include "udpPublish.h"
 #include "tools.h"
-#include "algoid_2wd_buggy.h"
+#include "algobot_main.h"
 #include "timerManager.h"
 #include "hwControl/hwManager.h"
 
@@ -384,7 +384,7 @@ int makeServoAction(void){
 	int endOfTask;
 
 	unsigned char actionCount=0;
-	unsigned char action;
+	unsigned char action=0;
 
 	// Recherche s'il y a des paramètres pour chaque roue
 	// Des paramètres recu pour une roue crée une action à effectuer
@@ -443,7 +443,7 @@ int makeLedAction(void){
 	int endOfTask;
 
 	unsigned char actionCount=0;
-	unsigned char action;
+	unsigned char action=0;
 
 	// Recherche s'il y a des paramètres pour chaque roue
 	// Des paramètres recu pour une roue crée une action à effectuer
@@ -465,8 +465,7 @@ int makeLedAction(void){
 
 		for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
 			if(AlgoidCommand.LEDarray[ptrData].id>=0){
-				setLedPower(AlgoidCommand.LEDarray[ptrData].id, AlgoidCommand.LEDarray[ptrData].powerPercent);
-
+                                setLedPower(AlgoidCommand.LEDarray[ptrData].id, AlgoidCommand.LEDarray[ptrData].powerPercent);   
 				endOfTask=removeBuggyTask(myTaskId);
 				if(endOfTask>0){
 					sprintf(reportBuffer, "FIN DES ACTIONS \"LED\" pour la tache #%d\n", endOfTask);

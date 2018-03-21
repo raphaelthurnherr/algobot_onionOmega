@@ -1,6 +1,6 @@
 
-#define ADDRESS     "192.168.3.1:1883"
-//#define ADDRESS     "localhost:1883"
+//#define ADDRESS     "192.168.3.1:1883"
+#define ADDRESS     "localhost:1883"
 
 #include "stdio.h"
 #include "stdlib.h"
@@ -16,7 +16,7 @@
 // Thread Messager
 pthread_t th_messager;
 
-char ClientID[50]="BUGGY_";
+char ClientID[50]="algo_";
 
 
 void sendMqttReport(int msgId, char * msg);
@@ -31,6 +31,7 @@ char clearMsgStack(unsigned char ptrStack);
 unsigned char mqttDataReady=0;
 
 char MqttDataBuffer[500];
+char msgReportBuffer[100];
 
 // Initialisation principale du system de messagerie
 void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A , 25% for ePWM0B;
@@ -44,7 +45,8 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
 		clearMsgStack(i);
 
 	// Creation d'un id unique avec l'adresse mac
-	sprintf(&ClientID[6], "%s", getMACaddr());
+        
+	sprintf(&ClientID[5], "%s", getMACaddr());
 
 
 	// Connexion au broker MQTT
@@ -54,6 +56,7 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
 		printf("#[MSG MANAGER] Connection au broker MQTT: OK (IP: %s avec ID: %s)\n", ADDRESS, ClientID   );
 		if(!mqttAddRXChannel(TOPIC_COMMAND)){
 			printf("#[MSG MANAGER] Inscription au topic: OK\n");
+                        sendMqttReport(-1, "EN LIGNE");
 		}
 		else {
 			printf("#[MSG MANAGER] Inscription au topic: ERREUR\n");
@@ -72,25 +75,33 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
 	    // RECEPTION DES DONNES UTILES
                 if(GetAlgoidMsg(AlgoidMessageRX, MqttDataBuffer)>0){
                         // Contrôle du destinataire
-                        if(!strcmp(AlgoidMessageRX.msgTo, "buggy")){
+                        if(!strcmp(AlgoidMessageRX.msgTo, ClientID)){
                                 // Enregistrement du message dans la pile
                                 lastMessage=pushMsgStack();
                                 if(lastMessage>=0){
                                         // Retourne un ack a l'expediteur
                                         sendResponse(AlgoidMessageRX.msgID, AlgoidMessageRX.msgFrom, ACK, AlgoidMessageRX.msgParam, 0);
     //							printf("Mis en file d'attente\n");
+                                        sprintf(msgReportBuffer, "%s", ClientID);
+                                        sendMqttReport(-1, "Message recu, en traitement...");
                                 }
                                 else{
                                         printf("ERREUR: File d'attente pleine !\n");
+                                        sendMqttReport(-1, "Buffer message plein !");
+                                        
                                 }
                         }
-                        else
+                        else{
                                 printf("IGNORE: mauvais destinataire\n");
+                                sendMqttReport(-1, "Mauvais destinataire");
+                        }
+                        
                 }else{
                         // Retourne une erreur a l'expediteur
                         sendResponse(AlgoidMessageRX.msgID, AlgoidMessageRX.msgFrom, AlgoidMessageRX.msgType, AlgoidMessageRX.msgParam, 0);
                         printf("\n! MESSAGE ALGOID INCORRECT RECU !\n");
-                        sendMqttReport(-1, "! MESSAGE ALGOID INCORRECT RECU !");
+                        sprintf(msgReportBuffer, "%s", ClientID);
+                        sprintf(&msgReportBuffer[8], " -> %s", "MESSAGE ALGOID INCORRECT RECU !");
                 }
                 mqttDataReady=0;
             }
