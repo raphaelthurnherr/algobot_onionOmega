@@ -414,9 +414,17 @@ unsigned char getOrganI2Cregister(char organType, unsigned char organName){
 
 	if(organType == SERVOM){
 		switch(organName){
-			case SERVO_0 : organAdr = PCA_SRM0; break;
-			case SERVO_1 : organAdr = PCA_SRM1; break;
-			case SERVO_2 : organAdr = PCA_SRM2; break;
+			case SERVO_0 : organAdr = PCA_CN13_4; break;
+			case SERVO_1 : organAdr = PCA_CN11_4; break;
+			case SERVO_2 : organAdr = PCA_CN14_7; break;
+                        case SERVO_3 : organAdr = PCA_CN15_4; break;
+                        case SERVO_4 : organAdr = PCA_CN8_3; break;
+                        case SERVO_5 : organAdr = PCA_CN7_3; break;
+                        case SERVO_6 : organAdr = PCA_CN5_7; break;
+                        case SERVO_7 : organAdr = PCA_CN4_4; break;
+                        case SERVO_8 : organAdr = PCA_CN9_3; break;
+                        case SERVO_9 : organAdr = PCA_CN10_3; break;
+                        
 			default :	organAdr = UNKNOWN; break;
 		}
 	}

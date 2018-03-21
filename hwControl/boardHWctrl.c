@@ -128,7 +128,7 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
 		// S�l�ction du sens de rotation du moteur ou OFF
 		switch(direction){
 			case MCW 	 :  MCP2308_GPIO_STATE |= 0x01; break;
-			case MCCW 	 : 	MCP2308_GPIO_STATE |= 0x08; break;
+			case MCCW 	 :  MCP2308_GPIO_STATE |= 0x08; break;
 			case MSTOP 	 :  MCP2308_GPIO_STATE |= 0x00; break;
 			default		 : ;break;
 		}
@@ -290,9 +290,9 @@ int EFM8BB_readSonarDistance(void){
 
 	if(!err){
 //		SonarDistance_mm=i2cReadByte(20);
-                i2c_readByte(0, EFM8BB, 20, &mmLSB);
+                i2c_readByte(0, EFM8BB, SON0, &mmLSB);
 //		SonarDistance_mm+=(i2cReadByte(21)<<8);
-                i2c_readByte(0, EFM8BB, 21, &mmMSB);
+                i2c_readByte(0, EFM8BB, SON0+1, &mmMSB);
                 SonarDistance_mm=mmLSB + (mmLSB<<8);
 		return SonarDistance_mm;
 	}else return -1;
@@ -317,9 +317,9 @@ int EFM8BB_readBatteryVoltage(void){
 
 	if(!err){
 //del		batteryVoltage_mV=i2cReadByte(10);
-                i2c_readByte(0, EFM8BB, 10, &mVLSB);
+                i2c_readByte(0, EFM8BB, VOLT0, &mVLSB);
 //del		batteryVoltage_mV+=(i2cReadByte(11)<<8);
-                i2c_readByte(0, EFM8BB, 11, &mVMSB);
+                i2c_readByte(0, EFM8BB, VOLT0+1, &mVMSB);
                 batteryVoltage_mV=mVLSB + (mVMSB<<8);
 		return batteryVoltage_mV;
 	}else return -1;
@@ -337,8 +337,8 @@ int EFM8BB_readFrequency(unsigned char wheelNb){
 
 //del	err=i2cSelectSlave(EFM8BB);						// S�l�ction du CHIP
 
-	if(wheelNb==0) regAddr = 40;
-	else regAddr = 41;
+	if(wheelNb==0) regAddr = ENC_FREQ0;
+	else regAddr = ENC_FREQ1;
 
 	freq=0;							// RAZ de la variable
 
@@ -363,10 +363,10 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb){
 //del	err=i2cSelectSlave(EFM8BB);						// S�l�ction du CHIP
 
 	if(wheelNb==0) {
-		regAddr = 50;
+		regAddr = ENC_CNT0;
 	}
 	else {
-		regAddr = 60;
+		regAddr = ENC_CNT1;
 	}
 
 	pulseCount=0;							// RAZ de la variable
@@ -394,10 +394,10 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb){
 //del	err=i2cSelectSlave(EFM8BB);						// S�l�ction du CHIP
 
 	if(wheelNb==0) {
-		regAddr = 52;
+		regAddr = ENC_CNT0_RESET;
 	}
 	else {
-		regAddr = 62;
+		regAddr = ENC_CNT1_RESET;
 	}
 
 	pulseCount=0;							// RAZ de la variable
@@ -422,9 +422,9 @@ char EFM8BB_readDigitalInput(unsigned char InputNr){
 	if(!err){
 		switch(InputNr){
 //del			case 0 :	inputState=i2cReadByte(30); break;
-                        case 0 :	i2c_readByte(0, EFM8BB, 30, &inputState); break;
+                        case 0 :	i2c_readByte(0, EFM8BB, DIN_REG, &inputState); break;
 //del			case 1 :	inputState=i2cReadByte(31); break;
-                        case 1 :	i2c_readByte(0, EFM8BB, 31, &inputState); break;
+                        case 1 :	i2c_readByte(0, EFM8BB, DIN_REG, &inputState); break;
 			default:	return(-1); break;
 		}
 

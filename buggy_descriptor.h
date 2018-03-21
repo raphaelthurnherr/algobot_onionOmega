@@ -25,6 +25,8 @@ typedef enum o_encoder{
 typedef enum o_din{
 	DIN_0,
 	DIN_1,
+        DIN_2,
+        DIN_3,
 	NBDIN
 }t_din;
 
@@ -48,6 +50,13 @@ typedef enum o_servo{
 	SERVO_0,
 	SERVO_1,
 	SERVO_2,
+        SERVO_3,
+        SERVO_4,
+        SERVO_5,
+        SERVO_6,
+        SERVO_7,
+        SERVO_8,
+        SERVO_9, 
 	NBSERVO
 }t_servo;
 
@@ -59,7 +68,7 @@ typedef enum o_led{
 }t_led;
 
 #define BUGGY_STOP 		0
-#define BUGGY_FORWARD 	1
+#define BUGGY_FORWARD           1
 #define BUGGY_BACK 		2
 
 #endif /* ALGOIDCOM_BUGGY_DESCRIPTOR_H_ */
