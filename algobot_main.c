@@ -88,11 +88,11 @@ struct m_motor{
 };
 
 typedef struct tsensor{
-	struct m_prox proximity[2];
-	struct m_dist distance[1];
-	struct m_voltage battery[1];
-	struct m_counter encoder[2];
-	struct m_motor motor[2];
+	struct m_prox proximity[NBDIN];
+	struct m_dist distance[NBPWM];
+	struct m_voltage battery[NBAIN];
+	struct m_counter encoder[NBMOTOR];
+	struct m_motor motor[NBMOTOR];
 }t_sensor;
 
 t_sensor body;

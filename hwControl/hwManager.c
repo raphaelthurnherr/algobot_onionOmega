@@ -67,6 +67,7 @@ int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd);		//
 // ------------------------------------------
 void *hwTask (void * arg){
 	int i;
+        char dinState=0;
 
 	if(buggyBoardInit()){
 		printf("\n#[HW MANAGER] Initialisation carte HW: OK\n");
@@ -91,13 +92,26 @@ void *hwTask (void * arg){
 					  sensor.counter[MOTOR_ENCODER_LEFT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_LEFT); break;
 			case 10	: sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_RIGHT);
 					  sensor.counter[MOTOR_ENCODER_RIGHT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_RIGHT); break;
-			case 15	: sensor.din[DIN_0] = EFM8BB_readDigitalInput(DIN_0); break;
-			case 20	: sensor.din[DIN_1] = EFM8BB_readDigitalInput(DIN_1); break;
-			case 25	: sensor.pwm[SONAR_0] = EFM8BB_readSonarDistance()/10; break;
-			case 30	: sensor.ain[BATT_0] = EFM8BB_readBatteryVoltage() ;break;
+			case 15	:   dinState = EFM8BB_readDigitalInput(0);      // Paramètre transmis non utilisé par la fonction...
+                                    if(dinState & 0x01) sensor.din[DIN_0] = 1;
+                                    else sensor.din[DIN_0]=0;
+                        
+                                    if(dinState & 0x02) sensor.din[DIN_1] = 1;
+                                    else sensor.din[DIN_1]=0;
+                        
+                                    if(dinState & 0x04) sensor.din[DIN_2] = 1;
+                                    else sensor.din[DIN_2]=0;
+                        
+                                    if(dinState & 0x08) sensor.din[DIN_3] = 1;
+                                    else sensor.din[DIN_3]=0;
+                                    break;
+			case 20	: sensor.pwm[SONAR_0] = EFM8BB_readSonarDistance()/10; break;       // Conversion de distance mm en cm
+			case 25	: sensor.ain[BATT_0] = EFM8BB_readBatteryVoltage() ;break;
 
 			default: if(i2c_command_queuing[0][CALLBACK]!=0)processCommandQueue(); break;
 		}
+                
+                printf("\n LEFT: %d   RIGHT: %d", sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup, sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
 
 		// Reset le compteur au bout de 100mS
 		if(timeCount_ms<50)
@@ -154,10 +168,10 @@ int getMotorPulses(unsigned char motorName){
 }
 
 char getDigitalInput(unsigned char inputNumber){
-	char inputState;
+	char inputState=0;
 
 	inputState = sensor.din[inputNumber];
-							/*;
+                             			/*;
 	switch(inputNumber){
 		case 0: inputState = buggySensor.din0; break;
 		case 1: inputState = buggySensor.din1; break;

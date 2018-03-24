@@ -284,17 +284,18 @@ int EFM8BB_readSonarDistance(void){
         unsigned int mmMSB;
         unsigned int mmLSB;
         
-//	err=i2cSelectSlave(EFM8BB);						// Sï¿½lï¿½ction du CHIP
+//	err=i2cSelectSlave(EFM8BB);						
 
-	SonarDistance_mm=0;								// RAZ de la variable distance
+	SonarDistance_mm=0;							// RAZ de la variable distance
 
 	if(!err){
 //		SonarDistance_mm=i2cReadByte(20);
                 i2c_readByte(0, EFM8BB, SON0, &mmLSB);
 //		SonarDistance_mm+=(i2cReadByte(21)<<8);
                 i2c_readByte(0, EFM8BB, SON0+1, &mmMSB);
-                SonarDistance_mm=mmLSB + (mmLSB<<8);
-		return SonarDistance_mm;
+                SonarDistance_mm=mmLSB + (mmMSB<<8);
+		//printf("MSB: %2x %2x", );
+                return SonarDistance_mm;
 	}else return -1;
 }
 
@@ -355,12 +356,10 @@ int EFM8BB_readFrequency(unsigned char wheelNb){
 // ou -1 si erreur de lecture
 // -------------------------------------------------------------------
 int EFM8BB_readPulseCounter(unsigned char wheelNb){
-	unsigned char err, regAddr;
+	unsigned char err=0, regAddr=0;
 	unsigned int pulseCount;
-        unsigned int pcMSB;
-        unsigned int pcLSB;
-
-//del	err=i2cSelectSlave(EFM8BB);						// Sï¿½lï¿½ction du CHIP
+        unsigned int pcMSB=0;
+        unsigned int pcLSB=0;
 
 	if(wheelNb==0) {
 		regAddr = ENC_CNT0;
@@ -371,12 +370,12 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb){
 
 	pulseCount=0;							// RAZ de la variable
 
+        err+=i2c_readByte(0, EFM8BB, regAddr, &pcLSB);
+        err+=i2c_readByte(0, EFM8BB, regAddr+1, &pcMSB);
+        
+        pulseCount=pcLSB + (pcMSB<<8);
+                
 	if(!err){
-//del		pulseCount=(i2cReadByte(regAddr));
-                i2c_readByte(0, EFM8BB, regAddr, &pcLSB);
-//del		pulseCount=pulseCount+(i2cReadByte(regAddr+1)<<8);
-                i2c_readByte(0, EFM8BB, regAddr+1, &pcMSB);
-                pulseCount=pcLSB + (pcMSB<<8);
 		return pulseCount;
 	}else return -1;
 }
@@ -412,22 +411,16 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb){
 // -------------------------------------------------------------------
 // GETDIGITALINPUT
 // Mesure de l'ï¿½tat des entrï¿½es digitale
+// Paramètre "InputNr" plus utilisé...
 // -------------------------------------------------------------------
 char EFM8BB_readDigitalInput(unsigned char InputNr){
 	unsigned char err;
-	unsigned int inputState;
+	char inputState=0;
 
 //del	err=i2cSelectSlave(EFM8BB);
+        err = i2c_readByte(0, EFM8BB, DIN_REG, &inputState);
 
 	if(!err){
-		switch(InputNr){
-//del			case 0 :	inputState=i2cReadByte(30); break;
-                        case 0 :	i2c_readByte(0, EFM8BB, DIN_REG, &inputState); break;
-//del			case 1 :	inputState=i2cReadByte(31); break;
-                        case 1 :	i2c_readByte(0, EFM8BB, DIN_REG, &inputState); break;
-			default:	return(-1); break;
-		}
-
 		return inputState;
 	}else return -1;
 }
