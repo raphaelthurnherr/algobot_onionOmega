@@ -58,6 +58,7 @@ unsigned char getMotorPower(unsigned char motorNr);											// Retourne la vel
 
 void setServoPosition(unsigned char smName, unsigned char angle);
 void setLedPower(unsigned char ledID, unsigned char power);
+void setPwmPower(unsigned char ID, unsigned char power);
 
 void processCommandQueue(void);
 void execCommand(void (*ptrFunc)(char, int), char adr, int cmd);
@@ -111,7 +112,7 @@ void *hwTask (void * arg){
 			default: if(i2c_command_queuing[0][CALLBACK]!=0)processCommandQueue(); break;
 		}
                 
-                printf("\n LEFT: %d   RIGHT: %d", sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup, sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
+//                printf("\n LEFT: %d   RIGHT: %d", sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup, sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
 
 		// Reset le compteur au bout de 100mS
 		if(timeCount_ms<50)
@@ -377,7 +378,7 @@ int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd){
 void setServoPosition(unsigned char smName, unsigned char angle){
 	char smAddr;
 
-	smAddr=getOrganI2Cregister(SERVOM, smName);
+	smAddr=getOrganI2Cregister(PWM, smName);
 	set_i2c_command_queue(&PCA9685_setServoPos, smAddr, angle);
 }
 
@@ -385,6 +386,12 @@ void setLedPower(unsigned char ledID, unsigned char power){
 	unsigned char ledAdress;
 	ledAdress=getOrganI2Cregister(LED, ledID);
 	set_i2c_command_queue(&PCA9685_setLedPower, ledAdress, power);
+}
+
+void setPwmPower(unsigned char ID, unsigned char power){
+	unsigned char pwmAdress;
+	pwmAdress=getOrganI2Cregister(PWM, ID);
+	set_i2c_command_queue(&PCA9685_setLedPower, pwmAdress, power);
 }
 
 // ------------------------------------------------------------------------------------
@@ -428,18 +435,18 @@ unsigned char getOrganI2Cregister(char organType, unsigned char organName){
 		}
 	}
 
-	if(organType == SERVOM){
+	if(organType == PWM){
 		switch(organName){
-			case SERVO_0 : organAdr = PCA_CN13_4; break;
-			case SERVO_1 : organAdr = PCA_CN11_4; break;
-			case SERVO_2 : organAdr = PCA_CN14_7; break;
-                        case SERVO_3 : organAdr = PCA_CN15_4; break;
-                        case SERVO_4 : organAdr = PCA_CN8_3; break;
-                        case SERVO_5 : organAdr = PCA_CN7_3; break;
-                        case SERVO_6 : organAdr = PCA_CN5_7; break;
-                        case SERVO_7 : organAdr = PCA_CN4_4; break;
-                        case SERVO_8 : organAdr = PCA_CN9_3; break;
-                        case SERVO_9 : organAdr = PCA_CN10_3; break;
+			case PWM_0 : organAdr = PCA_CN13_4; break;
+			case PWM_1 : organAdr = PCA_CN11_4; break;
+			case PWM_2 : organAdr = PCA_CN14_7; break;
+                        case PWM_3 : organAdr = PCA_CN15_4; break;
+                        case PWM_4 : organAdr = PCA_CN8_3; break;
+                        case PWM_5 : organAdr = PCA_CN7_3; break;
+                        case PWM_6 : organAdr = PCA_CN5_7; break;
+                        case PWM_7 : organAdr = PCA_CN4_4; break;
+                        case PWM_8 : organAdr = PCA_CN9_3; break;
+                        case PWM_9 : organAdr = PCA_CN10_3; break;
                         
 			default :	organAdr = UNKNOWN; break;
 		}

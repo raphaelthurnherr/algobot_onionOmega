@@ -110,6 +110,7 @@ int makeStatusRequest(void);
 
 int make2WDaction(void);
 int makeServoAction(void);
+int makePwmAction(void);
 int makeLedAction(void);
 int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int value);
 int endWheelAction(int actionNumber, int wheelNumber);
@@ -117,7 +118,8 @@ int checkMotorEncoder(int actionNumber, int encoderName);
 
 int getWDvalue(int wheelName);
 int getServoSetting(int servoName);
-int getLedSetting(int ledName);
+int getPwmSetting(int name);
+int getLedSetting(int name);
 char reportBuffer[256];
 
 
@@ -133,7 +135,8 @@ int main(void) {
 	int i;
 
 	system("clear");
-        
+        printf ("ALGOBOT Beta - Build 180326 \n");
+        printf ("----------------------------\n");
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID
 	if(InitMessager()) printf ("#[CORE] Creation tâche messagerie : ERREUR\n");
@@ -274,7 +277,8 @@ int main(void) {
 int processAlgoidCommand(void){
 	switch(AlgoidCommand.msgParam){
 		case LL_2WD : 	make2WDaction(); break;			// Action avec en paramètre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
-		case SERVO  : 	makeServoAction();break;
+//		case pPWM  : 	makeServoAction();break;
+                case pPWM  : 	makePwmAction();break;
 		case pLED  : 	makeLedAction();break;
 		default : break;
 	}
@@ -388,9 +392,9 @@ int makeServoAction(void){
 
 	// Recherche s'il y a des paramètres pour chaque roue
 	// Des paramètres recu pour une roue crée une action à effectuer
-	if(getServoSetting(SERVO_0)>=0) actionCount++;
-	if(getServoSetting(SERVO_1)>=0) actionCount++;
-	if(getServoSetting(SERVO_2)>=0) actionCount++;
+	if(getServoSetting(PWM_0)>=0) actionCount++;
+	if(getServoSetting(PWM_1)>=0) actionCount++;
+	if(getServoSetting(PWM_2)>=0) actionCount++;
 
 	// Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
 	// Recois un numéro de tache en retour
@@ -405,8 +409,8 @@ int makeServoAction(void){
 		saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 
 		for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
-			if(AlgoidCommand.SERVOmotor[ptrData].id>=0){
-				setServoPosition(AlgoidCommand.SERVOmotor[ptrData].id, AlgoidCommand.SERVOmotor[ptrData].angle);
+			if(AlgoidCommand.PWMout[ptrData].id>=0){
+				setServoPosition(AlgoidCommand.PWMout[ptrData].id, AlgoidCommand.PWMout[ptrData].angle);
 
 				endOfTask=removeBuggyTask(myTaskId);
 				if(endOfTask>0){
@@ -420,7 +424,7 @@ int makeServoAction(void){
 					// Libère la memorisation de l'expediteur
 					removeHeaderOfMsgId(endOfTask);
 
-					sendResponse(endOfTask, msgTo, EVENT, SERVO, 0);				// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+					sendResponse(endOfTask, msgTo, EVENT, pPWM, 0);				// Envoie un message ALGOID de fin de tâche pour l'action écrasé
 					printf(reportBuffer);									// Affichage du message dans le shell
 					sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
 				}
@@ -434,22 +438,83 @@ int makeServoAction(void){
 
 
 // -------------------------------------------------------------------
-// makeLedAction
+// makePwmAction
+//
+// -------------------------------------------------------------------
+int makePwmAction(void){
+	int ptrData;
+	int myTaskId;
+	int endOfTask;
+        int i;
+        
+	unsigned char actionCount=0;
+	unsigned char action=0;
+
+            // Recherche s'il y a des paramètres pour chaque roue
+            // Des paramètres recu pour une roue crée une action à effectuer
+        for(i=0;i<NBPWM;i++){
+            if(getPwmSetting(i)>=0) actionCount++;
+        }
+
+
+	// Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
+	// Recois un numéro de tache en retour
+	myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			//
+
+	// Démarrage des actions
+	if(myTaskId>0){
+		printf("Creation de tache PWM: #%d avec %d actions\n", myTaskId, actionCount);
+
+		// Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
+		// en fin d'évenement
+		saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
+
+		for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
+			if(AlgoidCommand.PWMarray[ptrData].id>=0){
+                                setPwmPower(AlgoidCommand.PWMarray[ptrData].id, AlgoidCommand.PWMarray[ptrData].powerPercent);   
+				endOfTask=removeBuggyTask(myTaskId);
+				if(endOfTask>0){
+					sprintf(reportBuffer, "FIN DES ACTIONS PWM pour la tache #%d\n", endOfTask);
+
+					// Récupère l'expediteur original du message ayant provoqué
+					// l'évenement
+					char msgTo[32];
+					int ptr=getSenderFromMsgId(endOfTask);
+					strcpy(msgTo, msgEventHeader[ptr].msgFrom);
+					// Libère la memorisation de l'expediteur
+					removeHeaderOfMsgId(endOfTask);
+
+					sendResponse(endOfTask, msgTo, EVENT, pPWM, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+					printf(reportBuffer);									// Affichage du message dans le shell
+					sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+				}
+
+				action++;
+			}
+		}
+	}
+	return 0;
+}
+
+// -------------------------------------------------------------------
+// makeLEDAction
 //
 // -------------------------------------------------------------------
 int makeLedAction(void){
 	int ptrData;
 	int myTaskId;
 	int endOfTask;
-
+        int i;
+        
 	unsigned char actionCount=0;
 	unsigned char action=0;
 
-	// Recherche s'il y a des paramètres pour chaque roue
-	// Des paramètres recu pour une roue crée une action à effectuer
-	if(getLedSetting(LED_0)>=0) actionCount++;
-	if(getLedSetting(LED_1)>=0) actionCount++;
-	if(getLedSetting(LED_2)>=0) actionCount++;
+            // Recherche s'il y a des paramètres pour chaque roue
+            // Des paramètres recu pour une roue crée une action à effectuer
+        for(i=0;i<NBLED;i++){
+            if(getLedSetting(i)>=0) actionCount++;
+        }
+
 
 	// Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
 	// Recois un numéro de tache en retour
@@ -468,7 +533,7 @@ int makeLedAction(void){
                                 setLedPower(AlgoidCommand.LEDarray[ptrData].id, AlgoidCommand.LEDarray[ptrData].powerPercent);   
 				endOfTask=removeBuggyTask(myTaskId);
 				if(endOfTask>0){
-					sprintf(reportBuffer, "FIN DES ACTIONS \"LED\" pour la tache #%d\n", endOfTask);
+					sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
 
 					// Récupère l'expediteur original du message ayant provoqué
 					// l'évenement
@@ -684,7 +749,7 @@ int getServoSetting(int servoName){
 
 	// Recherche dans les donnée recues la valeur correspondante au paramètre "wheelName"
 	for(i=0;i<AlgoidCommand.msgValueCnt;i++){
-		if(servoName == AlgoidCommand.SERVOmotor[i].id)
+		if(servoName == AlgoidCommand.PWMout[i].id)
 		searchPtr=i;
 	}
 	return searchPtr;
@@ -692,17 +757,34 @@ int getServoSetting(int servoName){
 
 
 // -------------------------------------------------------------------
-// GETLEDSETTING
+// GETPWMSETTING
 // Recherche dans le message algoid, les paramètres
-// pour une LED spécifiée
+// pour une PWM spécifiée
 // -------------------------------------------------------------------
-int getLedSetting(int ledName){
+int getPwmSetting(int name){
 	int i;
 	int searchPtr = -1;
 
 	// Recherche dans les donnée recues la valeur correspondante au paramètre "wheelName"
 	for(i=0;i<AlgoidCommand.msgValueCnt;i++){
-		if(ledName == AlgoidCommand.LEDarray[i].id)
+		if(name == AlgoidCommand.PWMarray[i].id)
+		searchPtr=i;
+	}
+	return searchPtr;
+}
+
+// -------------------------------------------------------------------
+// GETLEDSETTING
+// Recherche dans le message algoid, les paramètres
+// pour une LED spécifiée
+// -------------------------------------------------------------------
+int getLedSetting(int name){
+	int i;
+	int searchPtr = -1;
+
+	// Recherche dans les donnée recues la valeur correspondante au paramètre "wheelName"
+	for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+		if(name == AlgoidCommand.LEDarray[i].id)
 		searchPtr=i;
 	}
 	return searchPtr;

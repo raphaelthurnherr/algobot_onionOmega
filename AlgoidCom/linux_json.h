@@ -19,7 +19,7 @@ typedef enum msgparam{
 	DINPUT,
 	DISTANCE,
 	BATTERY,
-	SERVO,
+	pPWM,
 	pLED,
 	STATUS
 }t_msgparam;
@@ -60,7 +60,7 @@ struct mBattery{
 	int safetyStop_value;
 };
 
-struct mServo{
+struct mPwm{
 	int id;
 	char state[50];
 	int angle;
@@ -94,8 +94,9 @@ typedef struct JsonCommand{
 	struct mDin DINsens[20];
 	struct mDistance DISTsens[20];
 	struct mBattery BATTsens[20];
-	struct mServo SERVOmotor[20];
-	struct mLed LEDarray[20];
+	struct mPwm PWMout[20]; // ---> SERVO
+	struct mLed PWMarray[20];
+        struct mLed LEDarray[20]; // LED (internal board pwm)
 	// UNION ???
 
 }ALGOID;

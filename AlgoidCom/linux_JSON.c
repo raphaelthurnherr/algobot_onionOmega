@@ -20,11 +20,10 @@
 #define KEY_MESSAGE_VALUE_SONAR "{'MsgData'{'MsgValue'[*{'sonar'"
 #define KEY_MESSAGE_VALUE_ANGLE "{'MsgData'{'MsgValue'[*{'angle'"
 #define KEY_MESSAGE_VALUE_BATT "{'MsgData'{'MsgValue'[*{'battery'"
-#define KEY_MESSAGE_VALUE_SERVO "{'MsgData'{'MsgValue'[*{'servo'"
+
+#define KEY_MESSAGE_VALUE_PWM "{'MsgData'{'MsgValue'[*{'pwm'"
 #define KEY_MESSAGE_VALUE_LED "{'MsgData'{'MsgValue'[*{'led'"
-
 #define KEY_MESSAGE_VALUE_POWER "{'MsgData'{'MsgValue'[*{'power'"
-
 #define KEY_MESSAGE_VALUE_STATE "{'MsgData'{'MsgValue'[*{'state'"
 
 #define KEY_MESSAGE_VALUE_EVENT_STATE "{'MsgData'{'MsgValue'[*{'event'"
@@ -102,7 +101,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 					if(!strcmp(myDataString, "stop")) AlgoidMessageRX.msgParam = STOP;
 					if(!strcmp(myDataString, "move")) AlgoidMessageRX.msgParam = MOVE;
 					if(!strcmp(myDataString, "2wd")) AlgoidMessageRX.msgParam = LL_2WD;
-					if(!strcmp(myDataString, "servo")) AlgoidMessageRX.msgParam = SERVO;
+					if(!strcmp(myDataString, "pwm")) AlgoidMessageRX.msgParam = pPWM;
 					if(!strcmp(myDataString, "led")) AlgoidMessageRX.msgParam = pLED;
 
 					if(!strcmp(myDataString, "distance")) AlgoidMessageRX.msgParam = DISTANCE;
@@ -161,29 +160,34 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 							 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_STOP, AlgoidMessageRX.BATTsens[i].safetyStop_state, 15, &i );
 							 AlgoidMessageRX.BATTsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
 				    	  }
-
-				    	  if(AlgoidMessageRX.msgParam == SERVO){
-				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_STATE, AlgoidMessageRX.SERVOmotor[i].state, 15, &i );
+/*
+                                          // SERVO A RETRAVAILLER
+				    	  if(AlgoidMessageRX.msgParam == pPWM){ 
+				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_STATE, AlgoidMessageRX.PWMout[i].state, 15, &i );
 				    		  int organId=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SERVO, &i);
 				    		  switch(organId){
-				    		  	  case 0 : AlgoidMessageRX.SERVOmotor[i].id=SERVO_0; break;
-				    		  	  case 1 : AlgoidMessageRX.SERVOmotor[i].id=SERVO_1; break;
-				    		  	  case 2 : AlgoidMessageRX.SERVOmotor[i].id=SERVO_2; break;
-				    		  	  default : AlgoidMessageRX.SERVOmotor[i].id=-1; break;
+				    		  	  case 0 : AlgoidMessageRX.PWMout[i].id=PWM_0; break;
+				    		  	  case 1 : AlgoidMessageRX.PWMout[i].id=PWM_1; break;
+				    		  	  case 2 : AlgoidMessageRX.PWMout[i].id=PWM_2; break;
+				    		  	  default : AlgoidMessageRX.PWMout[i].id=-1; break;
 				    		  }
-				    		  AlgoidMessageRX.SERVOmotor[i].angle= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ANGLE, &i);
-				    	  }
-
+				    		  AlgoidMessageRX.PWMout[i].angle= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ANGLE, &i);
+                                            }
+ */
+                                          // LED
 				    	  if(AlgoidMessageRX.msgParam == pLED){
 				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_STATE, AlgoidMessageRX.LEDarray[i].state, 15, &i );
 				    		  int organId=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_LED, &i);
-				    		  switch(organId){
-				    		  	  case 0 : AlgoidMessageRX.LEDarray[i].id=LED_0; break;
-				    		  	  case 1 : AlgoidMessageRX.LEDarray[i].id=LED_1; break;
-				    		  	  case 2 : AlgoidMessageRX.LEDarray[i].id=LED_2; break;
-				    		  	  default : AlgoidMessageRX.LEDarray[i].id=-1; break;
-				    		  }
+				    		  AlgoidMessageRX.LEDarray[i].id=organId;
 				    		  AlgoidMessageRX.LEDarray[i].powerPercent= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_POWER, &i);
+				    	  }
+                                          
+                                          // PWM
+				    	  if(AlgoidMessageRX.msgParam == pPWM){
+				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_STATE, AlgoidMessageRX.PWMarray[i].state, 15, &i );
+				    		  int organId=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_PWM, &i);
+				    		  AlgoidMessageRX.PWMarray[i].id=organId;
+				    		  AlgoidMessageRX.PWMarray[i].powerPercent= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_POWER, &i);
 				    	  }
 
 

@@ -12,7 +12,7 @@
 typedef enum o_type{
 	UNKNOWN = -1,
 	MOTOR,
-	SERVOM,
+	PWM,
 	LED
 }t_type;
 
@@ -35,10 +35,10 @@ typedef enum o_ain{
 	NBAIN
 }t_ain;
 
-typedef enum o_pwm{
+typedef enum o_sonar{
 	SONAR_0,
-	NBPWM
-}t_pwm;
+	NBSONAR
+}t_sonar;
 
 typedef enum o_motor{
 	MOTOR_LEFT,
@@ -46,19 +46,19 @@ typedef enum o_motor{
 	NBMOTOR
 }t_motor;
 
-typedef enum o_servo{
-	SERVO_0,
-	SERVO_1,
-	SERVO_2,
-        SERVO_3,
-        SERVO_4,
-        SERVO_5,
-        SERVO_6,
-        SERVO_7,
-        SERVO_8,
-        SERVO_9, 
-	NBSERVO
-}t_servo;
+typedef enum o_pwm{
+	PWM_0,
+	PWM_1,
+	PWM_2,
+        PWM_3,
+        PWM_4,
+        PWM_5,
+        PWM_6,
+        PWM_7,
+        PWM_8,
+        PWM_9, 
+	NBPWM
+}t_pwm;
 
 typedef enum o_led{
 	LED_0,

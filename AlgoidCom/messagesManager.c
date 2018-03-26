@@ -283,7 +283,7 @@ void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char 
 	switch(msgParam){
 		case STOP : strcpy(ackParam, "stop"); break;
 		case LL_2WD : strcpy(ackParam, "2wd"); break;
-		case SERVO : strcpy(ackParam, "servo"); break;
+		case pPWM : strcpy(ackParam, "pwm"); break;
 		case MOVE : strcpy(ackParam, "move"); break;
 		case DINPUT : strcpy(ackParam, "din"); break;
 		case BATTERY : strcpy(ackParam, "battery"); break;
