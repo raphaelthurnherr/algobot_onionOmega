@@ -47,7 +47,7 @@ typedef struct msgTrace{
 
 MSG_TRACE msgEventHeader[50];
 
-////----------------------------------- A REMPLACER PAR STRUCT
+
 struct m_prox{
 	int state;
 	int event_enable;
@@ -87,12 +87,20 @@ struct m_motor{
 	int direction;
 };
 
+struct m_led{
+	int state;
+	int power;
+        int blinkCount;
+        int blinkTime;
+};
+
 typedef struct tsensor{
 	struct m_prox proximity[NBDIN];
 	struct m_dist distance[NBPWM];
 	struct m_voltage battery[NBAIN];
 	struct m_counter encoder[NBMOTOR];
 	struct m_motor motor[NBMOTOR];
+        struct m_led led[NBLED];
 }t_sensor;
 
 t_sensor body;
@@ -110,11 +118,15 @@ int makeStatusRequest(void);
 
 int make2WDaction(void);
 int makeServoAction(void);
-int makePwmAction(void);
-int makeLedAction(void);
+int makePwmAction(void);int makeLedAction(void);
+
+int setLedAction(int actionNumber, int ledName, int time, int count);
+int endLedAction(int actionNumber, int wheelNumber);
+
 int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int value);
 int endWheelAction(int actionNumber, int wheelNumber);
 int checkMotorEncoder(int actionNumber, int encoderName);
+int checkBlinkCount(int actionNumber, int ledName);
 
 int getWDvalue(int wheelName);
 int getServoSetting(int servoName);
@@ -505,14 +517,41 @@ int makeLedAction(void){
 	int myTaskId;
 	int endOfTask;
         int i;
+        int ID;
+        
+        int time=0;
+        int power=0;
+        int Count=0;
         
 	unsigned char actionCount=0;
 	unsigned char action=0;
 
-            // Recherche s'il y a des paramètres pour chaque roue
-            // Des paramètres recu pour une roue crée une action à effectuer
+        // Recherche s'il y a des paramètres défini pour chaque LED
+        // et mise à jour.   
         for(i=0;i<NBLED;i++){
-            if(getLedSetting(i)>=0) actionCount++;
+            ptrData=getLedSetting(i);
+            if(ptrData>=0){
+                actionCount++;          // Incrémente le nombre de paramètres trouvés = action supplémentaire a effectuer
+                
+                // Récupération de commande d'état de la led 
+                if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"off"))
+                    body.led[i].state=0;
+                if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"on"))
+                    body.led[i].state=1;
+                if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"blink"))
+                    body.led[i].state=2;
+                
+                // Récupération des consignes si disponible
+                if(AlgoidCommand.LEDarray[ptrData].powerPercent > 0)
+                    body.led[i].power=AlgoidCommand.LEDarray[ptrData].powerPercent;
+                
+                if(AlgoidCommand.LEDarray[ptrData].time > 0)
+                    body.led[i].blinkTime=AlgoidCommand.LEDarray[ptrData].time;
+                
+                if(AlgoidCommand.LEDarray[ptrData].blinkCount > 0)
+                    body.led[i].blinkCount=AlgoidCommand.LEDarray[ptrData].blinkCount;
+            }
+            
         }
 
 
@@ -529,25 +568,45 @@ int makeLedAction(void){
 		saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 
 		for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
-			if(AlgoidCommand.LEDarray[ptrData].id>=0){
-                                setLedPower(AlgoidCommand.LEDarray[ptrData].id, AlgoidCommand.LEDarray[ptrData].powerPercent);   
-				endOfTask=removeBuggyTask(myTaskId);
-				if(endOfTask>0){
-					sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
+                        ID = AlgoidCommand.LEDarray[ptrData].id;
+			if(ID >= 0){
+                            
+                                time=body.led[ID].blinkTime;
+                                power=body.led[ID].power;
+                                Count=body.led[ID].blinkCount;
+                            
+                                // Mode blink
+                                if(body.led[ID].state==2)
+                                     setLedAction(myTaskId, ID, time, Count);
+                                
+                                // Mode on ou off
+                                else{
+                                        if(body.led[ID].state==0)
+                                            setLedPower(ID, 0); 
 
-					// Récupère l'expediteur original du message ayant provoqué
-					// l'évenement
-					char msgTo[32];
-					int ptr=getSenderFromMsgId(endOfTask);
-					strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-					// Libère la memorisation de l'expediteur
-					removeHeaderOfMsgId(endOfTask);
+                                        if(body.led[ID].state==1)
+                                             setLedPower(ID, body.led[ID].power); 
 
-					sendResponse(endOfTask, msgTo, EVENT, pLED, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-					printf(reportBuffer);									// Affichage du message dans le shell
-					sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-				}
+                                         endOfTask=removeBuggyTask(myTaskId);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
 
+                                        if(endOfTask){
+                                            sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
+
+                                            // Récupère l'expediteur original du message ayant provoqué
+                                            // l'évenement
+                                            char msgTo[32];
+                                            int ptr=getSenderFromMsgId(endOfTask);
+                                            strcpy(msgTo, msgEventHeader[ptr].msgFrom);
+                                            // Libère la memorisation de l'expediteur
+                                            removeHeaderOfMsgId(endOfTask);
+
+                                            sendResponse(endOfTask, msgTo, EVENT, pLED, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                                            printf(reportBuffer);									// Affichage du message dans le shell
+                                            sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+                                        }
+
+                                }
+                           
 				action++;
 			}
 		}
@@ -555,6 +614,123 @@ int makeLedAction(void){
 	return 0;
 }
 
+
+// -------------------------------------------------------------------
+// SETBLINKACTION
+// Effectue l'action de clignotement
+// - Démarrage du timer avec definition de fonction call-back, et no d'action
+// - Démarrage du clignotement
+// - vitesse de clignotement en mS
+// -------------------------------------------------------------------
+
+int setLedAction(int actionNumber, int ledName, int time, int count){
+	int setTimerResult;
+	int endOfTask;
+
+	// Démarre un timer d'action sur la led et spécifie la fonction call back à appeler en time-out
+	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
+	//setTimerResult=setTimerWheel(value, &endWheelAction, actionNumber, wheelName);
+        setTimerResult=setTimer(time, &checkBlinkCount, actionNumber, ledName, LED);
+
+	if(setTimerResult!=0){                                          // Timer pret, action effectuée
+		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur la même roue
+			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
+                            if(endOfTask>0){
+                                    sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
+
+                                    // Récupère l'expediteur original du message ayant provoqué
+                                    // l'évenement
+                                    char msgTo[32];
+                                    int ptr=getSenderFromMsgId(endOfTask);
+                                    strcpy(msgTo, msgEventHeader[ptr].msgFrom);
+                                    // Libère la memorisation de l'expediteur
+                                    removeHeaderOfMsgId(endOfTask);
+
+                                    sendResponse(endOfTask, msgTo, EVENT, pLED, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                                    printf(reportBuffer);									// Affichage du message dans le shell
+                                    sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+                            }
+		}
+
+		// Inverse l'état de la led
+                if(body.led[ledName].state>0){
+                    setLedPower(ledName, 0);
+                    body.led[ledName].state=0;
+                }else
+                {
+                    setLedPower(ledName, body.led[ledName].power);
+                    body.led[ledName].state=1;
+                }
+	}
+	else printf("Error, Impossible to set timer led\n");
+	return 0;
+}
+
+// -------------------------------------------------------------------
+// ENDBLINKACTION
+// Fin de l'action de clignotement
+// Fonction appelée après le timout défini par l'utilisateur, Stop le clignotement
+// -------------------------------------------------------------------
+int endLedAction(int actionNumber, int LedNumber){
+	int endOfTask;
+	//printf("Action number: %d - End of timer for wheel No: %d\n",actionNumber , wheelNumber);
+
+ 
+        
+	// Retire l'action de la table et vérification si toute les actions sont effectuées
+	// Pour la tâche en cours donnée par le message ALGOID
+
+        endOfTask=removeBuggyTask(actionNumber);
+        if(endOfTask>0){
+                sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
+
+                // Récupère l'expediteur original du message ayant provoqué
+                // l'évenement
+                char msgTo[32];
+                int ptr=getSenderFromMsgId(endOfTask);
+                strcpy(msgTo, msgEventHeader[ptr].msgFrom);
+                // Libère la memorisation de l'expediteur
+                removeHeaderOfMsgId(endOfTask);
+
+                sendResponse(endOfTask, msgTo, EVENT, pLED, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                printf(reportBuffer);									// Affichage du message dans le shell
+                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+        }
+
+	return 0;
+}
+
+// ----------------------------------------------------------------------
+// CHECKBLINKCOUNT
+// CONTROLE LE NOMBRE DE CLIGNOTEMENT SUR LA LED
+// Fonction appelée après le timout défini par l'utilisateur.
+// -----------------------------------------------------------------------
+
+int checkBlinkCount(int actionNumber, int ledName){
+	static int blinkCount=0;     // Variable de comptage du nombre de clignotements
+
+        blinkCount++;
+        
+
+        // Inverse l'état de la led
+        if(body.led[ledName].state>0){
+            setLedPower(ledName, 0);
+            body.led[ledName].state=0;
+        }else
+        {
+            setLedPower(ledName, body.led[ledName].power);
+            body.led[ledName].state=1;
+        }
+        
+        // Contrôle le nombre de clignotement
+	if(blinkCount >= body.led[ledName].blinkCount)
+		endLedAction(actionNumber, ledName);
+	else    {
+		setTimer(body.led[ledName].blinkTime, &checkBlinkCount, actionNumber, ledName, LED);      
+        }
+        
+	return 0;
+}
 
 // -------------------------------------------------------------------
 // SETWHEELACTION
@@ -587,18 +763,17 @@ int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int va
 	// Démarre de timer d'action sur la roue et spécifie la fonction call back à appeler en time-out
 	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
 	switch(unit){
-		case  MILLISECOND:  setTimerResult=setTimerWheel(value, &endWheelAction, actionNumber, wheelName); break;
+		case  MILLISECOND:  setTimerResult=setTimer(value, &endWheelAction, actionNumber, wheelName, MOTOR); break;
 		case  CENTIMETER:   //wheelNumber = getOrganNumber(wheelName);
-							body.encoder[wheelName].startEncoderValue=getMotorPulses(wheelName)*CMPP;
-							body.encoder[wheelName].stopEncoderValue = body.encoder[wheelName].startEncoderValue+ value;
-							//printf("\n Encodeur #%d -> START %.2f cm  STOP %.2f cm", wheelNumber, distance, startEncoderValue[wheelNumber], stopEncoderValue[wheelNumber]);
-						    setTimerResult=setTimerWheel(50, &checkMotorEncoder, actionNumber, wheelName);			// Démarre un timer pour contrôle de distance chaque 35mS
-						    break;
+                                    body.encoder[wheelName].startEncoderValue=getMotorPulses(wheelName)*CMPP;
+                                    body.encoder[wheelName].stopEncoderValue = body.encoder[wheelName].startEncoderValue+ value;
+                                    setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, wheelName, MOTOR);			// Démarre un timer pour contrôle de distance chaque 35mS
+                                    break;
 		default: printf("\n!!! ERROR Function [setWheelAction] -> undefined unit");break;
 	}
 
-	if(setTimerResult!=0){								// Timer pret, action effectuée
-		if(setTimerResult>1){							// Le timer à été écrasé par la nouvelle action en retour car sur la même roue
+	if(setTimerResult!=0){						// Timer pret, action effectuée ()
+		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur la même roue
 			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
 
 			if(endOfTask){
@@ -713,7 +888,7 @@ int checkMotorEncoder(int actionNumber, int encoderName){
 	if(distance >= body.encoder[encoderName].stopEncoderValue)
 		endWheelAction(actionNumber, encoderName);
 	else
-		setTimerWheel(50, &checkMotorEncoder, actionNumber, encoderName);
+		setTimer(50, &checkMotorEncoder, actionNumber, encoderName, MOTOR);
 
 	return 0;
 }
@@ -782,7 +957,7 @@ int getLedSetting(int name){
 	int i;
 	int searchPtr = -1;
 
-	// Recherche dans les donnée recues la valeur correspondante au paramètre "wheelName"
+	// Recherche dans les donnée recues la valeur correspondante au paramètre "name"
 	for(i=0;i<AlgoidCommand.msgValueCnt;i++){
 		if(name == AlgoidCommand.LEDarray[i].id)
 		searchPtr=i;

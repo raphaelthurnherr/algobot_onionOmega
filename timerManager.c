@@ -8,9 +8,10 @@
 // Defninition des emplacement dans les variables timer avec callback
 
 #define ACTIONID 0					// Slot action concerné
-#define WHEEL	 1					// Slot Data
+#define NAME	 1					// Slot Data pour No de roue
 #define PTRFUNC  2					// Slot, Fonction callback
 #define STOPTIME 3					// Slot, Stoptime pour callback
+#define TYPE	 4					// Slot Data pour No de LED
 
 #include "pthread.h"
 #include <unistd.h>
@@ -19,8 +20,8 @@
 // Thread Messager
 pthread_t th_timers;
 
-int myTimer[10][4];					// Données des timer callback
-int timerDataBackup[4];
+int myTimer[10][5];					// Données des timer callback
+int timerDataBackup[5];
 
 int timeNow = 0;					// Variable de comptage de temp actuel pour les timers avec callback
 unsigned char checkMotorPowerFlag;
@@ -36,7 +37,7 @@ void *TimerTask (void * arg){
 	unsigned int cyclicTimer50ms;	// Compteur du timer cyclique 50mS
 	unsigned int cyclicTimer100ms;	// Compteur du timer cyclique 100mS
 	unsigned int cyclicTimer10sec;	// Compteur du timer cyclique 10Secondes
-	unsigned int endTimerValues[4]; // Memorisation des data du timer
+	unsigned int endTimerValues[5]; // Memorisation des data du timer
 	while(1){
 
 		// Controle successivement les timers pour la gestion du temps de
@@ -48,14 +49,15 @@ void *TimerTask (void * arg){
 
 					// Memorise les data timer pour appelle de fonction callback
 					timerDataBackup[ACTIONID]=myTimer[i][ACTIONID];
-					timerDataBackup[WHEEL]=myTimer[i][WHEEL];
+					timerDataBackup[NAME]=myTimer[i][NAME];
+                                        timerDataBackup[TYPE]=myTimer[i][TYPE];
 					timerDataBackup[PTRFUNC]=myTimer[i][PTRFUNC];
 
 					// Libère l'espace de l'action terminée si pas de "reload"
 					myTimer[i][STOPTIME] = myTimer[i][PTRFUNC] = myTimer[i][ACTIONID] = 0;
-					myTimer[i][WHEEL]=-1;
+					myTimer[i][NAME]=-1;
 
-					onTimeOut(timerDataBackup[PTRFUNC], timerDataBackup[ACTIONID],timerDataBackup[WHEEL]);	// Appelle la fonction callback à la fin du timer
+					onTimeOut(timerDataBackup[PTRFUNC], timerDataBackup[ACTIONID],timerDataBackup[NAME]);	// Appelle la fonction callback à la fin du timer
 				}
 			}
 		}
@@ -113,13 +115,13 @@ int CloseTimerManager(void){
 }
 
 // ------------------------------------------------------------------------------------
-// SETTIMERWHEEL: Paramètrage d'un timer pour le fonctionnement d' une roue selon en temps donné
+// SETTIMER: Paramètrage d'un timer pour le fonctionnement d' une roue selon en temps donné
 // time_ms: Durée de fonctionnement
 // *callback: Fonction callback à appeler à la fin du timer
 // actionNumber: Numéro d'action à attribuer
 // wheelName: No de la roue concernée par le fonctionnement
 // ------------------------------------------------------------------------------------
-int setTimerWheel(int time_ms, int (*callback)(int, int),int actionNumber, int wheelName){
+int setTimer(int time_ms, int (*callback)(int, int),int actionNumber, int name, int type){
 
 	int i;
 	int timerIsSet=0;
@@ -132,16 +134,18 @@ int setTimerWheel(int time_ms, int (*callback)(int, int),int actionNumber, int w
 	i=0;
 
 	while((i<10) && (!timerIsSet)){
-		if(wheelName == myTimer[i][WHEEL]){
-			printf("Annulation de la tâche en cours: %d pour roue: %d\n", myTimer[i][ACTIONID], wheelName);
+		if(name == myTimer[i][NAME]){
+                    if(type == myTimer[i][TYPE]){
+			printf("Annulation de la tâche en cours: %d : %d\n", myTimer[i][ACTIONID], name);
 			setTimerResult=myTimer[i][ACTIONID];						// Retourne le numéro d'action ecrassé
-			myTimer[i][ACTIONID]=0;										// Libère l'emplacement car timer ecrasé
+			myTimer[i][ACTIONID]=0;								// Libère l'emplacement car timer ecrasé
+                    }
 		}
 
 		if(myTimer[i][ACTIONID]<=0){
 			myTimer[i][STOPTIME] = timeNow + time_ms;					// Ajoute le temps donné au compteur actuel
 			myTimer[i][PTRFUNC]=callback;								// memorisation de la fonction callback de fin de timer
-			myTimer[i][WHEEL]=wheelName;								// memorisation de la donnée concernée par l'action(roue)
+			myTimer[i][NAME]=name;								// memorisation de la donnée concernée par l'action(roue)
 			myTimer[i][ACTIONID]=actionNumber;							// Memorise le no d'action
 			if(!setTimerResult)setTimerResult=1;						// Retourne OK, si pas d'action écrasé
 			timerIsSet=1;
@@ -153,12 +157,14 @@ int setTimerWheel(int time_ms, int (*callback)(int, int),int actionNumber, int w
 	return setTimerResult;
 }
 
+
+
 // ------------------------------------------------------------------------------------
 // ONTIMEOUT: Fcontion appelee en fin de timer
 // appelle une fonction callback prédéfinie par *ptrFunc
 // ------------------------------------------------------------------------------------
-void onTimeOut(void (*ptrFunc)(int, int),int actionNumber, int wheelName){
-	(*ptrFunc)(actionNumber, wheelName);		// Appelle de la fonction call back prédéfinie par *ptrFonc avec les paramètre recus
+void onTimeOut(void (*ptrFunc)(int, int),int actionNumber, int name){
+	(*ptrFunc)(actionNumber, name);		// Appelle de la fonction call back prédéfinie par *ptrFonc avec les paramètre recus
 }
 
 

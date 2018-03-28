@@ -25,6 +25,7 @@
 #define KEY_MESSAGE_VALUE_LED "{'MsgData'{'MsgValue'[*{'led'"
 #define KEY_MESSAGE_VALUE_POWER "{'MsgData'{'MsgValue'[*{'power'"
 #define KEY_MESSAGE_VALUE_STATE "{'MsgData'{'MsgValue'[*{'state'"
+#define KEY_MESSAGE_VALUE_COUNT "{'MsgData'{'MsgValue'[*{'count'"
 
 #define KEY_MESSAGE_VALUE_EVENT_STATE "{'MsgData'{'MsgValue'[*{'event'"
 #define KEY_MESSAGE_VALUE_EVENT_LOWER "{'MsgData'{'MsgValue'[*{'event_lower'"
@@ -176,10 +177,18 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
  */
                                           // LED
 				    	  if(AlgoidMessageRX.msgParam == pLED){
+                                              
+                                                  AlgoidMessageRX.LEDarray[i].time=-1;
+                                                  AlgoidMessageRX.LEDarray[i].powerPercent=-1;
+                                                  strcpy(AlgoidMessageRX.LEDarray[i].state,"null");
+                                                  AlgoidMessageRX.LEDarray[i].blinkCount=-1;
+                                                  
 				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_STATE, AlgoidMessageRX.LEDarray[i].state, 15, &i );
 				    		  int organId=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_LED, &i);
 				    		  AlgoidMessageRX.LEDarray[i].id=organId;
-				    		  AlgoidMessageRX.LEDarray[i].powerPercent= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_POWER, &i);
+				    		  AlgoidMessageRX.LEDarray[i].powerPercent= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_POWER, &i);                                                  
+                                                  AlgoidMessageRX.LEDarray[i].time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_TIME, &i);
+                                                  AlgoidMessageRX.LEDarray[i].blinkCount= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_COUNT, &i);
 				    	  }
                                           
                                           // PWM

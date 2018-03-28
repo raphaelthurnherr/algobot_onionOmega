@@ -235,10 +235,9 @@ int setMotorDirection(int motorName, int direction){
 
 	switch(direction){
 		case BUGGY_FORWARD :	set_i2c_command_queue(&MCP2308_DCmotorSetRotation, motorAdress, MCW); break;
-								//MCP2308_DCmotorSetRotation(motorAdress, MCW); break;
-		case BUGGY_BACK :
-								set_i2c_command_queue(&MCP2308_DCmotorSetRotation, motorAdress, MCCW); break;
-								//MCP2308_DCmotorSetRotation(motorAdress, MCCW); break;
+
+		case BUGGY_BACK :       set_i2c_command_queue(&MCP2308_DCmotorSetRotation, motorAdress, MCCW); break;
+
 		case BUGGY_STOP : 		break;
 		default :		     	break;
 	}
@@ -251,7 +250,7 @@ int setMotorDirection(int motorName, int direction){
 // CHECKMOTORPOWER:
 // Fonction appelée periodiquement pour la gestion de l'acceleration
 // Décelération du moteur.
-// Elle va augmenté ou diminuer la velocite du moteur jusqu'a atteindre la consigne
+// Elle va augmenter ou diminuer la velocite du moteur jusqu'a atteindre la consigne
 // ------------------------------------------------------------------------------------
 void checkDCmotorPower(void){
 	unsigned char i;

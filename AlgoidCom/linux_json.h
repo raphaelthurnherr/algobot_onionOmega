@@ -70,6 +70,8 @@ struct mLed{
 	int id;
 	char state[50];
 	int powerPercent;
+        int time;
+        int blinkCount;
 };
 
 struct mMotor{
