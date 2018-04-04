@@ -134,19 +134,22 @@ int setTimer(int time_ms, int (*callback)(int, int),int actionNumber, int name, 
 	i=0;
 
 	while((i<10) && (!timerIsSet)){
+                           
 		if(name == myTimer[i][NAME]){
                     if(type == myTimer[i][TYPE]){
 			printf("Annulation de la tâche en cours: %d : %d\n", myTimer[i][ACTIONID], name);
 			setTimerResult=myTimer[i][ACTIONID];						// Retourne le numéro d'action ecrassé
-			myTimer[i][ACTIONID]=0;								// Libère l'emplacement car timer ecrasé
+			myTimer[i][ACTIONID]=0;								// Libère l'emplacement memoire du timer ecrasé
                     }
 		}
 
+                                
 		if(myTimer[i][ACTIONID]<=0){
 			myTimer[i][STOPTIME] = timeNow + time_ms;					// Ajoute le temps donné au compteur actuel
-			myTimer[i][PTRFUNC]=callback;								// memorisation de la fonction callback de fin de timer
+			myTimer[i][PTRFUNC]=callback;							// memorisation de la fonction callback de fin de timer
 			myTimer[i][NAME]=name;								// memorisation de la donnée concernée par l'action(roue)
-			myTimer[i][ACTIONID]=actionNumber;							// Memorise le no d'action
+			myTimer[i][TYPE]=type;								// memorisation de la donnée concernée par l'action(roue)
+                        myTimer[i][ACTIONID]=actionNumber;						// Memorise le no d'action
 			if(!setTimerResult)setTimerResult=1;						// Retourne OK, si pas d'action écrasé
 			timerIsSet=1;
 		}

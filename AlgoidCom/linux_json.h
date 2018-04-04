@@ -21,12 +21,13 @@ typedef enum msgparam{
 	BATTERY,
 	pPWM,
 	pLED,
+        pSERVO,
 	STATUS
 }t_msgparam;
 
 
 struct m2wd{
-	int wheel;
+	int motor;
 	int velocity;
 	int time;
 	int cm;
@@ -81,6 +82,12 @@ struct mMotor{
 	int time;
 };
 
+struct mServo{
+	int id;
+	int angle;
+	int state;
+};
+
 // Structure d'un message algoid recu
 typedef struct JsonCommand{
 	char msgTo[32];
@@ -92,7 +99,7 @@ typedef struct JsonCommand{
 
 	// UNION ???
 	struct m2wd DCmotor[20];
-
+        struct mServo SERVOmotor[20];
 	struct mDin DINsens[20];
 	struct mDistance DISTsens[20];
 	struct mBattery BATTsens[20];
@@ -106,13 +113,15 @@ typedef struct JsonCommand{
 // Structure de réponse à un message algoid
 typedef struct JsonResponse{
 	int value;
-	unsigned char actionState;
+	int responseType;
 
 	// UNION ???
 	struct mDin DINresponse;
 	struct mBattery BATTesponse;
 	struct mDistance DISTresponse;
+        struct mServo SERVOresponse;
 	struct mMotor MOTresponse;
+        struct mLed PWMresponse;
 	// UNION ???
 }ALGOID_RESPONSE;
 
@@ -120,7 +129,7 @@ ALGOID AlgoidCommand;    // Utilisé par main.c
 ALGOID AlgoidMessageRX;
 ALGOID AlgoidMsgRXStack[10];
 
-// Buffer de soirtie pour les 	msgValue[
+// Buffer de sortie pour les msgValue[
 ALGOID_RESPONSE AlgoidResponse[20];
 
 

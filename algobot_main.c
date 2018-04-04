@@ -101,6 +101,7 @@ typedef struct tsensor{
 	struct m_counter encoder[NBMOTOR];
 	struct m_motor motor[NBMOTOR];
         struct m_led led[NBLED];
+        struct m_led pwm[NBPWM];
 }t_sensor;
 
 t_sensor body;
@@ -118,15 +119,21 @@ int makeStatusRequest(void);
 
 int make2WDaction(void);
 int makeServoAction(void);
-int makePwmAction(void);int makeLedAction(void);
 
+int makePwmAction(void);
+int setPwmAction(int actionNumber, int ledName, int time, int count);
+int endPwmAction(int actionNumber, int wheelNumber);
+int checkBlinkPwmCount(int actionNumber, int ledName);
+
+int makeLedAction(void);
 int setLedAction(int actionNumber, int ledName, int time, int count);
-int endLedAction(int actionNumber, int wheelNumber);
+int endLedAction(int actionNumber, int ledNumber);
+int checkBlinkLedCount(int actionNumber, int ledName);
 
 int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int value);
 int endWheelAction(int actionNumber, int wheelNumber);
 int checkMotorEncoder(int actionNumber, int encoderName);
-int checkBlinkCount(int actionNumber, int ledName);
+
 
 int getWDvalue(int wheelName);
 int getServoSetting(int servoName);
@@ -147,7 +154,7 @@ int main(void) {
 	int i;
 
 	system("clear");
-        printf ("ALGOBOT Beta - Build 180326 \n");
+        printf ("ALGOBOT Beta - Build 180404 \n");
         printf ("----------------------------\n");
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID
@@ -251,18 +258,18 @@ int main(void) {
 
 			batteryEventCheck();
 
-			body.motor[MOTOR_LEFT].speed= (getMotorFrequency(MOTOR_LEFT)*CMPP) * body.motor[MOTOR_LEFT].direction;
-			body.motor[MOTOR_RIGHT].speed=(getMotorFrequency(MOTOR_RIGHT)*CMPP) * body.motor[MOTOR_RIGHT].direction;
+			body.motor[MOTOR_0].speed= (getMotorFrequency(MOTOR_0)*CMPP) * body.motor[MOTOR_0].direction;
+			body.motor[MOTOR_1].speed=(getMotorFrequency(MOTOR_1)*CMPP) * body.motor[MOTOR_1].direction;
 
-			body.motor[MOTOR_LEFT].distance=getMotorPulses(MOTOR_LEFT)*CMPP;
-			body.motor[MOTOR_RIGHT].distance=getMotorPulses(MOTOR_RIGHT)*CMPP;
+			body.motor[MOTOR_0].distance=getMotorPulses(MOTOR_0)*CMPP;
+			body.motor[MOTOR_1].distance=getMotorPulses(MOTOR_1)*CMPP;
 
 
 			// est hors a plage spécifiée par les paramettre utilisateur
 //			printf("Pulses left: %d    right: %d\n", test[0], test[1]);
 			//printf("\nBattery: %d, safetyStop_state: %d safetyStop_value: %d", 0, body.battery[0].safetyStop_state, body.battery[0].safetyStop_value);
 //			printf("\nSpeed : G %.1f   D %.1f   ||| Dist G: %.1fcm  Dist D: %.1fcm",
-//					body.motor[MOTOR_LEFT].speed, body.motor[MOTOR_RIGHT].speed, body.motor[MOTOR_LEFT].distance, body.motor[MOTOR_RIGHT].distance);
+//					body.motor[MOTOR_0].speed, body.motor[MOTOR_1].speed, body.motor[MOTOR_0].distance, body.motor[MOTOR_1].distance);
 //			printf(" dist US: %d cm\n", body.distance[0].value);
 
 			t100msFlag=0;												// Quittance le flag 100mS
@@ -287,10 +294,47 @@ int main(void) {
 // Séléctionne et traite le paramètre de commande recue [LL2WD, BACK, FORWARD, STOP, SPIN, etc...]
 // -------------------------------------------------------------------
 int processAlgoidCommand(void){
+    int i;
+    
 	switch(AlgoidCommand.msgParam){
-		case LL_2WD : 	make2WDaction(); break;			// Action avec en paramètre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
+		case LL_2WD : 	
+                                for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+                                    // Controle que le moteur existe...
+                                    if(AlgoidCommand.DCmotor[i].motor >= 0 && AlgoidCommand.DCmotor[i].motor <NBMOTOR)
+                                        AlgoidResponse[i].MOTresponse.id=AlgoidCommand.DCmotor[i].motor;
+                                    else
+                                        AlgoidResponse[i].MOTresponse.id=-1;
+                                            
+                                    // Récupération des paramètes 
+                                    AlgoidResponse[i].MOTresponse.speed=AlgoidCommand.DCmotor[i].velocity;
+                                    AlgoidResponse[i].MOTresponse.distance=AlgoidCommand.DCmotor[i].cm;
+                                    AlgoidResponse[i].MOTresponse.time=AlgoidCommand.DCmotor[i].time;
+                                    AlgoidResponse[i].responseType = 3;
+                                }
+                                // Retourne en réponse le message vérifié
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, LL_2WD, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)
+                                
+                                make2WDaction(); break;			// Action avec en paramètre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
 //		case pPWM  : 	makeServoAction();break;
-                case pPWM  : 	makePwmAction();break;
+                case pPWM  : 	
+                                for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+                                    // Controle que le moteur existe...
+                                    if(AlgoidCommand.PWMarray[i].id >= 0 && AlgoidCommand.PWMarray[i].id <NBPWM)
+                                        AlgoidResponse[i].PWMresponse.id=AlgoidCommand.PWMarray[i].id;
+                                    else
+                                        AlgoidResponse[i].PWMresponse.id=-1;
+                                            
+                                    // Récupération des paramètes 
+                                    strcpy(AlgoidResponse[i].PWMresponse.state, AlgoidCommand.PWMarray[i].state);
+                                    AlgoidResponse[i].PWMresponse.powerPercent=AlgoidCommand.PWMarray[i].powerPercent;
+                                    AlgoidResponse[i].PWMresponse.blinkCount=AlgoidCommand.PWMarray[i].blinkCount;
+                                    AlgoidResponse[i].PWMresponse.time=AlgoidCommand.PWMarray[i].time;
+                                    AlgoidResponse[i].responseType = 3;
+                                }
+                                // Retourne en réponse le message vérifié
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)                    
+                    
+                    makePwmAction();break;
 		case pLED  : 	makeLedAction();break;
 		default : break;
 	}
@@ -330,64 +374,80 @@ int make2WDaction(void){
 	int ptrData;
 	int myTaskId;
 	unsigned char actionCount=0;
+        int i;
 
-	// Recherche s'il y a des paramètres pour chaque roue
-	// Des paramètres recu pour une roue crée une action à effectuer
-	if(getWDvalue(MOTOR_LEFT)>=0)  actionCount++;
-	if(getWDvalue(MOTOR_RIGHT)>=0) actionCount++;
+	// Comptabilise le nombre de paramètre (moteur) recu dans le message
+	// 
+        for(i=0;i<NBMOTOR;i++){
+            if(getWDvalue(i)>=0){
+                actionCount++;          // Les paramète pour 1 Moteur trouvé = une action...
+            }
+        }
 
-	// Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
-	// Recois un numéro de tache en retour
-	myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			// 2 actions pour mouvement 2WD
+        // Au moin une action à effectuer
+        if(actionCount>0){
+            // Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
+            // Recois un numéro de tache en retour
+            myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			// 2 actions pour mouvement 2WD
 
-	// Démarrage des actions
-	if(myTaskId>0){
-		printf("Creation de tache WHEEL: #%d avec %d actions\n", myTaskId, actionCount);
+            // Démarrage des actions
+            if(myTaskId>0){
+                    printf("Creation de tache MOTOR: #%d avec %d actions\n", myTaskId, actionCount);
 
-		// Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
-		// en fin d'évenement
-		saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
+                    // Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
+                    // en fin d'évenement
+                    saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 
-		// Récupération des paramètres d'action  pour la roue "LEFT"
-		ptrData=getWDvalue(MOTOR_LEFT);
-		if(ptrData >=0){
-			// Enregistre la donnée d'acceleration si disponible (<0)
-			if(AlgoidCommand.DCmotor[ptrData].accel!=0 || AlgoidCommand.DCmotor[ptrData].decel!=0)
-				setMotorAccelDecel(MOTOR_LEFT, AlgoidCommand.DCmotor[ptrData].accel, AlgoidCommand.DCmotor[ptrData].decel);
+                    // Récupération des paramètres d'action  pour la roue "LEFT"
+                    ptrData=getWDvalue(MOTOR_0);
+                    if(ptrData >=0){
+                            // Enregistre la donnée d'acceleration si disponible (<0)
+                            if(AlgoidCommand.DCmotor[ptrData].accel!=0 || AlgoidCommand.DCmotor[ptrData].decel!=0)
+                                    setMotorAccelDecel(MOTOR_0, AlgoidCommand.DCmotor[ptrData].accel, AlgoidCommand.DCmotor[ptrData].decel);
 
-			// Effectue l'action sur la roue
-			if(AlgoidCommand.DCmotor[ptrData].cm != 0)
-				setWheelAction(myTaskId, MOTOR_LEFT, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
-			else
-				setWheelAction(myTaskId, MOTOR_LEFT, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
-		}
+                            // Effectue l'action sur la roue
+                            if(AlgoidCommand.DCmotor[ptrData].cm != 0)
+                                    setWheelAction(myTaskId, MOTOR_0, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
+                            else
+                                    setWheelAction(myTaskId, MOTOR_0, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
+                    }
 
-		// Récupération des paramètres d'action  pour la roue "RIGHT"
-		ptrData=getWDvalue(MOTOR_RIGHT);
-		if(ptrData >=0){
-			// Enregistre la donnée d'acceleration si disponible (<0)
-			if(AlgoidCommand.DCmotor[ptrData].accel>0 || AlgoidCommand.DCmotor[ptrData].decel>0)
-				setMotorAccelDecel(MOTOR_RIGHT, AlgoidCommand.DCmotor[ptrData].accel, AlgoidCommand.DCmotor[ptrData].decel);
+                    // Récupération des paramètres d'action  pour la roue "RIGHT"
+                    ptrData=getWDvalue(MOTOR_1);
+                    if(ptrData >=0){
+                            // Enregistre la donnée d'acceleration si disponible (<0)
+                            if(AlgoidCommand.DCmotor[ptrData].accel>0 || AlgoidCommand.DCmotor[ptrData].decel>0)
+                                    setMotorAccelDecel(MOTOR_1, AlgoidCommand.DCmotor[ptrData].accel, AlgoidCommand.DCmotor[ptrData].decel);
 
-			if(AlgoidCommand.DCmotor[ptrData].cm != 0)
-				setWheelAction(myTaskId, MOTOR_RIGHT, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
-			else
-				setWheelAction(myTaskId, MOTOR_RIGHT, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
-		}
+                            if(AlgoidCommand.DCmotor[ptrData].cm != 0)
+                                    setWheelAction(myTaskId, MOTOR_1, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
+                            else
+                                    setWheelAction(myTaskId, MOTOR_1, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
+                    }
 
-		// Retourne un message ALGOID si velocité hors tolérences
-		if((AlgoidCommand.DCmotor[ptrData].velocity < -100) ||(AlgoidCommand.DCmotor[ptrData].velocity > 100))
-			sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  WARNING, LL_2WD, 0);
+                    // Retourne un message ALGOID si velocité hors tolérences
+                    if((AlgoidCommand.DCmotor[ptrData].velocity < -100) ||(AlgoidCommand.DCmotor[ptrData].velocity > 100))
+                            sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  WARNING, LL_2WD, 0);
 
-		// Défini l'action comme "démarrée"
-		AlgoidResponse[0].actionState = 1;
+                    // Défini l'état de laction comme "démarrée" pour message de répons
+                    AlgoidResponse[0].responseType = 1;
 
-		// Retourne un message ALGOID "run"
-		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  RESPONSE, LL_2WD, 1);
-
-		return 0;
-	}
-	else return 1;
+                    // Retourne un message event ALGOID 
+                    sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, LL_2WD, 1);
+                    return 0;
+            }
+            else
+                return 1;
+        }
+        // Aucun paramètre trouvé ou moteur inexistant
+        else{
+            
+            //AlgoidResponse[0].responseType = -1;
+            sprintf(reportBuffer, "ERREUR: Aucun moteur défini ou inexistant pour le message #%d\n", AlgoidCommand.msgID);
+            //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, LL_2WD, 1);  // Retourne une réponse d'erreur, (aucun moteur défini)
+            printf(reportBuffer);                                                             // Affichage du message dans le shell
+            sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"
+        }
 }
 
 // -------------------------------------------------------------------
@@ -398,115 +458,68 @@ int makeServoAction(void){
 	int ptrData;
 	int myTaskId;
 	int endOfTask;
+        int i;
 
 	unsigned char actionCount=0;
 	unsigned char action=0;
 
 	// Recherche s'il y a des paramètres pour chaque roue
 	// Des paramètres recu pour une roue crée une action à effectuer
-	if(getServoSetting(PWM_0)>=0) actionCount++;
-	if(getServoSetting(PWM_1)>=0) actionCount++;
-	if(getServoSetting(PWM_2)>=0) actionCount++;
-
-	// Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
-	// Recois un numéro de tache en retour
-	myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			//
-
-	// Démarrage des actions
-	if(myTaskId>0){
-		printf("Creation de tache SERVO: #%d avec %d actions\n", myTaskId, actionCount);
-
-		// Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
-		// en fin d'évenement
-		saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
-
-		for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
-			if(AlgoidCommand.PWMout[ptrData].id>=0){
-				setServoPosition(AlgoidCommand.PWMout[ptrData].id, AlgoidCommand.PWMout[ptrData].angle);
-
-				endOfTask=removeBuggyTask(myTaskId);
-				if(endOfTask>0){
-					sprintf(reportBuffer, "FIN DES ACTIONS \"SERVO\" pour la tache #%d\n", endOfTask);
-
-					// Récupère l'expediteur original du message ayant provoqué
-					// l'évenement
-					char msgTo[32];
-					int ptr=getSenderFromMsgId(endOfTask);
-					strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-					// Libère la memorisation de l'expediteur
-					removeHeaderOfMsgId(endOfTask);
-
-					sendResponse(endOfTask, msgTo, EVENT, pPWM, 0);				// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-					printf(reportBuffer);									// Affichage du message dans le shell
-					sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-				}
-
-				action++;
-			}
-		}
-	}
-	return 0;
-}
-
-
-// -------------------------------------------------------------------
-// makePwmAction
-//
-// -------------------------------------------------------------------
-int makePwmAction(void){
-	int ptrData;
-	int myTaskId;
-	int endOfTask;
-        int i;
-        
-	unsigned char actionCount=0;
-	unsigned char action=0;
-
-            // Recherche s'il y a des paramètres pour chaque roue
-            // Des paramètres recu pour une roue crée une action à effectuer
-        for(i=0;i<NBPWM;i++){
-            if(getPwmSetting(i)>=0) actionCount++;
+        for(i=0;i<NBSERVO;i++){
+            if(getServoSetting(i)>=0)
+                actionCount++;
         }
 
+        if(actionCount>0){
+            
+            // Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
+            // Recois un numéro de tache en retour
+            myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			//
 
-	// Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
-	// Recois un numéro de tache en retour
-	myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			//
+            // Démarrage des actions
+            if(myTaskId>0){
+                    printf("Creation de tache SERVO: #%d avec %d actions\n", myTaskId, actionCount);
 
-	// Démarrage des actions
-	if(myTaskId>0){
-		printf("Creation de tache PWM: #%d avec %d actions\n", myTaskId, actionCount);
+                    // Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
+                    // en fin d'évenement
+                    saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 
-		// Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
-		// en fin d'évenement
-		saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
+                    for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
+                            if(AlgoidCommand.PWMout[ptrData].id>=0){
+                                    setServoPosition(AlgoidCommand.PWMout[ptrData].id, AlgoidCommand.PWMout[ptrData].angle);
 
-		for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
-			if(AlgoidCommand.PWMarray[ptrData].id>=0){
-                                setPwmPower(AlgoidCommand.PWMarray[ptrData].id, AlgoidCommand.PWMarray[ptrData].powerPercent);   
-				endOfTask=removeBuggyTask(myTaskId);
-				if(endOfTask>0){
-					sprintf(reportBuffer, "FIN DES ACTIONS PWM pour la tache #%d\n", endOfTask);
+                                    endOfTask=removeBuggyTask(myTaskId);
+                                    if(endOfTask>0){
+                                            sprintf(reportBuffer, "FIN DES ACTIONS \"SERVO\" pour la tache #%d\n", endOfTask);
 
-					// Récupère l'expediteur original du message ayant provoqué
-					// l'évenement
-					char msgTo[32];
-					int ptr=getSenderFromMsgId(endOfTask);
-					strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-					// Libère la memorisation de l'expediteur
-					removeHeaderOfMsgId(endOfTask);
+                                            // Récupère l'expediteur original du message ayant provoqué
+                                            // l'évenement
+                                            char msgTo[32];
+                                            int ptr=getSenderFromMsgId(endOfTask);
+                                            strcpy(msgTo, msgEventHeader[ptr].msgFrom);
+                                            // Libère la memorisation de l'expediteur
+                                            removeHeaderOfMsgId(endOfTask);
 
-					sendResponse(endOfTask, msgTo, EVENT, pPWM, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-					printf(reportBuffer);									// Affichage du message dans le shell
-					sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-				}
+                                            sendResponse(endOfTask, msgTo, EVENT, pPWM, 0);				// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                                            printf(reportBuffer);									// Affichage du message dans le shell
+                                            sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+                                    }
 
-				action++;
-			}
-		}
-	}
+                                    action++;
+                            }
+                    }
+            }
+        }
+        else{   
+            sprintf(reportBuffer, "ERREUR: ID SERVO INEXISTANT pour le message #%d\n", AlgoidCommand.msgID);
+            AlgoidResponse[0].SERVOresponse.id=-1;
+            sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pSERVO, 1);  // Envoie un message ALGOID de fin de tâche pour l'action écrasé
+            printf(reportBuffer);                                                           // Affichage du message dans le shell
+            sendMqttReport(AlgoidCommand.msgID, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+        }
 	return 0;
 }
+
 
 // -------------------------------------------------------------------
 // makeLEDAction
@@ -533,7 +546,7 @@ int makeLedAction(void){
             if(ptrData>=0){
                 actionCount++;          // Incrémente le nombre de paramètres trouvés = action supplémentaire a effectuer
                 
-                // Récupération de commande d'état de la led 
+                // Récupération de commande d'état de la led dans le message
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"off"))
                     body.led[i].state=0;
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"on"))
@@ -541,7 +554,7 @@ int makeLedAction(void){
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"blink"))
                     body.led[i].state=2;
                 
-                // Récupération des consignes si disponible
+                // Récupération des consignes dans le message (si disponible)
                 if(AlgoidCommand.LEDarray[ptrData].powerPercent > 0)
                     body.led[i].power=AlgoidCommand.LEDarray[ptrData].powerPercent;
                 
@@ -549,68 +562,81 @@ int makeLedAction(void){
                     body.led[i].blinkTime=AlgoidCommand.LEDarray[ptrData].time;
                 
                 if(AlgoidCommand.LEDarray[ptrData].blinkCount > 0)
-                    body.led[i].blinkCount=AlgoidCommand.LEDarray[ptrData].blinkCount;
+                    body.led[i].blinkCount=AlgoidCommand.LEDarray[ptrData].blinkCount*2;
             }
-            
         }
 
+        
+        if(actionCount>0){ 
+        
+            // Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
+            // Recois un numéro de tache en retour
+            myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			//
 
-	// Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
-	// Recois un numéro de tache en retour
-	myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			//
+            // Démarrage des actions
+            if(myTaskId>0){
+                    printf("Creation de tache LED: #%d avec %d actions\n", myTaskId, actionCount);
 
-	// Démarrage des actions
-	if(myTaskId>0){
-		printf("Creation de tache LED: #%d avec %d actions\n", myTaskId, actionCount);
+                    // Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
+                    // en fin d'évenement
+                    saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 
-		// Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
-		// en fin d'évenement
-		saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
+                    for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
+                            ID = AlgoidCommand.LEDarray[ptrData].id;
+                            if(ID >= 0){
 
-		for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
-                        ID = AlgoidCommand.LEDarray[ptrData].id;
-			if(ID >= 0){
-                            
-                                time=body.led[ID].blinkTime;
-                                power=body.led[ID].power;
-                                Count=body.led[ID].blinkCount;
-                            
-                                // Mode blink
-                                if(body.led[ID].state==2)
-                                     setLedAction(myTaskId, ID, time, Count);
-                                
-                                // Mode on ou off
-                                else{
-                                        if(body.led[ID].state==0)
-                                            setLedPower(ID, 0); 
+                                    time=body.led[ID].blinkTime;
+                                    power=body.led[ID].power;
+                                    Count=body.led[ID].blinkCount;
 
-                                        if(body.led[ID].state==1)
-                                             setLedPower(ID, body.led[ID].power); 
+                                    // Mode blink
+                                    if(body.led[ID].state==2)
+                                         setLedAction(myTaskId, ID, time, Count);
 
-                                         endOfTask=removeBuggyTask(myTaskId);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
+                                    // Mode on ou off
+                                    else{
+                                            if(body.led[ID].state==0)
+                                                setLedPower(ID, 0); 
 
-                                        if(endOfTask){
-                                            sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
+                                            if(body.led[ID].state==1)
+                                                 setLedPower(ID, body.led[ID].power); 
 
-                                            // Récupère l'expediteur original du message ayant provoqué
-                                            // l'évenement
-                                            char msgTo[32];
-                                            int ptr=getSenderFromMsgId(endOfTask);
-                                            strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-                                            // Libère la memorisation de l'expediteur
-                                            removeHeaderOfMsgId(endOfTask);
+                                             endOfTask=removeBuggyTask(myTaskId);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
 
-                                            sendResponse(endOfTask, msgTo, EVENT, pLED, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-                                            printf(reportBuffer);									// Affichage du message dans le shell
-                                            sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-                                        }
+                                            if(endOfTask){
+                                                sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
 
-                                }
-                           
-				action++;
-			}
-		}
-	}
+                                                // Récupère l'expediteur original du message ayant provoqué
+                                                // l'évenement
+                                                char msgTo[32];
+                                                int ptr=getSenderFromMsgId(endOfTask);
+                                                strcpy(msgTo, msgEventHeader[ptr].msgFrom);
+                                                // Libère la memorisation de l'expediteur
+                                                removeHeaderOfMsgId(endOfTask);
+
+                                                AlgoidResponse[0].responseType=0;
+                                                sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                                                printf(reportBuffer);									// Affichage du message dans le shell
+                                                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+                                            }
+
+                                    }
+
+                                    action++;
+                            }
+                    }
+            }
+        }
+        else{   
+                sprintf(reportBuffer, "ERREUR: ID LED INEXISTANT pour le message #%d\n", AlgoidCommand.msgID);
+                //AlgoidResponse[0].responseType=-1;
+                //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pLED, 1);  // Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                printf(reportBuffer);                                                           // Affichage du message dans le shell
+                sendMqttReport(AlgoidCommand.msgID, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+        }
+
+        
+      
 	return 0;
 }
 
@@ -629,11 +655,10 @@ int setLedAction(int actionNumber, int ledName, int time, int count){
 
 	// Démarre un timer d'action sur la led et spécifie la fonction call back à appeler en time-out
 	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
-	//setTimerResult=setTimerWheel(value, &endWheelAction, actionNumber, wheelName);
-        setTimerResult=setTimer(time, &checkBlinkCount, actionNumber, ledName, LED);
+        setTimerResult=setTimer(time, &checkBlinkLedCount, actionNumber, ledName, LED);
 
 	if(setTimerResult!=0){                                          // Timer pret, action effectuée
-		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur la même roue
+		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur le meme peripherique
 			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
                             if(endOfTask>0){
                                     sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
@@ -645,8 +670,8 @@ int setLedAction(int actionNumber, int ledName, int time, int count){
                                     strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                                     // Libère la memorisation de l'expediteur
                                     removeHeaderOfMsgId(endOfTask);
-
-                                    sendResponse(endOfTask, msgTo, EVENT, pLED, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                                    AlgoidResponse[0].responseType=0;
+                                    sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
                                     printf(reportBuffer);									// Affichage du message dans le shell
                                     sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
                             }
@@ -691,8 +716,8 @@ int endLedAction(int actionNumber, int LedNumber){
                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                 // Libère la memorisation de l'expediteur
                 removeHeaderOfMsgId(endOfTask);
-
-                sendResponse(endOfTask, msgTo, EVENT, pLED, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                AlgoidResponse[0].responseType=0;
+                sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
                 printf(reportBuffer);									// Affichage du message dans le shell
                 sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
         }
@@ -706,7 +731,7 @@ int endLedAction(int actionNumber, int LedNumber){
 // Fonction appelée après le timout défini par l'utilisateur.
 // -----------------------------------------------------------------------
 
-int checkBlinkCount(int actionNumber, int ledName){
+int checkBlinkLedCount(int actionNumber, int ledName){
 	static int blinkCount=0;     // Variable de comptage du nombre de clignotements
 
         blinkCount++;
@@ -723,10 +748,249 @@ int checkBlinkCount(int actionNumber, int ledName){
         }
         
         // Contrôle le nombre de clignotement
-	if(blinkCount >= body.led[ledName].blinkCount)
-		endLedAction(actionNumber, ledName);
+	if(blinkCount >= body.led[ledName].blinkCount){
+            endLedAction(actionNumber, ledName);
+            blinkCount=0;                                   // Reset le compteur
+        }
+		
 	else    {
-		setTimer(body.led[ledName].blinkTime, &checkBlinkCount, actionNumber, ledName, LED);      
+		setTimer(body.led[ledName].blinkTime, &checkBlinkLedCount, actionNumber, ledName, LED);      
+        }
+        
+	return 0;
+}
+
+
+// -------------------------------------------------------------------
+// makePWMAction
+//
+// -------------------------------------------------------------------
+int makePwmAction(void){
+	int ptrData;
+	int myTaskId;
+	int endOfTask;
+        int i;
+        int ID;
+        
+        int time=0;
+        int power=0;
+        int Count=0;
+        
+	unsigned char actionCount=0;
+	unsigned char action=0;
+        
+        // Récupère l'expediteur original du message ayant provoqué
+        // l'évenement
+        char msgTo[32];
+
+        // Recherche s'il y a des paramètres défini pour chaque PWM
+        // et mise à jour.   
+        for(i=0;i<NBPWM;i++){
+            ptrData=getPwmSetting(i);
+            if(ptrData>=0){
+                actionCount++;          // Incrémente le nombre de paramètres trouvés = action supplémentaire a effectuer
+                
+                // Récupération de commande d'état pour la sortie PWM
+                if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"off"))
+                    body.pwm[i].state=0;
+                if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"on"))
+                    body.pwm[i].state=1;
+                if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"blink"))
+                    body.pwm[i].state=2;
+                
+                // Récupération des consignes dans le message (si disponible)
+                if(AlgoidCommand.PWMarray[ptrData].powerPercent > 0)
+                    body.pwm[i].power=AlgoidCommand.PWMarray[ptrData].powerPercent;
+                
+                if(AlgoidCommand.PWMarray[ptrData].time > 0)
+                    body.pwm[i].blinkTime=AlgoidCommand.PWMarray[ptrData].time;
+                
+                if(AlgoidCommand.PWMarray[ptrData].blinkCount > 0)
+                    body.pwm[i].blinkCount=AlgoidCommand.PWMarray[ptrData].blinkCount*2;
+            }
+        }
+
+        // VERIFIE L'EXISTANCE DE PARAMETRE DE TYPE PWM, CREATION DU NOMBRE D'ACTION ADEQUAT
+        // 
+        if(actionCount>0){
+            // Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
+            // Recois un numéro de tache en retour
+            myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			//
+
+            // Démarrage des actions
+            if(myTaskId>0){
+                    printf("Creation de tache PWM: #%d avec %d actions\n", myTaskId, actionCount);
+
+                    // Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
+                    // en fin d'évenement
+                    saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
+                    
+                    for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
+                            ID = AlgoidCommand.PWMarray[ptrData].id;
+                            if(ID >= 0){
+                                    time=body.pwm[ID].blinkTime;
+                                    power=body.pwm[ID].power;
+                                    Count=body.pwm[ID].blinkCount;
+
+                                    // Mode blink
+                                    if(body.pwm[ID].state==2){
+                                         setPwmAction(myTaskId, ID, time, Count);                                         
+                                    }
+
+                                    // Mode on ou off
+                                    else{
+                                            if(body.pwm[ID].state==0)
+                                                setPwmPower(ID, 0); 
+
+                                            if(body.pwm[ID].state==1)
+                                                 setPwmPower(ID, body.pwm[ID].power); 
+
+                                             endOfTask=removeBuggyTask(myTaskId);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
+
+                                            if(endOfTask){
+                                                sprintf(reportBuffer, "FIN DES ACTIONS PWM pour la tache #%d\n", endOfTask);
+                                                int ptr=getSenderFromMsgId(endOfTask);
+                                                strcpy(msgTo, msgEventHeader[ptr].msgFrom);
+                                                // Libère la memorisation de l'expediteur
+                                                removeHeaderOfMsgId(endOfTask);
+                                                AlgoidResponse[0].responseType=0;
+                                                sendResponse(endOfTask, msgTo, EVENT, pPWM, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                                            }
+                                                printf(reportBuffer);							// Affichage du message dans le shell
+                                                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+
+                                    }
+
+                                    action++;
+                            }
+                    }
+                    AlgoidResponse[0].responseType=1;
+                    sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pPWM, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
+            }            
+        }
+        else{   
+                sprintf(reportBuffer, "ERREUR: ID PWM INEXISTANT pour le message #%d\n", AlgoidCommand.msgID);
+                //AlgoidResponse[0].responseType=-1;
+                //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                printf(reportBuffer);							// Affichage du message dans le shell
+                sendMqttReport(AlgoidCommand.msgID, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+        }
+
+	return 0;
+}
+
+
+// -------------------------------------------------------------------
+// SETPWMACTION
+// Effectue l'action de clignotement
+// - Démarrage du timer avec definition de fonction call-back, et no d'action
+// - Démarrage du clignotement
+// - vitesse de clignotement en mS
+// -------------------------------------------------------------------
+
+int setPwmAction(int actionNumber, int ledName, int time, int count){
+	int setTimerResult;
+	int endOfTask;
+
+	// Démarre un timer d'action sur la led et spécifie la fonction call back à appeler en time-out
+	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
+        setTimerResult=setTimer(time, &checkBlinkPwmCount, actionNumber, ledName, PWM);
+
+	if(setTimerResult!=0){                                          // Timer pret, action effectuée
+		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur le meme peripherique
+			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
+                        if(endOfTask){
+                                sprintf(reportBuffer, "Annulation des actions PWM pour la tache #%d\n", endOfTask);
+
+                                // Récupère l'expediteur original du message ayant provoqué
+                                // l'évenement
+                                char msgTo[32];
+                                int ptr=getSenderFromMsgId(endOfTask);
+                                strcpy(msgTo, msgEventHeader[ptr].msgFrom);
+                                // Libère la memorisation de l'expediteur
+                                removeHeaderOfMsgId(endOfTask);
+                                
+                                AlgoidResponse[0].responseType=2;
+                                sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, pPWM, 1);		// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                                printf(reportBuffer);                                                   // Affichage du message dans le shell
+                                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+                        }
+		}
+
+		// Inverse l'état de la led
+                if(body.pwm[ledName].state>0){
+                    setPwmPower(ledName, 0);
+                    body.pwm[ledName].state=0;
+                }else
+                {
+                    setPwmPower(ledName, body.pwm[ledName].power);
+                    body.pwm[ledName].state=1;
+                }
+	}
+	else printf("Error, Impossible to set timer led\n");
+	return 0;
+}
+
+// -------------------------------------------------------------------
+// ENDPWMACTION
+// Fin de l'action de clignotement
+// Fonction appelée après le timout défini par l'utilisateur, Stop le clignotement
+// -------------------------------------------------------------------
+int endPwmAction(int actionNumber, int LedNumber){
+	int endOfTask;
+
+	// Retire l'action de la table et vérification si toute les actions sont effectuées
+	// Pour la tâche en cours donnée par le message ALGOID
+
+        endOfTask=removeBuggyTask(actionNumber);
+        if(endOfTask){
+                sprintf(reportBuffer, "FIN DES ACTIONS PWM pour la tache #%d\n", endOfTask);
+
+                // Récupère l'expediteur original du message ayant provoqué
+                // l'évenement
+                char msgTo[32];
+                int ptr=getSenderFromMsgId(endOfTask);
+                strcpy(msgTo, msgEventHeader[ptr].msgFrom);
+                // Libère la memorisation de l'expediteur
+                removeHeaderOfMsgId(endOfTask);
+                AlgoidResponse[0].responseType=0;
+                sendResponse(endOfTask, msgTo, EVENT, pPWM, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                printf(reportBuffer);									// Affichage du message dans le shell
+                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+        }
+
+	return 0;
+}
+
+// ----------------------------------------------------------------------
+// CHECKBLINKPWMCOUNT
+// CONTROLE LE NOMBRE DE CLIGNOTEMENT SUR LA SORTIE PWM
+// Fonction appelée après le timout défini par l'utilisateur.
+// -----------------------------------------------------------------------
+
+int checkBlinkPwmCount(int actionNumber, int ledName){
+	static int blinkCount=0;     // Variable de comptage du nombre de clignotements
+
+        blinkCount++;
+
+        // Inverse l'état de la led
+        if(body.pwm[ledName].state>0){
+            setPwmPower(ledName, 0);
+            body.pwm[ledName].state=0;
+        }else
+        {
+            setPwmPower(ledName, body.pwm[ledName].power);
+            body.pwm[ledName].state=1;
+        }
+        
+        // Contrôle le nombre de clignotement
+	if(blinkCount >= body.pwm[ledName].blinkCount){
+            endPwmAction(actionNumber, ledName);
+            blinkCount=0;                                   // Reset le compteur
+        }
+		
+	else    {
+		setTimer(body.pwm[ledName].blinkTime, &checkBlinkPwmCount, actionNumber, ledName, PWM);      
         }
         
 	return 0;
@@ -775,9 +1039,8 @@ int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int va
 	if(setTimerResult!=0){						// Timer pret, action effectuée ()
 		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur la même roue
 			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
-
 			if(endOfTask){
-				sprintf(reportBuffer, "FIN DES ACTIONS \"WHEEL\" pour la tache #%d\n", endOfTask);
+				sprintf(reportBuffer, "Annulation des actions moteur pour la tache #%d\n", endOfTask);
 
 				// Récupère l'expediteur original du message ayant provoqué
 				// l'évenement
@@ -787,11 +1050,10 @@ int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int va
 				// Libère la memorisation de l'expediteur
 				removeHeaderOfMsgId(endOfTask);
 
-				AlgoidResponse[0].actionState=2;
-
-				sendResponse(endOfTask, AlgoidCommand.msgFrom, RESPONSE, LL_2WD, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+				AlgoidResponse[0].responseType=2;
+				sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, LL_2WD, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
 				printf(reportBuffer);									// Affichage du message dans le shell
-				sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+				sendMqttReport(endOfTask, reportBuffer);                                                // Envoie le message sur le canal MQTT "Report"
 			}
 
 		}
@@ -853,9 +1115,9 @@ int endWheelAction(int actionNumber, int wheelNumber){
 			AlgoidResponse[i].MOTresponse.time=9999;
 		}
 */
-		AlgoidResponse[0].actionState=0;
+		AlgoidResponse[0].responseType=0;
 
-		sendResponse(endOfTask, msgTo, RESPONSE, LL_2WD, 1);
+		sendResponse(endOfTask, msgTo, EVENT, LL_2WD, 1);
 		sprintf(reportBuffer, "FIN DES ACTIONS \"WHEEL\" pour la tache #%d\n", endOfTask);
 		printf(reportBuffer);
 		sendMqttReport(endOfTask, reportBuffer);
@@ -897,7 +1159,7 @@ int checkMotorEncoder(int actionNumber, int encoderName){
 // GETWDVALUE
 // Recherche dans le message algoid, les paramètres
 // [Vélocité, acceleration, sens de rotation et temps d'action] pour la roue spécifiée
-// Retourne un pointeur sur le champs de paramètre correspondant à la rou spécifié
+// Retourne un pointeur sur le champs de paramètre correspondant au moteur spécifié
 // -------------------------------------------------------------------
 int getWDvalue(int wheelName){
 	int i;
@@ -906,7 +1168,7 @@ int getWDvalue(int wheelName){
 	// Vérifie que le moteur est existant...
 		// Recherche dans les donnée recues la valeur correspondante au paramètre "wheelName"
 		for(i=0;i<AlgoidCommand.msgValueCnt;i++){
-			if(wheelName == AlgoidCommand.DCmotor[i].wheel)
+			if(wheelName == AlgoidCommand.DCmotor[i].motor)
 				searchPtr=i;
 		}
 		return searchPtr;
@@ -996,13 +1258,16 @@ int createBuggyTask(int MsgId, int actionCount){
 		}else{
 			if(ActionTable[i][TASK_NUMBER]==actionID)
 			{
+                               
 				sprintf(reportBuffer, "ERREUR: Tache en cours de traitement: %d\n", actionID);
+                                printf(reportBuffer);
 				sendMqttReport(actionID, reportBuffer);
 				return -1;
 				}
 		}
 	}
 	sprintf(reportBuffer, "ERREUR: Table de tâches pleine\n");
+        printf(reportBuffer);
 	sendMqttReport(actionID, reportBuffer);
 	return(0);
 }
@@ -1028,7 +1293,7 @@ int removeBuggyTask(int actionNumber){
 				ActionTable[i][TASK_NUMBER]=0;				// Reset/Libère l'occupation de la tâche
 				ActionTable[i][ACTION_ALGOID_ID]= 0;
 				ActionTable[i][ACTION_COUNT]=0;
-				return(algoidMsgId);						// Retourn le numéro d'action terminé
+				return(algoidMsgId);					// Retourn le numéro d'action terminé
 			} else return 0;								// Action non terminées
 		}
 	}
@@ -1146,8 +1411,8 @@ int makeDistanceRequest(void){
 
 	// Pas de paramètres spécifié dans le message, retourne l'ensemble des distances
 	if(AlgoidCommand.msgValueCnt==0){
-		AlgoidCommand.msgValueCnt=NBPWM;
-		for(i=0;i<NBPWM;i++){
+		AlgoidCommand.msgValueCnt=NBSONAR;
+		for(i=0;i<NBSONAR;i++){
 			AlgoidResponse[i].DISTresponse.id=i;
 		}
 	}else
@@ -1155,7 +1420,7 @@ int makeDistanceRequest(void){
 			for(i=0;i<AlgoidCommand.msgValueCnt; i++){
 				AlgoidResponse[i].DISTresponse.id=AlgoidCommand.DISTsens[i].id;
 
-				if(AlgoidCommand.DISTsens[i].id <NBPWM){
+				if(AlgoidCommand.DISTsens[i].id <NBSONAR){
 
 					// Activation de l'envoie de messages sur évenements
 					if(!strcmp(AlgoidCommand.DISTsens[i].event_state, "on")){
@@ -1186,7 +1451,7 @@ int makeDistanceRequest(void){
 		// Récupération des paramètres actuels et chargement du buffer de réponse
 		int temp = AlgoidResponse[i].DISTresponse.id;
 
-		if(AlgoidCommand.DISTsens[i].id <NBPWM){
+		if(AlgoidCommand.DISTsens[i].id <NBSONAR){
 			AlgoidResponse[i].value=body.distance[temp].value;
 			//AlgoidResponse[i].DISTresponse.angle=angle[AlgoidCommand.DISTsens[i].angle];
 

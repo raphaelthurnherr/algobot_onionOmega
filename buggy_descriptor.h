@@ -41,10 +41,16 @@ typedef enum o_sonar{
 }t_sonar;
 
 typedef enum o_motor{
-	MOTOR_LEFT,
-	MOTOR_RIGHT,
+	MOTOR_0,
+	MOTOR_1,
 	NBMOTOR
 }t_motor;
+
+typedef enum o_servo{
+	SERVO_0,
+	SERVO_1,
+	NBSERVO
+}t_servo;
 
 typedef enum o_pwm{
 	PWM_0,

@@ -160,8 +160,8 @@ int getMotorPulses(unsigned char motorName){
 	pulses = sensor.counter[motorName].pulseFromStartup;
 	/*
 	switch(motorName){
-		case MOTOR_LEFT: pulses = buggySensor.left_encoder.pulseFromStartup; break;
-		case MOTOR_RIGHT: pulses = buggySensor.right_encoder.pulseFromStartup; break;
+		case MOTOR_0: pulses = buggySensor.left_encoder.pulseFromStartup; break;
+		case MOTOR_1: pulses = buggySensor.right_encoder.pulseFromStartup; break;
 		default: pulses= -1; break;
 	}
 	*/
@@ -227,8 +227,8 @@ int setMotorDirection(int motorName, int direction){
 	motorAdress=getOrganI2Cregister(MOTOR, motorName);
 	/*
 	switch(motorName){
-		case MOTOR_LEFT: 	motorAdress = DCM0;	break;
-		case MOTOR_RIGHT :  motorAdress = DCM1;	break;
+		case MOTOR_0: 	motorAdress = DCM0;	break;
+		case MOTOR_1 :  motorAdress = DCM1;	break;
 		default : return(0);
 	}
 	 */
@@ -428,8 +428,8 @@ unsigned char getOrganI2Cregister(char organType, unsigned char organName){
 
 	if(organType == MOTOR){
 		switch(organName){
-			case MOTOR_LEFT : organAdr = PCA_DCM0; break;
-			case MOTOR_RIGHT : organAdr = PCA_DCM1; break;
+			case MOTOR_0 : organAdr = PCA_DCM0; break;
+			case MOTOR_1 : organAdr = PCA_DCM1; break;
 			default :	organAdr = UNKNOWN; break;
 		}
 	}

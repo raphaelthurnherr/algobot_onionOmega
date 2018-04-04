@@ -7,13 +7,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/AlgoidCom/linux_json.h</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/hwManager.c</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/timerManager.h</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/algobot_main.c</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/AlgoidCom/linux_JSON.c</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/buggy_descriptor.h</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/timerManager.c</file>
+            <file>file:/home/raph/NetBeansProjects/Algobot_onionOmega/AlgoidCom/messagesManager.c</file>
+            <file>file:/home/raph/NetBeansProjects/Algobot_onionOmega/algobot_main.c</file>
+            <file>file:/home/raph/NetBeansProjects/Algobot_onionOmega/AlgoidCom/linux_json.h</file>
+            <file>file:/home/raph/NetBeansProjects/Algobot_onionOmega/AlgoidCom/linux_JSON.c</file>
         </group>
     </open-files>
 </project-private>
