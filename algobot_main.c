@@ -2,10 +2,6 @@
 #define ACTION_ALGOID_ID 1
 #define ACTION_COUNT 2
 
-#define MILLISECOND   0
-#define CENTIMETER	  1
-#define CMPP		  0.723
-
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +18,7 @@
 #include "hwManager.h"
 #include "asyncTools.h"
 #include "asyncPWM.h"
+#include "asyncLED.h"
 
 unsigned char ptrSpeedCalc;
 int createBuggyTask(int MsgId, int actionCount);
@@ -35,10 +32,6 @@ void DINSafetyCheck(void);
 void BatterySafetyCheck(void);
 void DistanceSafetyCheck(void);
 
-
-
-t_sensor body;
-
 int ActionTable[10][3];
 
 // Traitement du message algoid recu
@@ -50,10 +43,8 @@ int makeDistanceRequest(void);
 int makeBatteryRequest(void);
 int makeStatusRequest(void);
 
-int run2WDaction(void);
-int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, int value);
-int endWheelAction(int actionNumber, int wheelNumber);
-int checkMotorEncoder(int actionNumber, int encoderName);
+int runMotorAction(void);
+
 int getWDvalue(int wheelName);
 
 int runPwmAction(void);
@@ -63,9 +54,7 @@ int runPwmAction(void);
 int getPwmSetting(int name);
 
 int runLedAction(void);
-int setAsyncLedAction(int actionNumber, int ledName, int time, int count);
-int endLedAction(int actionNumber, int ledNumber);
-int checkBlinkLedCount(int actionNumber, int ledName);
+
 int getLedSetting(int name);
 
 
@@ -75,6 +64,7 @@ int getServoSetting(int servoName);
 
 char reportBuffer[256];
 
+t_sensor body;
 
 // -------------------------------------------------------------------
 // MAIN APPLICATION
@@ -248,7 +238,7 @@ int processAlgoidCommand(void){
                                 // Retourne en réponse le message vérifié
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, LL_2WD, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)
                                 
-                                run2WDaction(); break;			// Action avec en paramètre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
+                                runMotorAction(); break;			// Action avec en paramètre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
 //		case pPWM  : 	makeServoAction();break;
                 case pPWM  : 	
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
@@ -301,10 +291,10 @@ int processAlgoidRequest(void){
 
 
 // -------------------------------------------------------------------
-// run2WDaction
+// runMotorAction
 // Effectue une action avec les paramètre recus: MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
 // -------------------------------------------------------------------
-int run2WDaction(void){
+int runMotorAction(void){
 	int ptrData;
 	int myTaskId;
 	unsigned char actionCount=0;
@@ -473,6 +463,11 @@ int runLedAction(void){
 	unsigned char actionCount=0;
 	unsigned char action=0;
 
+        // Récupère l'expediteur original du message ayant provoqué
+        // l'évenement
+        
+        char msgTo[32];
+        
         // Recherche s'il y a des paramètres défini pour chaque LED
         // et mise à jour.   
         for(i=0;i<NBLED;i++){
@@ -501,8 +496,9 @@ int runLedAction(void){
         }
 
         
-        if(actionCount>0){ 
-        
+        // VERIFIE L'EXISTANCE DE PARAMETRE DE TYPE LED, CREATION DU NOMBRE D'ACTION ADEQUAT
+        // 
+        if(actionCount>0){
             // Ouverture d'une tâche pour les toutes les actions du message algoid à effectuer
             // Recois un numéro de tache en retour
             myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			//
@@ -514,18 +510,19 @@ int runLedAction(void){
                     // Sauvegarde du nom de l'emetteur et du ID du message pour la réponse
                     // en fin d'évenement
                     saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
-
+                    
                     for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
                             ID = AlgoidCommand.LEDarray[ptrData].id;
                             if(ID >= 0){
-
-                                    time=body.led[ID].blinkTime;
-                                    power=body.led[ID].power;
-                                    Count=body.led[ID].blinkCount;
+                                    time=AlgoidCommand.LEDarray[ptrData].time;
+                                    power=AlgoidCommand.LEDarray[ptrData].powerPercent;
+                                    Count=AlgoidCommand.LEDarray[ptrData].blinkCount;
 
                                     // Mode blink
-                                    if(body.led[ID].state==2)
+                                    if(body.led[ID].state==2){
+                                        // Creation d'un timer effectué sans erreur, ni ecrasement de timer
                                          setAsyncLedAction(myTaskId, ID, time, Count);
+;                                    }
 
                                     // Mode on ou off
                                     else{
@@ -539,27 +536,24 @@ int runLedAction(void){
 
                                             if(endOfTask){
                                                 sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
-
-                                                // Récupère l'expediteur original du message ayant provoqué
-                                                // l'évenement
-                                                char msgTo[32];
                                                 int ptr=getSenderFromMsgId(endOfTask);
                                                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                                                 // Libère la memorisation de l'expediteur
                                                 removeSenderOfMsgId(endOfTask);
-
                                                 AlgoidResponse[0].responseType=0;
-                                                sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-                                                printf(reportBuffer);									// Affichage du message dans le shell
-                                                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
+                                                sendResponse(endOfTask, msgTo, EVENT, pLED, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
                                             }
+                                                printf(reportBuffer);							// Affichage du message dans le shell
+                                                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
 
                                     }
 
                                     action++;
                             }
                     }
-            }
+                    AlgoidResponse[0].responseType=1;
+                    sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pLED, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
+            }            
         }
         else{   
                 sprintf(reportBuffer, "ERREUR: ID LED INEXISTANT pour le message #%d\n", AlgoidCommand.msgID);
@@ -571,122 +565,6 @@ int runLedAction(void){
 
         
       
-	return 0;
-}
-
-
-// -------------------------------------------------------------------
-// SETBLINKACTION
-// Effectue l'action de clignotement
-// - Démarrage du timer avec definition de fonction call-back, et no d'action
-// - Démarrage du clignotement
-// - vitesse de clignotement en mS
-// -------------------------------------------------------------------
-
-int setAsyncLedAction(int actionNumber, int ledName, int time, int count){
-	int setTimerResult;
-	int endOfTask;
-
-	// Démarre un timer d'action sur la led et spécifie la fonction call back à appeler en time-out
-	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
-        setTimerResult=setTimer(time, &checkBlinkLedCount, actionNumber, ledName, LED);
-
-	if(setTimerResult!=0){                                          // Timer pret, action effectuée
-		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur le meme peripherique
-			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
-                            if(endOfTask>0){
-                                    sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
-
-                                    // Récupère l'expediteur original du message ayant provoqué
-                                    // l'évenement
-                                    char msgTo[32];
-                                    int ptr=getSenderFromMsgId(endOfTask);
-                                    strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-                                    // Libère la memorisation de l'expediteur
-                                    removeSenderOfMsgId(endOfTask);
-                                    AlgoidResponse[0].responseType=0;
-                                    sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-                                    printf(reportBuffer);									// Affichage du message dans le shell
-                                    sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-                            }
-		}
-
-		// Inverse l'état de la led
-                if(body.led[ledName].state>0){
-                    setLedPower(ledName, 0);
-                    body.led[ledName].state=0;
-                }else
-                {
-                    setLedPower(ledName, body.led[ledName].power);
-                    body.led[ledName].state=1;
-                }
-	}
-	else printf("Error, Impossible to set timer led\n");
-	return 0;
-}
-
-// -------------------------------------------------------------------
-// ENDBLINKACTION
-// Fin de l'action de clignotement
-// Fonction appelée après le timout défini par l'utilisateur, Stop le clignotement
-// -------------------------------------------------------------------
-int endLedAction(int actionNumber, int LedNumber){
-	int endOfTask;
-	// Retire l'action de la table et vérification si toute les actions sont effectuées
-	// Pour la tâche en cours donnée par le message ALGOID
-
-        endOfTask=removeBuggyTask(actionNumber);
-        if(endOfTask>0){
-                sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
-
-                // Récupère l'expediteur original du message ayant provoqué
-                // l'évenement
-                char msgTo[32];
-                int ptr=getSenderFromMsgId(endOfTask);
-                strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-                // Libère la memorisation de l'expediteur
-                removeSenderOfMsgId(endOfTask);
-                AlgoidResponse[0].responseType=0;
-                sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-                printf(reportBuffer);									// Affichage du message dans le shell
-                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-        }
-
-	return 0;
-}
-
-// ----------------------------------------------------------------------
-// CHECKBLINKCOUNT
-// CONTROLE LE NOMBRE DE CLIGNOTEMENT SUR LA LED
-// Fonction appelée après le timout défini par l'utilisateur.
-// -----------------------------------------------------------------------
-
-int checkBlinkLedCount(int actionNumber, int ledName){
-	static int blinkCount=0;     // Variable de comptage du nombre de clignotements
-
-        blinkCount++;
-        
-
-        // Inverse l'état de la led
-        if(body.led[ledName].state>0){
-            setLedPower(ledName, 0);
-            body.led[ledName].state=0;
-        }else
-        {
-            setLedPower(ledName, body.led[ledName].power);
-            body.led[ledName].state=1;
-        }
-        
-        // Contrôle le nombre de clignotement
-	if(blinkCount >= body.led[ledName].blinkCount){
-            endLedAction(actionNumber, ledName);
-            blinkCount=0;                                   // Reset le compteur
-        }
-		
-	else    {
-		setTimer(body.led[ledName].blinkTime, &checkBlinkLedCount, actionNumber, ledName, LED);      
-        }
-        
 	return 0;
 }
 
@@ -764,7 +642,8 @@ int runPwmAction(void){
 
                                     // Mode blink
                                     if(body.pwm[ID].state==2){
-                                         setAsyncPwmAction(myTaskId, ID, time, Count);                                         
+                                        // Creation d'un timer effectué sans erreur, ni ecrasment de timer
+                                         setAsyncPwmAction(myTaskId, ID, time, Count);
                                     }
 
                                     // Mode on ou off
@@ -809,248 +688,6 @@ int runPwmAction(void){
 	return 0;
 }
 
-/*
-// -------------------------------------------------------------------
-// SETASYNCPWMACTION
-// Effectue l'action de clignotement
-// - Démarrage du timer avec definition de fonction call-back, et no d'action
-// - Démarrage du clignotement
-// - vitesse de clignotement en mS
-// -------------------------------------------------------------------
-
-int setAsyncPwmAction(int actionNumber, int ledName, int time, int count){
-	int setTimerResult;
-	int endOfTask;
-
-	// Démarre un timer d'action sur la led et spécifie la fonction call back à appeler en time-out
-	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
-        setTimerResult=setTimer(time, &checkBlinkPwmCount, actionNumber, ledName, PWM);
-
-	if(setTimerResult!=0){                                          // Timer pret, action effectuée
-		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur le meme peripherique
-			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
-                        if(endOfTask){
-                                sprintf(reportBuffer, "Annulation des actions PWM pour la tache #%d\n", setTimerResult);
-
-                                // Récupère l'expediteur original du message ayant provoqué
-                                // l'évenement
-                                char msgTo[32];
-                                int ptr=getSenderFromMsgId(endOfTask);
-                                strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-                                // Libère la memorisation de l'expediteur
-                                removeSenderOfMsgId(endOfTask);
-                                
-                                AlgoidResponse[0].responseType=2;
-                                sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, pPWM, 1);		// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-                                printf(reportBuffer);                                                   // Affichage du message dans le shell
-                                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-                        }
-		}
-
-		// Inverse l'état de la led
-                if(body.pwm[ledName].state>0){
-                    setPwmPower(ledName, 0);
-                    body.pwm[ledName].state=0;
-                }else
-                {
-                    setPwmPower(ledName, body.pwm[ledName].power);
-                    body.pwm[ledName].state=1;
-                }
-	}
-	else printf("Error, Impossible to set timer led\n");
-	return 0;
-}
- 
-// -------------------------------------------------------------------
-// ENDPWMACTION
-// Fin de l'action de clignotement
-// Fonction appelée après le timout défini par l'utilisateur, Stop le clignotement
-// -------------------------------------------------------------------
-int endPwmAction(int actionNumber, int LedNumber){
-	int endOfTask;
-
-	// Retire l'action de la table et vérification si toute les actions sont effectuées
-	// Pour la tâche en cours donnée par le message ALGOID
-
-        endOfTask=removeBuggyTask(actionNumber);
-        if(endOfTask){
-                sprintf(reportBuffer, "FIN DES ACTIONS PWM pour la tache #%d\n", endOfTask);
-
-                // Récupère l'expediteur original du message ayant provoqué
-                // l'évenement
-                char msgTo[32];
-                int ptr=getSenderFromMsgId(endOfTask);
-                strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-                // Libère la memorisation de l'expediteur
-                removeSenderOfMsgId(endOfTask);
-                AlgoidResponse[0].responseType=0;
-                sendResponse(endOfTask, msgTo, EVENT, pPWM, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-                printf(reportBuffer);									// Affichage du message dans le shell
-                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-        }
-
-	return 0;
-}
-*/
-
-// -------------------------------------------------------------------
-// SETWHEELACTION
-// Effectue l'action sur une roue spécifiée
-// - Démarrage du timer avec definition de fonction call-back, et no d'action
-// - Démarrage du mouvement de la roue spécifiée
-// - Vélocité entre -100 et +100 qui défini le sens de rotation du moteur
-// -------------------------------------------------------------------
-
-int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, int value){
-	int myDirection;
-	int setTimerResult;
-	int endOfTask;
-
-	// Conversion de la vélocité de -100...+100 en direction AVANCE ou RECULE
-	if(veloc > 0){
-		myDirection=BUGGY_FORWARD;
-		body.motor[wheelName].direction = 1;
-	}
-	if(veloc == 0){
-		myDirection=BUGGY_STOP;
-		body.motor[wheelName].direction = 0;
-	}
-	if(veloc < 0){
-		myDirection=BUGGY_BACK;
-		body.motor[wheelName].direction = -1;
-		veloc *=-1;					// Convertion en valeur positive
-	}
-
-	// Démarre de timer d'action sur la roue et spécifie la fonction call back à appeler en time-out
-	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
-	switch(unit){
-		case  MILLISECOND:  setTimerResult=setTimer(value, &endWheelAction, actionNumber, wheelName, MOTOR); break;
-		case  CENTIMETER:   //wheelNumber = getOrganNumber(wheelName);
-                                    body.encoder[wheelName].startEncoderValue=getMotorPulses(wheelName)*CMPP;
-                                    body.encoder[wheelName].stopEncoderValue = body.encoder[wheelName].startEncoderValue+ value;
-                                    setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, wheelName, MOTOR);			// Démarre un timer pour contrôle de distance chaque 35mS
-                                    break;
-		default: printf("\n!!! ERROR Function [setAsyncMotorAction] -> undefined unit");break;
-	}
-
-	if(setTimerResult!=0){						// Timer pret, action effectuée ()
-		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur la même roue
-			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
-			if(endOfTask){
-				sprintf(reportBuffer, "Annulation des actions moteur pour la tache #%d\n", endOfTask);
-
-				// Récupère l'expediteur original du message ayant provoqué
-				// l'évenement
-				char msgTo[32];
-				int ptr=getSenderFromMsgId(endOfTask);
-				strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-				// Libère la memorisation de l'expediteur
-				removeSenderOfMsgId(endOfTask);
-
-				AlgoidResponse[0].responseType=2;
-				sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, LL_2WD, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
-				printf(reportBuffer);									// Affichage du message dans le shell
-				sendMqttReport(endOfTask, reportBuffer);                                                // Envoie le message sur le canal MQTT "Report"
-			}
-
-		}
-
-		// Défini le "nouveau" sens de rotation à applique au moteur ainsi que la consigne de vitesse
-		if(setMotorDirection(wheelName, myDirection)){							// Sens de rotation
-			setMotorSpeed(wheelName, veloc);									// Vitesse
-
-			// Envoie de message ALGOID et SHELL
-			sprintf(reportBuffer, "Start wheel %d with velocity %d for time %d\n", wheelName, veloc, value);
-			printf(reportBuffer);
-			sendMqttReport(actionNumber, reportBuffer);
-		}
-		else{
-			sprintf(reportBuffer, "Error, impossible to start wheel %d\n",wheelName);
-			printf(reportBuffer);
-			sendMqttReport(actionNumber, reportBuffer);
-		}
-
-	}
-	else printf("Error, Impossible to set timer wheel\n");
-	return 0;
-}
-
-// -------------------------------------------------------------------
-// END2WDACTION
-// Fin de l'action sur une roue
-// Fonction appelée après le timout défini par l'utilisateur, Stop le moteur spécifié
-// -------------------------------------------------------------------
-int endWheelAction(int actionNumber, int wheelNumber){
-	int endOfTask;
-	//printf("Action number: %d - End of timer for wheel No: %d\n",actionNumber , wheelNumber);
-
-	// Stop le moteur
-	setMotorSpeed(wheelNumber, 0);
-
-	// Retire l'action de la table et vérification si toute les actions sont effectuées
-	// Pour la tâche en cours donnée par le message ALGOID
-
-	endOfTask = removeBuggyTask(actionNumber);
-
-	// Contrôle que toutes les actions ont été effectuée pour la commande recue dans le message ALGOID
-	if(endOfTask){
-		// Récupère l'expediteur original du message ayant provoqué
-		// l'évenement
-		char msgTo[32];
-		int ptr=getSenderFromMsgId(endOfTask);
-		strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-		// Libère la memorisation de l'expediteur
-		removeSenderOfMsgId(endOfTask);
-
-		// Récupère la distance et la vitesse actuelle du moteur
-		// Pour retour event a l'expediteur originel
-/*		int i;
-		for(i=0;i<NBMOTOR;i++){
-			AlgoidResponse[i].MOTresponse.id=i;
-			AlgoidResponse[i].MOTresponse.speed=body.motor[i].speed;
-			AlgoidResponse[i].MOTresponse.distance=body.motor[i].distance;
-			AlgoidResponse[i].MOTresponse.time=9999;
-		}
-*/
-		AlgoidResponse[0].responseType=0;
-
-		sendResponse(endOfTask, msgTo, EVENT, LL_2WD, 1);
-		sprintf(reportBuffer, "FIN DES ACTIONS \"WHEEL\" pour la tache #%d\n", endOfTask);
-		printf(reportBuffer);
-		sendMqttReport(endOfTask, reportBuffer);
-	}
-
-	return 0;
-}
-
-
-// ----------------------------------------------------------------------
-// CHECKMOTORENCODER
-// Contrôle la distance parcourue et stop la roue si destination atteinte
-// Fonction appelée après le timout défini par l'utilisateur.
-// -----------------------------------------------------------------------
-
-int checkMotorEncoder(int actionNumber, int encoderName){
-	float distance;					// Variable de distance parcourue depuis le start
-	//unsigned char encoderNumber;
-
-	//encoderNumber = getOrganNumber(encoderName);
-
-	distance = getMotorPulses(encoderName);
-
-	if(distance >=0){
-		distance = (distance*CMPP);
-    	usleep(2200);
-	}else  printf("\n ERROR: I2CBUS READ\n");
-	//printf("\n Encodeur #%d -> START %.2f cm  STOP %.2f cm", encoderNumber, startEncoderValue[encoderNumber], stopEncoderValue[encoderNumber]);
-
-	if(distance >= body.encoder[encoderName].stopEncoderValue)
-		endWheelAction(actionNumber, encoderName);
-	else
-		setTimer(50, &checkMotorEncoder, actionNumber, encoderName, MOTOR);
-
-	return 0;
-}
 
 // -------------------------------------------------------------------
 // GETWDVALUE
@@ -1677,63 +1314,3 @@ void DistanceSafetyCheck(void){
 		//sendResponse(AlgoidCommand.msgID, EVENT, DINPUT, DINsafety);
 	}
 }
-
-/*
-
-// -------------------------------------------------------------------
-// GETSENDERFROMMSGID
-// Retourne l'index dans la table des messages avec le ID correspondant
-// -------------------------------------------------------------------
-int getSenderFromMsgId(int msgId){
-	unsigned char i = -1;
-	char ptr = -1;
-
-		for(i=0; i<20; i++){
-			if(msgEventHeader[i].msgId == msgId){
-				ptr = i;
-				break;
-			}
-		}
-	return ptr;			// Return -1 if no msgId found
-}
-
-// -------------------------------------------------------------------
-// SAVESENDEROFMSGID
-// Enregistre l'ID et expediteur dans la table des messages
-// -------------------------------------------------------------------
-
-int saveSenderOfMsgId(int msgId, char* senderName){
-	unsigned char i;
-	unsigned char messageIsSave=0;
-
-		while((i<20) && (!messageIsSave)){
-			if(msgEventHeader[i].msgId<=0){
-				strcpy(msgEventHeader[i].msgFrom, senderName);
-				msgEventHeader[i].msgId=msgId;
-				messageIsSave=1;
-			}
-			i++;
-		}
-
-	if(messageIsSave)	return (i-1);
-	else	return (-1);
-
-}
-
-// -------------------------------------------------------------------
-// REMOVESENDEROFMSGID
-// Libere l'emplacement dans la table des messages
-// -------------------------------------------------------------------
-int removeSenderOfMsgId(int msgId){
-	unsigned char i;
-		for(i=0; i<20; i++){
-			if(msgEventHeader[i].msgId == msgId){
-				strcpy(msgEventHeader[i].msgFrom, "*");
-				msgEventHeader[i].msgId = -1;
-				break;
-			}
-		}
-	return 1;
-}
-
-*/

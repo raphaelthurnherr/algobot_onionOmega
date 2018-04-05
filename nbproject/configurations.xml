@@ -4,6 +4,8 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>asyncTools/asyncLED.h</itemPath>
+      <itemPath>asyncTools/asyncMOTOR.h</itemPath>
       <itemPath>asyncTools/asyncTools.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -94,6 +96,8 @@
         <itemPath>hwControl/hwManager.h</itemPath>
       </logicalFolder>
       <itemPath>algobot_main.c</itemPath>
+      <itemPath>asyncTools/asnycLED.c</itemPath>
+      <itemPath>asyncTools/asyncMOTOR.c</itemPath>
       <itemPath>asyncTools/asyncTools.c</itemPath>
       <itemPath>timerManager.c</itemPath>
       <itemPath>tools.c</itemPath>
@@ -318,6 +322,14 @@
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="algobot_main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asnycLED.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncLED.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncMOTOR.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncMOTOR.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="asyncTools/asyncPWM.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -553,6 +565,14 @@
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="algobot_main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asnycLED.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncLED.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncMOTOR.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncMOTOR.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="asyncTools/asyncPWM.c" ex="false" tool="0" flavor2="0">
       </item>

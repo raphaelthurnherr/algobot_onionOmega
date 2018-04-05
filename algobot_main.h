@@ -8,6 +8,10 @@
 #ifndef ALGOID_2WD_BUGGY_H_
 #define ALGOID_2WD_BUGGY_H_
 
+#define MILLISECOND       0
+#define CENTIMETER	  1
+#define CMPP		  0.723
+
 
 struct m_prox{
 	int state;
