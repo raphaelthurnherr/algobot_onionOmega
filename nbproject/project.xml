@@ -12,6 +12,7 @@
             <sourceRootList>
                 <sourceRootElem>hwControl</sourceRootElem>
                 <sourceRootElem>AlgoidCom</sourceRootElem>
+                <sourceRootElem>asyncTools</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

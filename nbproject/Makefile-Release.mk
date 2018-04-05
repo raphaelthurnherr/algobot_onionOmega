@@ -61,6 +61,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/AlgoidCom/mqttProtocol.o \
 	${OBJECTDIR}/AlgoidCom/udpPublish.o \
 	${OBJECTDIR}/algobot_main.o \
+	${OBJECTDIR}/asyncTools/asyncPWM.o \
+	${OBJECTDIR}/asyncTools/asyncTools.o \
 	${OBJECTDIR}/hwControl/boardHWctrl.o \
 	${OBJECTDIR}/hwControl/hwManager.o \
 	${OBJECTDIR}/hwControl/libs/i2c/onion-i2c.o \
@@ -222,6 +224,16 @@ ${OBJECTDIR}/algobot_main.o: algobot_main.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/algobot_main.o algobot_main.c
+
+${OBJECTDIR}/asyncTools/asyncPWM.o: asyncTools/asyncPWM.c
+	${MKDIR} -p ${OBJECTDIR}/asyncTools
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncPWM.o asyncTools/asyncPWM.c
+
+${OBJECTDIR}/asyncTools/asyncTools.o: asyncTools/asyncTools.c
+	${MKDIR} -p ${OBJECTDIR}/asyncTools
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncTools.o asyncTools/asyncTools.c
 
 ${OBJECTDIR}/hwControl/boardHWctrl.o: hwControl/boardHWctrl.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl

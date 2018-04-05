@@ -15,6 +15,7 @@
 
 #include "pthread.h"
 #include <unistd.h>
+#include <stdio.h>
 #include "timerManager.h"
 
 // Thread Messager
@@ -137,7 +138,7 @@ int setTimer(int time_ms, int (*callback)(int, int),int actionNumber, int name, 
                            
 		if(name == myTimer[i][NAME]){
                     if(type == myTimer[i][TYPE]){
-			printf("Annulation de la tâche en cours: %d : %d\n", myTimer[i][ACTIONID], name);
+			printf("Annulation du timer en cours pour l'action %d : %d\n", myTimer[i][ACTIONID], name);
 			setTimerResult=myTimer[i][ACTIONID];						// Retourne le numéro d'action ecrassé
 			myTimer[i][ACTIONID]=0;								// Libère l'emplacement memoire du timer ecrasé
                     }

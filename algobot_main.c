@@ -19,7 +19,9 @@
 #include "tools.h"
 #include "algobot_main.h"
 #include "timerManager.h"
-#include "hwControl/hwManager.h"
+#include "hwManager.h"
+#include "asyncTools.h"
+#include "asyncPWM.h"
 
 unsigned char ptrSpeedCalc;
 int createBuggyTask(int MsgId, int actionCount);
@@ -33,76 +35,7 @@ void DINSafetyCheck(void);
 void BatterySafetyCheck(void);
 void DistanceSafetyCheck(void);
 
-// Fonction d'enregistrement et de recherche de l'expediteur d'un message
-// Pour les evenement asynchrone
-int getSenderFromMsgId(int msgId);
-int saveSenderOfMsgId(int msgId, char* senderName);
-int removeHeaderOfMsgId(int msgId);
 
-// Structure d'un message algoid recu
-typedef struct msgTrace{
-	int msgId;
-	char msgFrom[32];
-}MSG_TRACE;
-
-MSG_TRACE msgEventHeader[50];
-
-
-struct m_prox{
-	int state;
-	int event_enable;
-	int safetyStop_state;
-	int safetyStop_value;
-	int em_stop;
-};
-
-struct m_dist{
-	int value;
-	int event_enable;
-	int event_low;
-	int event_high;
-	int event_hysteresis;
-	int safetyStop_state;
-	int safetyStop_value;
-};
-
-struct m_voltage{
-	int value;
-	int event_enable;
-	int event_low;
-	int event_high;
-	int event_hysteresis;
-	int safetyStop_state;
-	int safetyStop_value;
-};
-
-struct m_counter{
-	float startEncoderValue;
-	float stopEncoderValue;
-};
-
-struct m_motor{
-	float distance;
-	float speed;
-	int direction;
-};
-
-struct m_led{
-	int state;
-	int power;
-        int blinkCount;
-        int blinkTime;
-};
-
-typedef struct tsensor{
-	struct m_prox proximity[NBDIN];
-	struct m_dist distance[NBPWM];
-	struct m_voltage battery[NBAIN];
-	struct m_counter encoder[NBMOTOR];
-	struct m_motor motor[NBMOTOR];
-        struct m_led led[NBLED];
-        struct m_led pwm[NBPWM];
-}t_sensor;
 
 t_sensor body;
 
@@ -117,28 +50,29 @@ int makeDistanceRequest(void);
 int makeBatteryRequest(void);
 int makeStatusRequest(void);
 
-int make2WDaction(void);
-int makeServoAction(void);
-
-int makePwmAction(void);
-int setPwmAction(int actionNumber, int ledName, int time, int count);
-int endPwmAction(int actionNumber, int wheelNumber);
-int checkBlinkPwmCount(int actionNumber, int ledName);
-
-int makeLedAction(void);
-int setLedAction(int actionNumber, int ledName, int time, int count);
-int endLedAction(int actionNumber, int ledNumber);
-int checkBlinkLedCount(int actionNumber, int ledName);
-
-int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int value);
+int run2WDaction(void);
+int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, int value);
 int endWheelAction(int actionNumber, int wheelNumber);
 int checkMotorEncoder(int actionNumber, int encoderName);
-
-
 int getWDvalue(int wheelName);
-int getServoSetting(int servoName);
+
+int runPwmAction(void);
+//int setAsyncPwmAction(int actionNumber, int ledName, int time, int count);
+//int endPwmAction(int actionNumber, int wheelNumber);
+
 int getPwmSetting(int name);
+
+int runLedAction(void);
+int setAsyncLedAction(int actionNumber, int ledName, int time, int count);
+int endLedAction(int actionNumber, int ledNumber);
+int checkBlinkLedCount(int actionNumber, int ledName);
 int getLedSetting(int name);
+
+
+int makeServoAction(void);
+
+int getServoSetting(int servoName);
+
 char reportBuffer[256];
 
 
@@ -314,7 +248,7 @@ int processAlgoidCommand(void){
                                 // Retourne en réponse le message vérifié
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, LL_2WD, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)
                                 
-                                make2WDaction(); break;			// Action avec en paramètre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
+                                run2WDaction(); break;			// Action avec en paramètre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
 //		case pPWM  : 	makeServoAction();break;
                 case pPWM  : 	
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
@@ -334,8 +268,8 @@ int processAlgoidCommand(void){
                                 // Retourne en réponse le message vérifié
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)                    
                     
-                    makePwmAction();break;
-		case pLED  : 	makeLedAction();break;
+                    runPwmAction();break;
+		case pLED  : 	runLedAction();break;
 		default : break;
 	}
 
@@ -367,10 +301,10 @@ int processAlgoidRequest(void){
 
 
 // -------------------------------------------------------------------
-// make2WDaction
+// run2WDaction
 // Effectue une action avec les paramètre recus: MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
 // -------------------------------------------------------------------
-int make2WDaction(void){
+int run2WDaction(void){
 	int ptrData;
 	int myTaskId;
 	unsigned char actionCount=0;
@@ -407,9 +341,9 @@ int make2WDaction(void){
 
                             // Effectue l'action sur la roue
                             if(AlgoidCommand.DCmotor[ptrData].cm != 0)
-                                    setWheelAction(myTaskId, MOTOR_0, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
+                                    setAsyncMotorAction(myTaskId, MOTOR_0, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
                             else
-                                    setWheelAction(myTaskId, MOTOR_0, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
+                                    setAsyncMotorAction(myTaskId, MOTOR_0, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
                     }
 
                     // Récupération des paramètres d'action  pour la roue "RIGHT"
@@ -420,9 +354,9 @@ int make2WDaction(void){
                                     setMotorAccelDecel(MOTOR_1, AlgoidCommand.DCmotor[ptrData].accel, AlgoidCommand.DCmotor[ptrData].decel);
 
                             if(AlgoidCommand.DCmotor[ptrData].cm != 0)
-                                    setWheelAction(myTaskId, MOTOR_1, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
+                                    setAsyncMotorAction(myTaskId, MOTOR_1, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
                             else
-                                    setWheelAction(myTaskId, MOTOR_1, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
+                                    setAsyncMotorAction(myTaskId, MOTOR_1, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
                     }
 
                     // Retourne un message ALGOID si velocité hors tolérences
@@ -498,7 +432,7 @@ int makeServoAction(void){
                                             int ptr=getSenderFromMsgId(endOfTask);
                                             strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                                             // Libère la memorisation de l'expediteur
-                                            removeHeaderOfMsgId(endOfTask);
+                                            removeSenderOfMsgId(endOfTask);
 
                                             sendResponse(endOfTask, msgTo, EVENT, pPWM, 0);				// Envoie un message ALGOID de fin de tâche pour l'action écrasé
                                             printf(reportBuffer);									// Affichage du message dans le shell
@@ -525,7 +459,7 @@ int makeServoAction(void){
 // makeLEDAction
 //
 // -------------------------------------------------------------------
-int makeLedAction(void){
+int runLedAction(void){
 	int ptrData;
 	int myTaskId;
 	int endOfTask;
@@ -591,7 +525,7 @@ int makeLedAction(void){
 
                                     // Mode blink
                                     if(body.led[ID].state==2)
-                                         setLedAction(myTaskId, ID, time, Count);
+                                         setAsyncLedAction(myTaskId, ID, time, Count);
 
                                     // Mode on ou off
                                     else{
@@ -612,7 +546,7 @@ int makeLedAction(void){
                                                 int ptr=getSenderFromMsgId(endOfTask);
                                                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                                                 // Libère la memorisation de l'expediteur
-                                                removeHeaderOfMsgId(endOfTask);
+                                                removeSenderOfMsgId(endOfTask);
 
                                                 AlgoidResponse[0].responseType=0;
                                                 sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
@@ -649,7 +583,7 @@ int makeLedAction(void){
 // - vitesse de clignotement en mS
 // -------------------------------------------------------------------
 
-int setLedAction(int actionNumber, int ledName, int time, int count){
+int setAsyncLedAction(int actionNumber, int ledName, int time, int count){
 	int setTimerResult;
 	int endOfTask;
 
@@ -669,7 +603,7 @@ int setLedAction(int actionNumber, int ledName, int time, int count){
                                     int ptr=getSenderFromMsgId(endOfTask);
                                     strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                                     // Libère la memorisation de l'expediteur
-                                    removeHeaderOfMsgId(endOfTask);
+                                    removeSenderOfMsgId(endOfTask);
                                     AlgoidResponse[0].responseType=0;
                                     sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
                                     printf(reportBuffer);									// Affichage du message dans le shell
@@ -698,10 +632,6 @@ int setLedAction(int actionNumber, int ledName, int time, int count){
 // -------------------------------------------------------------------
 int endLedAction(int actionNumber, int LedNumber){
 	int endOfTask;
-	//printf("Action number: %d - End of timer for wheel No: %d\n",actionNumber , wheelNumber);
-
- 
-        
 	// Retire l'action de la table et vérification si toute les actions sont effectuées
 	// Pour la tâche en cours donnée par le message ALGOID
 
@@ -715,7 +645,7 @@ int endLedAction(int actionNumber, int LedNumber){
                 int ptr=getSenderFromMsgId(endOfTask);
                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                 // Libère la memorisation de l'expediteur
-                removeHeaderOfMsgId(endOfTask);
+                removeSenderOfMsgId(endOfTask);
                 AlgoidResponse[0].responseType=0;
                 sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
                 printf(reportBuffer);									// Affichage du message dans le shell
@@ -765,7 +695,7 @@ int checkBlinkLedCount(int actionNumber, int ledName){
 // makePWMAction
 //
 // -------------------------------------------------------------------
-int makePwmAction(void){
+int runPwmAction(void){
 	int ptrData;
 	int myTaskId;
 	int endOfTask;
@@ -828,13 +758,13 @@ int makePwmAction(void){
                     for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
                             ID = AlgoidCommand.PWMarray[ptrData].id;
                             if(ID >= 0){
-                                    time=body.pwm[ID].blinkTime;
-                                    power=body.pwm[ID].power;
-                                    Count=body.pwm[ID].blinkCount;
+                                    time=AlgoidCommand.PWMarray[ptrData].time;
+                                    power=AlgoidCommand.PWMarray[ptrData].powerPercent;
+                                    Count=AlgoidCommand.PWMarray[ptrData].blinkCount;
 
                                     // Mode blink
                                     if(body.pwm[ID].state==2){
-                                         setPwmAction(myTaskId, ID, time, Count);                                         
+                                         setAsyncPwmAction(myTaskId, ID, time, Count);                                         
                                     }
 
                                     // Mode on ou off
@@ -852,7 +782,7 @@ int makePwmAction(void){
                                                 int ptr=getSenderFromMsgId(endOfTask);
                                                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                                                 // Libère la memorisation de l'expediteur
-                                                removeHeaderOfMsgId(endOfTask);
+                                                removeSenderOfMsgId(endOfTask);
                                                 AlgoidResponse[0].responseType=0;
                                                 sendResponse(endOfTask, msgTo, EVENT, pPWM, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
                                             }
@@ -879,16 +809,16 @@ int makePwmAction(void){
 	return 0;
 }
 
-
+/*
 // -------------------------------------------------------------------
-// SETPWMACTION
+// SETASYNCPWMACTION
 // Effectue l'action de clignotement
 // - Démarrage du timer avec definition de fonction call-back, et no d'action
 // - Démarrage du clignotement
 // - vitesse de clignotement en mS
 // -------------------------------------------------------------------
 
-int setPwmAction(int actionNumber, int ledName, int time, int count){
+int setAsyncPwmAction(int actionNumber, int ledName, int time, int count){
 	int setTimerResult;
 	int endOfTask;
 
@@ -900,7 +830,7 @@ int setPwmAction(int actionNumber, int ledName, int time, int count){
 		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur le meme peripherique
 			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
                         if(endOfTask){
-                                sprintf(reportBuffer, "Annulation des actions PWM pour la tache #%d\n", endOfTask);
+                                sprintf(reportBuffer, "Annulation des actions PWM pour la tache #%d\n", setTimerResult);
 
                                 // Récupère l'expediteur original du message ayant provoqué
                                 // l'évenement
@@ -908,7 +838,7 @@ int setPwmAction(int actionNumber, int ledName, int time, int count){
                                 int ptr=getSenderFromMsgId(endOfTask);
                                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                                 // Libère la memorisation de l'expediteur
-                                removeHeaderOfMsgId(endOfTask);
+                                removeSenderOfMsgId(endOfTask);
                                 
                                 AlgoidResponse[0].responseType=2;
                                 sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, pPWM, 1);		// Envoie un message ALGOID de fin de tâche pour l'action écrasé
@@ -930,7 +860,7 @@ int setPwmAction(int actionNumber, int ledName, int time, int count){
 	else printf("Error, Impossible to set timer led\n");
 	return 0;
 }
-
+ 
 // -------------------------------------------------------------------
 // ENDPWMACTION
 // Fin de l'action de clignotement
@@ -952,7 +882,7 @@ int endPwmAction(int actionNumber, int LedNumber){
                 int ptr=getSenderFromMsgId(endOfTask);
                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                 // Libère la memorisation de l'expediteur
-                removeHeaderOfMsgId(endOfTask);
+                removeSenderOfMsgId(endOfTask);
                 AlgoidResponse[0].responseType=0;
                 sendResponse(endOfTask, msgTo, EVENT, pPWM, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
                 printf(reportBuffer);									// Affichage du message dans le shell
@@ -961,40 +891,7 @@ int endPwmAction(int actionNumber, int LedNumber){
 
 	return 0;
 }
-
-// ----------------------------------------------------------------------
-// CHECKBLINKPWMCOUNT
-// CONTROLE LE NOMBRE DE CLIGNOTEMENT SUR LA SORTIE PWM
-// Fonction appelée après le timout défini par l'utilisateur.
-// -----------------------------------------------------------------------
-
-int checkBlinkPwmCount(int actionNumber, int ledName){
-	static int blinkCount=0;     // Variable de comptage du nombre de clignotements
-
-        blinkCount++;
-
-        // Inverse l'état de la led
-        if(body.pwm[ledName].state>0){
-            setPwmPower(ledName, 0);
-            body.pwm[ledName].state=0;
-        }else
-        {
-            setPwmPower(ledName, body.pwm[ledName].power);
-            body.pwm[ledName].state=1;
-        }
-        
-        // Contrôle le nombre de clignotement
-	if(blinkCount >= body.pwm[ledName].blinkCount){
-            endPwmAction(actionNumber, ledName);
-            blinkCount=0;                                   // Reset le compteur
-        }
-		
-	else    {
-		setTimer(body.pwm[ledName].blinkTime, &checkBlinkPwmCount, actionNumber, ledName, PWM);      
-        }
-        
-	return 0;
-}
+*/
 
 // -------------------------------------------------------------------
 // SETWHEELACTION
@@ -1004,7 +901,7 @@ int checkBlinkPwmCount(int actionNumber, int ledName){
 // - Vélocité entre -100 et +100 qui défini le sens de rotation du moteur
 // -------------------------------------------------------------------
 
-int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int value){
+int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, int value){
 	int myDirection;
 	int setTimerResult;
 	int endOfTask;
@@ -1033,7 +930,7 @@ int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int va
                                     body.encoder[wheelName].stopEncoderValue = body.encoder[wheelName].startEncoderValue+ value;
                                     setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, wheelName, MOTOR);			// Démarre un timer pour contrôle de distance chaque 35mS
                                     break;
-		default: printf("\n!!! ERROR Function [setWheelAction] -> undefined unit");break;
+		default: printf("\n!!! ERROR Function [setAsyncMotorAction] -> undefined unit");break;
 	}
 
 	if(setTimerResult!=0){						// Timer pret, action effectuée ()
@@ -1048,7 +945,7 @@ int setWheelAction(int actionNumber, int wheelName, int veloc, char unit, int va
 				int ptr=getSenderFromMsgId(endOfTask);
 				strcpy(msgTo, msgEventHeader[ptr].msgFrom);
 				// Libère la memorisation de l'expediteur
-				removeHeaderOfMsgId(endOfTask);
+				removeSenderOfMsgId(endOfTask);
 
 				AlgoidResponse[0].responseType=2;
 				sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, LL_2WD, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
@@ -1103,7 +1000,7 @@ int endWheelAction(int actionNumber, int wheelNumber){
 		int ptr=getSenderFromMsgId(endOfTask);
 		strcpy(msgTo, msgEventHeader[ptr].msgFrom);
 		// Libère la memorisation de l'expediteur
-		removeHeaderOfMsgId(endOfTask);
+		removeSenderOfMsgId(endOfTask);
 
 		// Récupère la distance et la vitesse actuelle du moteur
 		// Pour retour event a l'expediteur originel
@@ -1259,8 +1156,10 @@ int createBuggyTask(int MsgId, int actionCount){
 			if(ActionTable[i][TASK_NUMBER]==actionID)
 			{
                                
-				sprintf(reportBuffer, "ERREUR: Tache en cours de traitement: %d\n", actionID);
+				sprintf(reportBuffer, "ERREUR: Tache déja existante et en cours de traitement: %d\n", actionID);
                                 printf(reportBuffer);
+                                AlgoidResponse[0].responseType=0;
+                                sendResponse(actionID, getSenderFromMsgId(actionID), RESPONSE, ERR_HEADER, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
 				sendMqttReport(actionID, reportBuffer);
 				return -1;
 				}
@@ -1429,7 +1328,7 @@ int makeDistanceRequest(void){
 					}
 					else if(!strcmp(AlgoidCommand.DISTsens[i].event_state, "off")){
 						body.distance[AlgoidCommand.DISTsens[i].id].event_enable=0;
-						removeHeaderOfMsgId(AlgoidCommand.msgID);
+						removeSenderOfMsgId(AlgoidCommand.msgID);
 					}
 
 					// Evemenent haut
@@ -1504,7 +1403,7 @@ int makeBatteryRequest(void){
 					}
 					else if(!strcmp(AlgoidCommand.BATTsens[i].event_state, "off")){
 						body.battery[AlgoidCommand.BATTsens[i].id].event_enable=0;
-						removeHeaderOfMsgId(AlgoidCommand.msgID);
+						removeSenderOfMsgId(AlgoidCommand.msgID);
 					}
 					// Evemenent haut
 					if(AlgoidCommand.BATTsens[i].event_high!=0) body.battery[AlgoidCommand.BATTsens[i].id].event_high=AlgoidCommand.BATTsens[i].event_high;
@@ -1530,7 +1429,7 @@ int makeBatteryRequest(void){
 			}
 			else{
 				strcpy(AlgoidResponse[i].BATTesponse.event_state, "off");
-				removeHeaderOfMsgId(AlgoidCommand.msgID);
+				removeSenderOfMsgId(AlgoidCommand.msgID);
 			}
 			AlgoidResponse[i].BATTesponse.event_high=body.battery[temp].event_high;
 			AlgoidResponse[i].BATTesponse.event_low=body.battery[temp].event_low;
@@ -1779,6 +1678,7 @@ void DistanceSafetyCheck(void){
 	}
 }
 
+/*
 
 // -------------------------------------------------------------------
 // GETSENDERFROMMSGID
@@ -1821,10 +1721,10 @@ int saveSenderOfMsgId(int msgId, char* senderName){
 }
 
 // -------------------------------------------------------------------
-// REMOVEHEADEROFMSGID
+// REMOVESENDEROFMSGID
 // Libere l'emplacement dans la table des messages
 // -------------------------------------------------------------------
-int removeHeaderOfMsgId(int msgId){
+int removeSenderOfMsgId(int msgId){
 	unsigned char i;
 		for(i=0; i<20; i++){
 			if(msgEventHeader[i].msgId == msgId){
@@ -1836,3 +1736,4 @@ int removeHeaderOfMsgId(int msgId){
 	return 1;
 }
 
+*/

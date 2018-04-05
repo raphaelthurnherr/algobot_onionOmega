@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=Algobot_onionOmega
+PROJECTNAME=algobot_onionOmega
 
 # Active Configuration
 DEFAULTCONF=Debug

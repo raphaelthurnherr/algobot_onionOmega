@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>asyncTools/asyncTools.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -72,6 +73,10 @@
         <itemPath>AlgoidCom/udpPublish.c</itemPath>
         <itemPath>AlgoidCom/udpPublish.h</itemPath>
       </logicalFolder>
+      <logicalFolder name="f1" displayName="asyncTools" projectFiles="true">
+        <itemPath>asyncTools/asyncPWM.c</itemPath>
+        <itemPath>asyncTools/asyncPWM.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="hwControl" displayName="hwControl" projectFiles="true">
         <logicalFolder name="libs" displayName="libs" projectFiles="true">
           <logicalFolder name="i2c" displayName="i2c" projectFiles="true">
@@ -89,6 +94,7 @@
         <itemPath>hwControl/hwManager.h</itemPath>
       </logicalFolder>
       <itemPath>algobot_main.c</itemPath>
+      <itemPath>asyncTools/asyncTools.c</itemPath>
       <itemPath>timerManager.c</itemPath>
       <itemPath>tools.c</itemPath>
     </logicalFolder>
@@ -108,6 +114,7 @@
   <sourceRootList>
     <Elem>hwControl</Elem>
     <Elem>AlgoidCom</Elem>
+    <Elem>asyncTools</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -126,6 +133,7 @@
             <pElem>AlgoidCom/libs/lib_mqtt</pElem>
             <pElem>AlgoidCom</pElem>
             <pElem>hwControl</pElem>
+            <pElem>asyncTools</pElem>
           </incDir>
           <commandLine>-pthread</commandLine>
         </cTool>
@@ -310,6 +318,14 @@
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="algobot_main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncPWM.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncPWM.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncTools.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncTools.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="hwControl/boardHWctrl.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -537,6 +553,14 @@
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="algobot_main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncPWM.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncPWM.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncTools.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncTools.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="hwControl/boardHWctrl.c" ex="false" tool="0" flavor2="0">
       </item>

@@ -12,6 +12,7 @@ typedef enum msgtype{
 
 // DEFINITION DES PARAMETRES DE TYPE PARAMETRE
 typedef enum msgparam{
+        ERR_HEADER,
 	ERR_PARAM,
 	STOP,
 	MOVE,
