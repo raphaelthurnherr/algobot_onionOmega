@@ -16,14 +16,14 @@ typedef enum msgparam{
 	ERR_PARAM,
 	STOP,
 	MOVE,
-	LL_2WD,
+	MOTORS,
 	DINPUT,
 	DISTANCE,
 	BATTERY,
 	pPWM,
 	pLED,
         pSERVO,
-	STATUS
+	STATUS,
 }t_msgparam;
 
 
@@ -32,8 +32,8 @@ struct m2wd{
 	int velocity;
 	int time;
 	int cm;
-	char accel;
-	char decel;
+	int accel;
+	int decel;
 };
 
 struct mDin{
@@ -76,12 +76,6 @@ struct mLed{
         int blinkCount;
 };
 
-struct mMotor{
-	int id;
-	int speed;
-	int distance;
-	int time;
-};
 
 struct mServo{
 	int id;
@@ -121,7 +115,7 @@ typedef struct JsonResponse{
 	struct mBattery BATTesponse;
 	struct mDistance DISTresponse;
         struct mServo SERVOresponse;
-	struct mMotor MOTresponse;
+	struct m2wd MOTresponse;
         struct mLed PWMresponse;
 	// UNION ???
 }ALGOID_RESPONSE;

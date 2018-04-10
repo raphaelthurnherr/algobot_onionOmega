@@ -18,8 +18,8 @@
 extern "C" {
 #endif
 
-int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, int value);
-int endWheelAction(int actionNumber, int wheelNumber);
+int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value);
+int endWheelAction(int actionNumber, int motorNb);
 int checkMotorEncoder(int actionNumber, int encoderName);
 
 

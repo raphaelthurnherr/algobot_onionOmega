@@ -47,9 +47,13 @@ struct m_counter{
 };
 
 struct m_motor{
-	float distance;
-	float speed;
+	int distance;
+	int speed;
 	int direction;
+        char accel;
+        char decel;
+        int cm;
+        int time;
 };
 
 struct m_led{

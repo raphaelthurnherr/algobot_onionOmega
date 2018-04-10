@@ -16,8 +16,8 @@
 
 char reportBuffer[256];
 
-int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, int value);
-int endWheelAction(int actionNumber, int wheelNumber);
+int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value);
+int endWheelAction(int actionNumber, int motorNb);
 int checkMotorEncoder(int actionNumber, int encoderName);
 
 // -------------------------------------------------------------------
@@ -28,7 +28,7 @@ int checkMotorEncoder(int actionNumber, int encoderName);
 // - Vélocité entre -100 et +100 qui défini le sens de rotation du moteur
 // -------------------------------------------------------------------
 
-int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, int value){
+int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value){
 	int myDirection;
 	int setTimerResult;
 	int endOfTask;
@@ -36,26 +36,26 @@ int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, i
 	// Conversion de la vélocité de -100...+100 en direction AVANCE ou RECULE
 	if(veloc > 0){
 		myDirection=BUGGY_FORWARD;
-		body.motor[wheelName].direction = 1;
+		body.motor[motorNb].direction = 1;
 	}
 	if(veloc == 0){
 		myDirection=BUGGY_STOP;
-		body.motor[wheelName].direction = 0;
+		body.motor[motorNb].direction = 0;
 	}
 	if(veloc < 0){
 		myDirection=BUGGY_BACK;
-		body.motor[wheelName].direction = -1;
+		body.motor[motorNb].direction = -1;
 		veloc *=-1;					// Convertion en valeur positive
 	}
 
 	// Démarre de timer d'action sur la roue et spécifie la fonction call back à appeler en time-out
 	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
 	switch(unit){
-		case  MILLISECOND:  setTimerResult=setTimer(value, &endWheelAction, actionNumber, wheelName, MOTOR); break;
-		case  CENTIMETER:   //wheelNumber = getOrganNumber(wheelName);
-                                    body.encoder[wheelName].startEncoderValue=getMotorPulses(wheelName)*CMPP;
-                                    body.encoder[wheelName].stopEncoderValue = body.encoder[wheelName].startEncoderValue+ value;
-                                    setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, wheelName, MOTOR);			// Démarre un timer pour contrôle de distance chaque 35mS
+		case  MILLISECOND:  setTimerResult=setTimer(value, &endWheelAction, actionNumber, motorNb, MOTOR); break;
+		case  CENTIMETER:   //motorNb = getOrganNumber(motorNb);
+                                    body.encoder[motorNb].startEncoderValue=getMotorPulses(motorNb)*CMPP;
+                                    body.encoder[motorNb].stopEncoderValue = body.encoder[motorNb].startEncoderValue+ value;
+                                    setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, motorNb, MOTOR);			// Démarre un timer pour contrôle de distance chaque 35mS
                                     break;
 		default: printf("\n!!! ERROR Function [setAsyncMotorAction] -> undefined unit");break;
 	}
@@ -75,7 +75,7 @@ int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, i
 				removeSenderOfMsgId(endOfTask);
 
 				AlgoidResponse[0].responseType=2;
-				sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, LL_2WD, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+				sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, MOTORS, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
 				printf(reportBuffer);									// Affichage du message dans le shell
 				sendMqttReport(endOfTask, reportBuffer);                                                // Envoie le message sur le canal MQTT "Report"
 			}
@@ -83,16 +83,16 @@ int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, i
 		}
 
 		// Défini le "nouveau" sens de rotation à applique au moteur ainsi que la consigne de vitesse
-		if(setMotorDirection(wheelName, myDirection)){							// Sens de rotation
-			setMotorSpeed(wheelName, veloc);									// Vitesse
+		if(setMotorDirection(motorNb, myDirection)){							// Sens de rotation
+			setMotorSpeed(motorNb, veloc);									// Vitesse
 
 			// Envoie de message ALGOID et SHELL
-			sprintf(reportBuffer, "Start wheel %d with velocity %d for time %d\n", wheelName, veloc, value);
+			sprintf(reportBuffer, "Start wheel %d with velocity %d for time %d\n", motorNb, veloc, value);
 			printf(reportBuffer);
 			sendMqttReport(actionNumber, reportBuffer);
 		}
 		else{
-			sprintf(reportBuffer, "Error, impossible to start wheel %d\n",wheelName);
+			sprintf(reportBuffer, "Error, impossible to start wheel %d\n",motorNb);
 			printf(reportBuffer);
 			sendMqttReport(actionNumber, reportBuffer);
 		}
@@ -107,12 +107,12 @@ int setAsyncMotorAction(int actionNumber, int wheelName, int veloc, char unit, i
 // Fin de l'action sur une roue
 // Fonction appelée après le timout défini par l'utilisateur, Stop le moteur spécifié
 // -------------------------------------------------------------------
-int endWheelAction(int actionNumber, int wheelNumber){
+int endWheelAction(int actionNumber, int motorNb){
 	int endOfTask;
-	//printf("Action number: %d - End of timer for wheel No: %d\n",actionNumber , wheelNumber);
+	//printf("Action number: %d - End of timer for wheel No: %d\n",actionNumber , motorNb);
 
 	// Stop le moteur
-	setMotorSpeed(wheelNumber, 0);
+	setMotorSpeed(motorNb, 0);
 
 	// Retire l'action de la table et vérification si toute les actions sont effectuées
 	// Pour la tâche en cours donnée par le message ALGOID
@@ -141,7 +141,7 @@ int endWheelAction(int actionNumber, int wheelNumber){
 */
 		AlgoidResponse[0].responseType=0;
 
-		sendResponse(endOfTask, msgTo, EVENT, LL_2WD, 1);
+		sendResponse(endOfTask, msgTo, EVENT, MOTORS, 1);
 		sprintf(reportBuffer, "FIN DES ACTIONS \"WHEEL\" pour la tache #%d\n", endOfTask);
 		printf(reportBuffer);
 		sendMqttReport(endOfTask, reportBuffer);

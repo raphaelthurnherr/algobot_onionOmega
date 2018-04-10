@@ -42,6 +42,7 @@ int makeSensorsRequest(void);
 int makeDistanceRequest(void);
 int makeBatteryRequest(void);
 int makeStatusRequest(void);
+int makeMotorRequest(void);
 
 int runMotorAction(void);
 
@@ -124,6 +125,15 @@ int main(void) {
 		body.proximity[i].safetyStop_state=0;
 		body.proximity[i].safetyStop_value=0;
 	}
+        
+        for(i=0;i<NBMOTOR;i++){
+		body.motor[i].accel=0;
+                body.motor[i].cm=0;
+                body.motor[i].decel=0;
+                body.motor[i].distance=0;
+                body.motor[i].speed=0;
+                body.motor[i].time=0;
+	}
 
 	while(1){
 
@@ -182,12 +192,10 @@ int main(void) {
 
 			batteryEventCheck();
 
-			body.motor[MOTOR_0].speed= (getMotorFrequency(MOTOR_0)*CMPP) * body.motor[MOTOR_0].direction;
-			body.motor[MOTOR_1].speed=(getMotorFrequency(MOTOR_1)*CMPP) * body.motor[MOTOR_1].direction;
-
-			body.motor[MOTOR_0].distance=getMotorPulses(MOTOR_0)*CMPP;
-			body.motor[MOTOR_1].distance=getMotorPulses(MOTOR_1)*CMPP;
-
+                        for(i=0;i<NBMOTOR;i++){
+                            body.motor[i].speed= (getMotorFrequency(i)*CMPP) * body.motor[i].direction;
+                            body.motor[i].distance=getMotorPulses(i)*CMPP;
+                        }
 
 			// est hors a plage spécifiée par les paramettre utilisateur
 //			printf("Pulses left: %d    right: %d\n", test[0], test[1]);
@@ -221,25 +229,26 @@ int processAlgoidCommand(void){
     int i;
     
 	switch(AlgoidCommand.msgParam){
-		case LL_2WD : 	
+		case MOTORS : 	
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+                                   
                                     // Controle que le moteur existe...
                                     if(AlgoidCommand.DCmotor[i].motor >= 0 && AlgoidCommand.DCmotor[i].motor <NBMOTOR)
-                                        AlgoidResponse[i].MOTresponse.id=AlgoidCommand.DCmotor[i].motor;
+                                        AlgoidResponse[i].MOTresponse.motor=AlgoidCommand.DCmotor[i].motor;
                                     else
-                                        AlgoidResponse[i].MOTresponse.id=-1;
+                                        AlgoidResponse[i].MOTresponse.motor=-1;
                                             
                                     // Récupération des paramètes 
-                                    AlgoidResponse[i].MOTresponse.speed=AlgoidCommand.DCmotor[i].velocity;
-                                    AlgoidResponse[i].MOTresponse.distance=AlgoidCommand.DCmotor[i].cm;
+                                    AlgoidResponse[i].MOTresponse.velocity=AlgoidCommand.DCmotor[i].velocity;
+                                    AlgoidResponse[i].MOTresponse.cm=AlgoidCommand.DCmotor[i].cm;
                                     AlgoidResponse[i].MOTresponse.time=AlgoidCommand.DCmotor[i].time;
                                     AlgoidResponse[i].responseType = 3;
                                 }
                                 // Retourne en réponse le message vérifié
-                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, LL_2WD, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, MOTORS, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)
                                 
                                 runMotorAction(); break;			// Action avec en paramètre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
-//		case pPWM  : 	makeServoAction();break;
+                                
                 case pPWM  : 	
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
                                     // Controle que le moteur existe...
@@ -258,7 +267,7 @@ int processAlgoidCommand(void){
                                 // Retourne en réponse le message vérifié
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)                    
                     
-                    runPwmAction();break;
+                                runPwmAction();break;
 		case pLED  : 	runLedAction();break;
 		default : break;
 	}
@@ -282,7 +291,9 @@ int processAlgoidRequest(void){
 						break;
 
 		case STATUS :	makeStatusRequest();					// Requet d'état des entrées digitale
-								break;
+						break;
+        	case MOTORS :	makeMotorRequest();					// Requet d'état des entrées digitale
+						break;
 
 		default : break;
 	}
@@ -298,13 +309,30 @@ int runMotorAction(void){
 	int ptrData;
 	int myTaskId;
 	unsigned char actionCount=0;
+	int action=0;
         int i;
+        int ID;
 
 	// Comptabilise le nombre de paramètre (moteur) recu dans le message
 	// 
         for(i=0;i<NBMOTOR;i++){
-            if(getWDvalue(i)>=0){
-                actionCount++;          // Les paramète pour 1 Moteur trouvé = une action...
+            ptrData=getWDvalue(i);
+            if(ptrData>=0){
+                actionCount++;
+                
+                    // Retourne un message ALGOID si velocité hors tolérences
+                    if((AlgoidCommand.DCmotor[ptrData].velocity < -100) ||(AlgoidCommand.DCmotor[ptrData].velocity > 100))
+                            sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  WARNING, MOTORS, 0);
+                    else{
+                        body.motor[i].speed=AlgoidCommand.DCmotor[ptrData].velocity;
+                        body.motor[i].accel=AlgoidCommand.DCmotor[ptrData].accel;
+                        body.motor[i].decel=AlgoidCommand.DCmotor[ptrData].decel;
+                        body.motor[i].cm=AlgoidCommand.DCmotor[ptrData].cm;
+                        body.motor[i].time=AlgoidCommand.DCmotor[ptrData].time;
+                        
+//                        printf("\nDEBUG: WHEEL %d SPEED %d ACCEL %d TIME %d CM %d\n ", AlgoidCommand.DCmotor[ptrData].motor, AlgoidCommand.DCmotor[ptrData].velocity, AlgoidCommand.DCmotor[ptrData].accel, AlgoidCommand.DCmotor[ptrData].time, AlgoidCommand.DCmotor[ptrData].cm);
+//                        printf("\nDEBUGG: WHEEL %d SPEED %d ACCEL %d TIME %d CM %d\n ", i, body.motor[i].speed, body.motor[i].accel, body.motor[i].time, body.motor[i].cm);
+                    }  
             }
         }
 
@@ -322,42 +350,25 @@ int runMotorAction(void){
                     // en fin d'évenement
                     saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 
-                    // Récupération des paramètres d'action  pour la roue "LEFT"
-                    ptrData=getWDvalue(MOTOR_0);
-                    if(ptrData >=0){
-                            // Enregistre la donnée d'acceleration si disponible (<0)
-                            if(AlgoidCommand.DCmotor[ptrData].accel!=0 || AlgoidCommand.DCmotor[ptrData].decel!=0)
-                                    setMotorAccelDecel(MOTOR_0, AlgoidCommand.DCmotor[ptrData].accel, AlgoidCommand.DCmotor[ptrData].decel);
-
-                            // Effectue l'action sur la roue
-                            if(AlgoidCommand.DCmotor[ptrData].cm != 0)
-                                    setAsyncMotorAction(myTaskId, MOTOR_0, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
+                    for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
+                        ID = AlgoidCommand.DCmotor[ptrData].motor;
+                        if(ID >= 0){
+                            if(body.motor[ID].accel!=0 || body.motor[ID].decel)
+                                setMotorAccelDecel(ID, body.motor[ID].accel, body.motor[ID].decel);
+                            
+                                                        // Effectue l'action sur la roue
+                            if(body.motor[ID].cm != 0)
+                                    setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, CENTIMETER, body.motor[ID].cm);
                             else
-                                    setAsyncMotorAction(myTaskId, MOTOR_0, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
+                                    setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
+                                                // Défini l'état de laction comme "démarrée" pour message de répons
+                            AlgoidResponse[0].responseType = 1;
+                        }
+                        action++;
                     }
-
-                    // Récupération des paramètres d'action  pour la roue "RIGHT"
-                    ptrData=getWDvalue(MOTOR_1);
-                    if(ptrData >=0){
-                            // Enregistre la donnée d'acceleration si disponible (<0)
-                            if(AlgoidCommand.DCmotor[ptrData].accel>0 || AlgoidCommand.DCmotor[ptrData].decel>0)
-                                    setMotorAccelDecel(MOTOR_1, AlgoidCommand.DCmotor[ptrData].accel, AlgoidCommand.DCmotor[ptrData].decel);
-
-                            if(AlgoidCommand.DCmotor[ptrData].cm != 0)
-                                    setAsyncMotorAction(myTaskId, MOTOR_1, AlgoidCommand.DCmotor[ptrData].velocity, CENTIMETER, AlgoidCommand.DCmotor[ptrData].cm);
-                            else
-                                    setAsyncMotorAction(myTaskId, MOTOR_1, AlgoidCommand.DCmotor[ptrData].velocity, MILLISECOND, AlgoidCommand.DCmotor[ptrData].time);
-                    }
-
-                    // Retourne un message ALGOID si velocité hors tolérences
-                    if((AlgoidCommand.DCmotor[ptrData].velocity < -100) ||(AlgoidCommand.DCmotor[ptrData].velocity > 100))
-                            sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  WARNING, LL_2WD, 0);
-
-                    // Défini l'état de laction comme "démarrée" pour message de répons
-                    AlgoidResponse[0].responseType = 1;
 
                     // Retourne un message event ALGOID 
-                    sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, LL_2WD, 1);
+                    sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, MOTORS, 1);
                     return 0;
             }
             else
@@ -368,7 +379,7 @@ int runMotorAction(void){
             
             //AlgoidResponse[0].responseType = -1;
             sprintf(reportBuffer, "ERREUR: Aucun moteur défini ou inexistant pour le message #%d\n", AlgoidCommand.msgID);
-            //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, LL_2WD, 1);  // Retourne une réponse d'erreur, (aucun moteur défini)
+            //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, MOTORS, 1);  // Retourne une réponse d'erreur, (aucun moteur défini)
             printf(reportBuffer);                                                             // Affichage du message dans le shell
             sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"
         }
@@ -869,9 +880,9 @@ int makeStatusRequest(void){
 	}
 
 	for(i=0;i<NBMOTOR;i++){
-		AlgoidResponse[ptrData].MOTresponse.id=i;
-		AlgoidResponse[ptrData].MOTresponse.speed=body.motor[i].speed;
-		AlgoidResponse[ptrData].MOTresponse.distance=body.motor[i].distance;
+		AlgoidResponse[ptrData].MOTresponse.motor=i;
+		AlgoidResponse[ptrData].MOTresponse.velocity=body.motor[i].speed;
+		AlgoidResponse[ptrData].MOTresponse.cm=body.motor[i].distance;
 		ptrData++;
 	}
 
@@ -1081,6 +1092,44 @@ int makeBatteryRequest(void){
 	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, RESPONSE, BATTERY, AlgoidCommand.msgValueCnt);
 		return 1;
 }
+
+
+// -------------------------------------------------------------------
+// MAKEMOTORREQUEST
+// Traitement de la requete SENSORS
+// Envoie une message ALGOID de type "response" avec l'état des entrées DIN
+// -------------------------------------------------------------------
+int makeMotorRequest(void){
+	unsigned char i;
+
+	// Pas de paramètres spécifiés dans le message, retourne l'ensemble des états des DIN
+	if(AlgoidCommand.msgValueCnt==0){
+		AlgoidCommand.msgValueCnt=NBMOTOR;
+		for(i=0;i<NBMOTOR;i++){
+			AlgoidResponse[i].MOTresponse.motor=i;
+		}
+	}                
+
+	// RETOURNE EN REPONSE LES PARAMETRES ENREGISTRES ---
+	for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+		int temp = AlgoidResponse[i].MOTresponse.motor;
+
+		// Contrôle que le capteur soit pris en charge
+		if(AlgoidCommand.DCmotor[i].motor < NBMOTOR){
+			AlgoidResponse[i].MOTresponse.velocity = body.motor[temp].cm;
+                        AlgoidResponse[i].MOTresponse.velocity = body.motor[temp].speed;
+                        AlgoidResponse[i].responseType=3;
+                        
+			
+		} else
+			AlgoidResponse[i].MOTresponse.motor = -1;
+	//---
+	}
+	// Envoie de la réponse MQTT
+	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, RESPONSE, MOTORS, AlgoidCommand.msgValueCnt);
+	return (1);
+}
+
 
 // -------------------------------------------------------------------
 // DISTANCEEVENTCHECK

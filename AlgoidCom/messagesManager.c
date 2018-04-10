@@ -189,9 +189,13 @@ char clearMsgStack(unsigned char ptrStack){
 			AlgoidMsgRXStack[ptrStack].msgType=-1;
 
 			for(i=0;i<AlgoidMsgRXStack[ptrStack].msgValueCnt;i++){
-				strcpy(AlgoidMsgRXStack[ptrStack].DCmotor[i].motor, "");
+				//strcpy(AlgoidMsgRXStack[ptrStack].DCmotor[i].motor, "");
+                                AlgoidMsgRXStack[ptrStack].DCmotor[i].motor=-1;
 				AlgoidMsgRXStack[ptrStack].DCmotor[i].time=-1;
 				AlgoidMsgRXStack[ptrStack].DCmotor[i].velocity=-1;
+                                AlgoidMsgRXStack[ptrStack].DCmotor[i].accel=-1;
+                                AlgoidMsgRXStack[ptrStack].DCmotor[i].decel=-1;
+                                AlgoidMsgRXStack[ptrStack].DCmotor[i].cm=-1;
 			}
 			return 0;
 		}
@@ -282,7 +286,7 @@ void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char 
 // Génération du texte de reponse TYPE pour message MQTT
 	switch(msgParam){
 		case STOP : strcpy(ackParam, "stop"); break;
-		case LL_2WD : strcpy(ackParam, "2wd"); break;
+		case MOTORS : strcpy(ackParam, "motor"); break;
 		case pPWM : strcpy(ackParam, "pwm"); break;
 		case MOVE : strcpy(ackParam, "move"); break;
 		case DINPUT : strcpy(ackParam, "din"); break;

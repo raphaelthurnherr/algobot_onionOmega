@@ -35,8 +35,7 @@
 #define KEY_MESSAGE_VALUE_SAFETY_VALUE "{'MsgData'{'MsgValue'[*{'safety_value'"
 
 
-
-#define KEY_MESSAGE_VALUE_WHEEL "{'MsgData'{'MsgValue'[*{'wheel'"
+#define KEY_MESSAGE_VALUE_MOTOR "{'MsgData'{'MsgValue'[*{'motor'"
 #define KEY_MESSAGE_VALUE_VELOCITY "{'MsgData'{'MsgValue'[*{'velocity'"
 #define KEY_MESSAGE_VALUE_TIME "{'MsgData'{'MsgValue'[*{'time'"
 #define KEY_MESSAGE_VALUE_CM "{'MsgData'{'MsgValue'[*{'cm'"
@@ -101,7 +100,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				AlgoidMessageRX.msgParam=ERR_PARAM;
 					if(!strcmp(myDataString, "stop")) AlgoidMessageRX.msgParam = STOP;
 					if(!strcmp(myDataString, "move")) AlgoidMessageRX.msgParam = MOVE;
-					if(!strcmp(myDataString, "2wd")) AlgoidMessageRX.msgParam = LL_2WD;
+					if(!strcmp(myDataString, "motor")) AlgoidMessageRX.msgParam = MOTORS;
 					if(!strcmp(myDataString, "pwm")) AlgoidMessageRX.msgParam = pPWM;
 					if(!strcmp(myDataString, "led")) AlgoidMessageRX.msgParam = pLED;
 
@@ -118,19 +117,22 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 
 				      for(i=0; i<element.elements; i++ )    // loop for no. of elements in JSON
 				      {
-				    	  if(AlgoidMessageRX.msgParam == LL_2WD){
+				    	  if(AlgoidMessageRX.msgParam == MOTORS){
 				    		  AlgoidMessageRX.DCmotor[i].motor=UNKNOWN;	// Initialisation roue inconnue
-				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_WHEEL, myDataString, 15, &i );
-				    		  if(!strcmp(myDataString, "left")) AlgoidMessageRX.DCmotor[i].motor = MOTOR_0;
-				    		  if(!strcmp(myDataString, "right")) AlgoidMessageRX.DCmotor[i].motor = MOTOR_1;
-
+				    		  //jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_MOTOR, myDataString, 15, &i );
+                                                  AlgoidMessageRX.DCmotor[i].motor= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_MOTOR, &i);
 
 					    	  AlgoidMessageRX.DCmotor[i].velocity= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_VELOCITY, &i);
 					    	  AlgoidMessageRX.DCmotor[i].time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_TIME, &i);
 					    	  AlgoidMessageRX.DCmotor[i].cm= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CM, &i);
 					    	  AlgoidMessageRX.DCmotor[i].accel= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ACCEL, &i);
 					    	  AlgoidMessageRX.DCmotor[i].decel= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_DECEL, &i);
-
+/*                                                  printf("\n --DEBUG: MOTOR ID: %d, SPEED: %d, TIME, %d, DIST: %d\n", 
+                                                  AlgoidMessageRX.DCmotor[i].motor,
+                                                          AlgoidMessageRX.DCmotor[i].velocity,
+                                                          AlgoidMessageRX.DCmotor[i].time,
+                                                          AlgoidMessageRX.DCmotor[i].cm);
+ */ 
 				    	  }
 
 				    	  if(AlgoidMessageRX.msgParam == DINPUT){
@@ -247,19 +249,19 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
 					//printf("Make array: %d values: %d %d\n", i, 0,9);
 					jwArr_object();
 						switch(valStr){
-							case LL_2WD :                   
+							case MOTORS :                   
                                                                                         switch(AlgoidResponse[i].responseType){
                                                                                             case -1 : jwObj_string("action", "error"); break;
                                                                                             case 0 : jwObj_string("action", "end"); break;
                                                                                             case 1 : jwObj_string("action", "begin"); break;
                                                                                             case 2 : jwObj_string("action", "abort"); break;
-                                                                                            case 3 :    if(AlgoidResponse[i].MOTresponse.id>=0)
-                                                                                                            jwObj_int( "motor", AlgoidResponse[i].MOTresponse.id);
+                                                                                            case 3 :    if(AlgoidResponse[i].MOTresponse.motor>=0)
+                                                                                                            jwObj_int( "motor", AlgoidResponse[i].MOTresponse.motor);
                                                                                                         else
                                                                                                             jwObj_string("motor", "unknown");
-                                                                                                        jwObj_int( "cm", AlgoidResponse[i].MOTresponse.distance);				// add object key:value pairs
+                                                                                                        jwObj_int( "cm", AlgoidResponse[i].MOTresponse.cm);				// add object key:value pairs
                                                                                                         jwObj_int( "time", AlgoidResponse[i].MOTresponse.time);				// add object key:value pairs
-                                                                                                        jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.speed)));
+                                                                                                        jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.velocity)));
                                                                                                         ; break;
                                                                                             default : jwObj_string("error", "unknown"); break;
                                                                                         }		// add object key:value pairs
@@ -336,14 +338,9 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                                             jwObj_int("cm", round((AlgoidResponse[i].value)));		// add object key:value pairs
                                                                                                             break;
 
-                                                                                            case 4 :jwObj_string("wheel", "left");	// add object key:value pairs
-                                                                                                            jwObj_int("distance", round((AlgoidResponse[i].MOTresponse.distance)));		// add object key:value pairs
-                                                                                                            jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.speed)));		// add object key:value pairs
-                                                                                                            break;
-
-                                                                                            case 5 :jwObj_string("wheel", "right");	// add object key:value pairs
-                                                                                                            jwObj_int("distance", round((AlgoidResponse[i].MOTresponse.distance)));		// add object key:value pairs
-                                                                                                            jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.speed)));		// add object key:value pairs
+                                                                                            case 4 :jwObj_int("motor", AlgoidResponse[i].MOTresponse.motor);	// add object key:value pairs
+                                                                                                            jwObj_int("distance", round((AlgoidResponse[i].MOTresponse.cm)));		// add object key:value pairs
+                                                                                                            jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.velocity)));		// add object key:value pairs
                                                                                                             break;
                                                                                                             
                                                                                             default : break;
