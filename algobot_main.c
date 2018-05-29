@@ -79,7 +79,7 @@ int main(void) {
 	int i;
 
 	system("clear");
-        printf ("ALGOBOT Beta - Build 180404 \n");
+        printf ("ALGOBOT Beta - Build 180529 \n");
         printf ("----------------------------\n");
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID
