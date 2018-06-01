@@ -28,6 +28,7 @@ typedef struct tmeasures{
 	int ain[NBAIN];
 	struct s_encoder counter[NBCOUNTER];
 	int pwm[NBPWM];
+        unsigned char btn[NBBTN];
 }t_measure;
 
 t_measure sensor;
@@ -44,6 +45,7 @@ unsigned char motorDCdecelValue[2]={25,25};			// Valeur d'acceleration des moteu
 int getMotorFrequency(unsigned char motorNb);	// Retourne la fréquence actuelle mesuree sur l'encodeur
 int getMotorPulses(unsigned char motorName);		// Retourne le nombre d'impulsion d'encodeur moteur depuis le démarrage
 char getDigitalInput(unsigned char inputNumber);	// Retourne l'état de l'entrée numérique spécifiée
+char getButtonInput(unsigned char buttonNumber);        // Retourne l'état du bouton
 int getSonarDistance(void);						// Retourne la distance en cm
 int getBatteryVoltage(void);					// Retourne la tension battery en mV
 
@@ -108,8 +110,12 @@ void *hwTask (void * arg){
                                     break;
 			case 20	: sensor.pwm[SONAR_0] = EFM8BB_readSonarDistance()/10; break;       // Conversion de distance mm en cm
 			case 25	: sensor.ain[BATT_0] = EFM8BB_readBatteryVoltage() ;break;
+                        
+                        case 30	: sensor.btn[BTN_0] = MCP2308_ReadGPIO(BTN_0) ;
+                                  sensor.btn[BTN_1] = MCP2308_ReadGPIO(BTN_1) ; break;
 
-			default: if(i2c_command_queuing[0][CALLBACK]!=0)processCommandQueue(); break;
+			default:
+                            if(i2c_command_queuing[0][CALLBACK]!=0)processCommandQueue(); break;
 		}
                 
 //                printf("\n LEFT: %d   RIGHT: %d", sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup, sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
@@ -182,6 +188,14 @@ char getDigitalInput(unsigned char inputNumber){
 	return inputState;
 }
 
+char getButtonInput(unsigned char buttonNumber){
+	char inputState=0;
+
+	inputState = sensor.btn[buttonNumber];
+
+	return inputState;
+}
+
 int getMotorFrequency(unsigned char motorNb){
 	char freq;
 
@@ -225,13 +239,6 @@ int setMotorDirection(int motorName, int direction){
 
 	// Conversion No de moteur en adresse du registre du PWM controleur
 	motorAdress=getOrganI2Cregister(MOTOR, motorName);
-	/*
-	switch(motorName){
-		case MOTOR_0: 	motorAdress = DCM0;	break;
-		case MOTOR_1 :  motorAdress = DCM1;	break;
-		default : return(0);
-	}
-	 */
 
 	switch(direction){
 		case BUGGY_FORWARD :	set_i2c_command_queue(&MCP2308_DCmotorSetRotation, motorAdress, MCW); break;

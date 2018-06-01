@@ -126,6 +126,13 @@ int main(void) {
 		body.proximity[i].safetyStop_value=0;
 	}
         
+        for(i=0;i<NBBTN;i++){
+		body.button[i].em_stop=0;
+		body.button[i].event_enable=0;
+		body.button[i].safetyStop_state=0;
+		body.button[i].safetyStop_value=0;
+	}
+        
         for(i=0;i<NBMOTOR;i++){
 		body.motor[i].accel=0;
                 body.motor[i].cm=0;
@@ -265,10 +272,28 @@ int processAlgoidCommand(void){
                                     AlgoidResponse[i].responseType = 3;
                                 }
                                 // Retourne en réponse le message vérifié
-                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)                    
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, AlgoidCommand.msgValueCnt);     
                     
                                 runPwmAction();break;
-		case pLED  : 	runLedAction();break;
+		case pLED  : 	
+                                for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+                                    // Controle que le moteur existe...
+                                    if(AlgoidCommand.LEDarray[i].id >= 0 && AlgoidCommand.LEDarray[i].id <NBLED)
+                                        AlgoidResponse[i].LEDresponse.id=AlgoidCommand.LEDarray[i].id;
+                                    else
+                                        AlgoidResponse[i].LEDresponse.id=-1;
+                                            
+                                    // Récupération des paramètes 
+                                    strcpy(AlgoidResponse[i].LEDresponse.state, AlgoidCommand.LEDarray[i].state);
+                                    AlgoidResponse[i].LEDresponse.powerPercent=AlgoidCommand.LEDarray[i].powerPercent;
+                                    AlgoidResponse[i].LEDresponse.blinkCount=AlgoidCommand.LEDarray[i].blinkCount;
+                                    AlgoidResponse[i].LEDresponse.time=AlgoidCommand.LEDarray[i].time;
+                                    AlgoidResponse[i].responseType = 3;
+                                }
+                                // Retourne en réponse le message vérifié
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pLED, AlgoidCommand.msgValueCnt);               
+                                
+                                runLedAction();break;
 		default : break;
 	}
 
@@ -288,6 +313,8 @@ int processAlgoidRequest(void){
 						break;
 
 		case DINPUT :	makeSensorsRequest();					// Requet d'état des entrées digitale
+						break;
+                case BUTTON :	makeButtonRequest();					// Requet d'état des entrées digitale
 						break;
 
 		case STATUS :	makeStatusRequest();					// Requet d'état des entrées digitale
@@ -329,9 +356,6 @@ int runMotorAction(void){
                         body.motor[i].decel=AlgoidCommand.DCmotor[ptrData].decel;
                         body.motor[i].cm=AlgoidCommand.DCmotor[ptrData].cm;
                         body.motor[i].time=AlgoidCommand.DCmotor[ptrData].time;
-                        
-//                        printf("\nDEBUG: WHEEL %d SPEED %d ACCEL %d TIME %d CM %d\n ", AlgoidCommand.DCmotor[ptrData].motor, AlgoidCommand.DCmotor[ptrData].velocity, AlgoidCommand.DCmotor[ptrData].accel, AlgoidCommand.DCmotor[ptrData].time, AlgoidCommand.DCmotor[ptrData].cm);
-//                        printf("\nDEBUGG: WHEEL %d SPEED %d ACCEL %d TIME %d CM %d\n ", i, body.motor[i].speed, body.motor[i].accel, body.motor[i].time, body.motor[i].cm);
                     }  
             }
         }
@@ -356,13 +380,24 @@ int runMotorAction(void){
                             if(body.motor[ID].accel!=0 || body.motor[ID].decel)
                                 setMotorAccelDecel(ID, body.motor[ID].accel, body.motor[ID].decel);
                             
-                                                        // Effectue l'action sur la roue
-                            if(body.motor[ID].cm != 0)
-                                    setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, CENTIMETER, body.motor[ID].cm);
-                            else
-                                    setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
-                                                // Défini l'état de laction comme "démarrée" pour message de répons
-                            AlgoidResponse[0].responseType = 1;
+                            // Effectue l'action sur la roue
+                            
+                            if(body.motor[ID].cm <=0 && body.motor[ID].time<=0){
+                                sprintf(reportBuffer, "ERREUR: Aucun parametre defini \"time\" ou \"cm\" pour l'action sur le moteur %d\n", ID);
+                                printf(reportBuffer);                                                             // Affichage du message dans le shell
+                                sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"
+                                AlgoidResponse[0].responseType = -1;
+                                removeBuggyTask(myTaskId);	// Supprime l'ancienne tâche
+                            }else
+                            {
+                                if(body.motor[ID].cm > 0)
+                                        setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, CENTIMETER, body.motor[ID].cm);
+                                else{
+                                        setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
+                                }
+                                // Défini l'état de laction comme "démarrée" pour message de réponse
+                                AlgoidResponse[0].responseType = 1;
+                            }
                         }
                         action++;
                     }
@@ -859,7 +894,7 @@ int makeStatusRequest(void){
 
 	AlgoidCommand.msgValueCnt=0;
 
-	AlgoidCommand.msgValueCnt = NBDIN + NBPWM + NBMOTOR +1 ; // Nombre de VALEUR à transmettre + 1 pour le SystemStatus
+	AlgoidCommand.msgValueCnt = NBDIN + NBPWM + NBMOTOR + NBBTN +1 ; // Nombre de VALEUR à transmettre + 1 pour le SystemStatus
 
         // Retourne le système status
         strcpy(AlgoidResponse[ptrData].SYSresponse.name, ClientID);
@@ -894,6 +929,12 @@ int makeStatusRequest(void){
 		AlgoidResponse[ptrData].MOTresponse.velocity=body.motor[i].speed;
 		AlgoidResponse[ptrData].MOTresponse.cm=body.motor[i].distance;
 		ptrData++;
+	}
+        
+        for(i=0;i<NBBTN;i++){
+                AlgoidResponse[ptrData].BTNresponse.id=i;
+                AlgoidResponse[ptrData].value=body.button[i].state;
+                ptrData++;
 	}
 
 	// Envoie de la réponse MQTT
@@ -953,6 +994,61 @@ int makeSensorsRequest(void){
 	}
 	// Envoie de la réponse MQTT
 	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, RESPONSE, DINPUT, AlgoidCommand.msgValueCnt);
+	return (1);
+}
+
+
+// -------------------------------------------------------------------
+// MAKEBUTTONREQUEST
+// Traitement de la requete BOUTON
+// Envoie une message ALGOID de type "response" avec l'état des entrées DIN
+// -------------------------------------------------------------------
+int makeButtonRequest(void){
+	unsigned char i;
+
+	// Pas de paramètres spécifiés dans le message, retourne l'ensemble des états des DIN
+	if(AlgoidCommand.msgValueCnt==0){
+		AlgoidCommand.msgValueCnt=NBBTN;
+		for(i=0;i<NBBTN;i++){
+			AlgoidResponse[i].BTNresponse.id=i;
+		}
+	}else
+		// ENREGISTREMENT DES NOUVEAUX PARAMETRES RECUS
+		for(i=0;i<AlgoidCommand.msgValueCnt; i++){
+			AlgoidResponse[i].BTNresponse.id = AlgoidCommand.BTNsens[i].id;
+			// Contrôle que le capteur soit pris en charge
+			if(AlgoidCommand.BTNsens[i].id < NBBTN){
+				// Recherche de paramètres supplémentaires et enregistrement des donnée en "local"
+				if(!strcmp(AlgoidCommand.BTNsens[i].event_state, "on"))	body.button[AlgoidCommand.BTNsens[i].id].event_enable=1; 			// Activation de l'envoie de messages sur évenements
+				else if(!strcmp(AlgoidCommand.BTNsens[i].event_state, "off"))	body.button[AlgoidCommand.BTNsens[i].id].event_enable=0;    // Désactivation de l'envoie de messages sur évenements
+
+				if(!strcmp(AlgoidCommand.BTNsens[i].safetyStop_state, "on"))	body.button[AlgoidCommand.BTNsens[i].id].safetyStop_state=1; 			// Activation de l'envoie de messages sur évenements
+				else if(!strcmp(AlgoidCommand.BTNsens[i].safetyStop_state, "off"))	body.button[AlgoidCommand.DINsens[i].id].safetyStop_state=0;    // Désactivation de l'envoie de messages sur évenemen
+
+				body.button[AlgoidCommand.BTNsens[i].id].safetyStop_value = AlgoidCommand.DINsens[i].safetyStop_value;
+			} else
+				AlgoidResponse[i].value = -1;
+		};
+
+	// RETOURNE EN REPONSE LES PARAMETRES ENREGISTRES ---
+	for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+		int temp = AlgoidResponse[i].BTNresponse.id;
+
+		// Contrôle que le capteur soit pris en charge
+		if(AlgoidCommand.BTNsens[i].id < NBBTN){
+			AlgoidResponse[i].value = body.button[temp].state;
+			if(body.button[temp].event_enable) strcpy(AlgoidResponse[i].BTNresponse.event_state, "on");
+				else strcpy(AlgoidResponse[i].BTNresponse.event_state, "off");
+
+			if(body.proximity[temp].safetyStop_state) strcpy(AlgoidResponse[i].BTNresponse.safetyStop_state, "on");
+				else strcpy(AlgoidResponse[i].BTNresponse.safetyStop_state, "off");
+			AlgoidResponse[i].BTNresponse.safetyStop_value = body.button[temp].safetyStop_value;
+		} else
+			AlgoidResponse[i].value = -1;
+	//---
+	}
+	// Envoie de la réponse MQTT
+	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, RESPONSE, BUTTON, AlgoidCommand.msgValueCnt);
 	return (1);
 }
 
@@ -1271,6 +1367,36 @@ void DINEventCheck(void){
 
 	if(DINevent>0)
 		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DINPUT, DINevent);
+}
+
+// -------------------------------------------------------------------
+// BUTTONEVENTCHECK
+// Vérifie si une changement d'état à eu lieu sur les bouton
+// et envoie un event si tel est les cas.
+// Seul les DIN ayant change d'etat font partie du message de reponse
+// -------------------------------------------------------------------
+void BUTTONEventCheck(void){
+	// Mise à jour de l'état des E/S
+	unsigned char ptrBuff=0, BTNevent=0, oldBtnValue[NBBTN], i;
+
+	for(i=0;i<NBBTN;i++){
+		// Mise à jour de l'état des E/S
+		oldBtnValue[i]=body.proximity[i].state;
+		body.button[i].state = getButtonInput(i);
+
+		// Vérifie si un changement a eu lieu sur les entrees et transmet un message
+		// "event" listant les modifications
+		if(body.button[i].event_enable && (oldBtnValue[i] != body.button[i].state)){
+			AlgoidResponse[ptrBuff].BTNresponse.id=i;
+			AlgoidResponse[ptrBuff].value=body.button[i].state;
+			ptrBuff++;
+			printf("CHANGEMENT BOUTON %d, ETAT:%d\n", i, body.button[i].state);
+			BTNevent++;
+		}
+	}
+
+	if(BTNevent>0)
+		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BUTTON, BTNevent);
 }
 
 

@@ -30,6 +30,12 @@ typedef enum o_din{
 	NBDIN
 }t_din;
 
+typedef enum o_btn{
+	BTN_0,
+	BTN_1,
+	NBBTN
+}t_btn;
+
 typedef enum o_ain{
 	BATT_0,
 	NBAIN

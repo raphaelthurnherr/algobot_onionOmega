@@ -9,16 +9,16 @@ typedef enum msgtype{
 	ACK,
 	RESPONSE,
 	EVENT,
-	NEGOC,
-	WARNING
+	NEGOC,          // Not use
+	WARNING         // Not use
 } t_msgtype;
 
 // DEFINITION DES PARAMETRES DE TYPE PARAMETRE
 typedef enum msgparam{
-        ERR_HEADER,
-	ERR_PARAM,
-	STOP,
-	MOVE,
+        ERR_HEADER,     // Not use
+	ERR_PARAM,      // Not use
+	STOP,           // Not use
+	MOVE,           // Not use
 	MOTORS,
 	DINPUT,
 	DISTANCE,
@@ -27,6 +27,7 @@ typedef enum msgparam{
 	pLED,
         pSERVO,
 	STATUS,
+        BUTTON,
 }t_msgparam;
 
 
@@ -108,6 +109,7 @@ typedef struct JsonCommand{
 	struct m2wd DCmotor[20];
         struct mServo SERVOmotor[20];
 	struct mDin DINsens[20];
+        struct mDin BTNsens[20];
 	struct mDistance DISTsens[20];
 	struct mBattery BATTsens[20];
 	struct mPwm PWMout[20]; // ---> SERVO
@@ -130,6 +132,8 @@ typedef struct JsonResponse{
         struct mServo SERVOresponse;
 	struct m2wd MOTresponse;
         struct mLed PWMresponse;
+        struct mLed LEDresponse;
+        struct mDin BTNresponse;
 	// UNION ???
 }ALGOID_RESPONSE;
 

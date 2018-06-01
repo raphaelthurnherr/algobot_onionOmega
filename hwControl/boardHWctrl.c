@@ -6,6 +6,7 @@
 unsigned char configPWMdevice(void);		// Configuration of the PCA9685 for 50Hz operation
 unsigned char configGPIOdevice(void);		// Configuration IO mode of the MCP28003
 
+char MCP2308_ReadGPIO(unsigned char input);                    // Get the selected input value on device
 int EFM8BB_readSonarDistance(void);							// Get distance in mm from the EFM8BB microcontroller
 char EFM8BB_readDigitalInput(unsigned char InputNr);		// Get digital input state in mm from the EFM8BB microcontroller
 int EFM8BB_readBatteryVoltage(void);						// Get the battery voltage in mV from EFM8BB microcontroller
@@ -34,20 +35,41 @@ unsigned char buggyBoardInit(void){
 
 //================================================================================
 // DCMOTORSTATE
-// D�fini l'�tat g�n�ral de tout les moteurs DC (Driver pont en H)
+// Defini l'etat general de tout les moteurs DC (Driver pont en H)
 //
 //================================================================================
 
 void MCP2308_DCmotorState(unsigned char state){
 	int MCP2308_GPIO_STATE;
 
-	//i2cSelectSlave(MCP2308);							// s�l�ction du CHIP d'entr�e/sortie
+	//i2cSelectSlave(MCP2308);						// selection du CHIP d'entr�e/sortie
         i2c_readByte(0, MCP2308, 0x09, &MCP2308_GPIO_STATE);
         
-	if(state) MCP2308_GPIO_STATE |= 0x10;				// Activation du driver pont en H
+	if(state) MCP2308_GPIO_STATE |= 0x10;                                   // Activation du driver pont en H
 	else MCP2308_GPIO_STATE &= 0xEF;					// d�sactivation du driver pont en H
 
         i2c_write(0, MCP2308, 0x0A, MCP2308_GPIO_STATE);
+}
+
+//================================================================================
+// MCP2308_ReadGPIO
+// Lecture d'un GPIO sur le peripherique 
+//
+//================================================================================
+
+char MCP2308_ReadGPIO(unsigned char input){
+	int MCP2308_GPIO_STATE;
+        char value;
+        
+        i2c_readByte(0, MCP2308, 0x09, &MCP2308_GPIO_STATE);
+        
+        
+        switch(input){
+            case BTN_0 : value=MCP2308_GPIO_STATE & 0x32; break;
+            case BTN_1 : value=MCP2308_GPIO_STATE & 0x32; break;
+            default : value = -1; break;
+        }
+	return (value);
 }
 
 
@@ -100,7 +122,7 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
 		// S�l�ction du sens de rotation du moteur ou OFF
 		switch(direction){
 			case MCW 	 :  MCP2308_GPIO_STATE |= 0x02; break;
-			case MCCW 	 : 	MCP2308_GPIO_STATE |= 0x04; break;
+			case MCCW 	 :  MCP2308_GPIO_STATE |= 0x04; break;
 			case MSTOP 	 :  MCP2308_GPIO_STATE |= 0x00; break;
 			default		 : ;break;
 		}

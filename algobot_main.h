@@ -65,6 +65,7 @@ struct m_led{
 
 typedef struct tsensor{
 	struct m_prox proximity[NBDIN];
+        struct m_prox button[NBBTN];
 	struct m_dist distance[NBPWM];
 	struct m_voltage battery[NBAIN];
 	struct m_counter encoder[NBMOTOR];

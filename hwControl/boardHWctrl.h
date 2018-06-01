@@ -9,7 +9,6 @@
     #define  MCP2308               	0x20	// Device address for GPIO controller
     #define  EFM8BB               	0x0A	// Device address for EFM8BB microcontroller
 
-
     // REGISTER DEFINITION FOR PWM DRIVER
 
     #define PCA_PWM_ALL_ADR			0xFC	// PCA9685 all call address

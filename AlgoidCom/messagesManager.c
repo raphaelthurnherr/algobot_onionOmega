@@ -69,9 +69,6 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
 	{
 	    // Verification de l'arrivée d'un message MQTT
 	    if(mqttDataReady){
-//printf("\n-----------------------------\n");
-//	    printf("Nouveau message MQTT recu -> ");
-	    //printf("[DEBUG] message: %s", MqttDataBuffer);
 	    // RECEPTION DES DONNES UTILES
                 if(GetAlgoidMsg(AlgoidMessageRX, MqttDataBuffer)>0){
                         // Contrôle du destinataire
@@ -81,9 +78,8 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
                                 if(lastMessage>=0){
                                         // Retourne un ack a l'expediteur
                                         sendResponse(AlgoidMessageRX.msgID, AlgoidMessageRX.msgFrom, ACK, AlgoidMessageRX.msgParam, 0);
-    //							printf("Mis en file d'attente\n");
                                         sprintf(msgReportBuffer, "%s", ClientID);
-                                        sendMqttReport(-1, "Message recu, en traitement...");
+                                        sendMqttReport(-1, "Message recu, en attente de traitement...");
                                 }
                                 else{
                                         printf("ERREUR: File d'attente pleine !\n");
@@ -102,6 +98,8 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
                         printf("\n! MESSAGE ALGOID INCORRECT RECU !\n");
                         sprintf(msgReportBuffer, "%s", ClientID);
                         sprintf(&msgReportBuffer[8], " -> %s", "MESSAGE ALGOID INCORRECT RECU !");
+                        sendMqttReport(AlgoidMessageRX.msgID, msgReportBuffer);
+                        
                 }
                 mqttDataReady=0;
             }
@@ -290,6 +288,7 @@ void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char 
 		case pPWM : strcpy(ackParam, "pwm"); break;
 		case MOVE : strcpy(ackParam, "move"); break;
 		case DINPUT : strcpy(ackParam, "din"); break;
+                case BUTTON : strcpy(ackParam, "button"); break;
 		case BATTERY : strcpy(ackParam, "battery"); break;
 		case DISTANCE : strcpy(ackParam, "distance"); break;
 		case pLED : strcpy(ackParam, "led"); break;
@@ -312,7 +311,6 @@ void sendMqttReport(int msgId, char * msg){
 
 	// Creation d'un id unique avec l'adresse mac
 	sprintf(&MQTTbuf[0], "%s -> Message ID: %d -> %s", ClientID, msgId, msg);
-
 	mqttPutMessage(TOPIC_DEBUG, MQTTbuf, strlen(MQTTbuf));
 }
 

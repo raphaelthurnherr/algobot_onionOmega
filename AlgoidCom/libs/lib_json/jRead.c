@@ -661,7 +661,7 @@ long jRead_long( char *pJson, char *pQuery, int *queryParams )
 	long result;
 	jReadParam( pJson, pQuery, &elem, queryParams );
 	if( (elem.dataType == JREAD_ERROR) || (elem.dataType == JREAD_NULL))
-		return 0;
+		return -1;
 	if( elem.dataType == JREAD_BOOL )
 		return *((char *)elem.pValue)=='t' ? 1 : 0;
 
