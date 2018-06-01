@@ -1,3 +1,6 @@
+
+#define MAX_MQTT_BUFF 4096
+
 // DEFINITION DES TYPES DE MESSAGE
 typedef enum msgtype{
 	ERR_TYPE,
@@ -83,6 +86,15 @@ struct mServo{
 	int state;
 };
 
+struct mSystem{
+	char name[32];
+        int startUpTime;
+        char firmwareVersion[32];
+        char mcuVersion[32];
+        char HWrevision[32];
+        float battVoltage;
+};
+
 // Structure d'un message algoid recu
 typedef struct JsonCommand{
 	char msgTo[32];
@@ -111,6 +123,7 @@ typedef struct JsonResponse{
 	int responseType;
 
 	// UNION ???
+        struct mSystem SYSresponse;
 	struct mDin DINresponse;
 	struct mBattery BATTesponse;
 	struct mDistance DISTresponse;

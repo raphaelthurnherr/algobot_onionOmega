@@ -266,7 +266,7 @@ int mqttMsgArrived(void *context, char *topicName, int topicLen, MQTTClient_mess
 // -------------------------------------------------------------------
 
 void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char msgParam, unsigned char valCnt){
-	char MQTTbuf[1024];
+	char MQTTbuf[MAX_MQTT_BUFF];
 	char ackType[15], ackParam[15];
 	char topic[50];
 
@@ -313,7 +313,7 @@ void sendMqttReport(int msgId, char * msg){
 	// Creation d'un id unique avec l'adresse mac
 	sprintf(&MQTTbuf[0], "%s -> Message ID: %d -> %s", ClientID, msgId, msg);
 
-	mqttPutMessage("buggyReport", MQTTbuf, strlen(MQTTbuf));
+	mqttPutMessage(TOPIC_DEBUG, MQTTbuf, strlen(MQTTbuf));
 }
 
 

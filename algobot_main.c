@@ -79,7 +79,7 @@ int main(void) {
 	int i;
 
 	system("clear");
-        printf ("ALGOBOT Beta - Build 180529 \n");
+        printf ("ALGOBOT Beta - Build 180601 \n");
         printf ("----------------------------\n");
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID
@@ -97,7 +97,7 @@ int main(void) {
 
 // Initialisation UDP pour broadcast IP Adresse
 	initUDP();
-
+        
 // --------------------------------------------------------------------
 // BOUCLE DU PROGRAMME PRINCIPAL
 // - Messagerie avec ALGOID, attentes de messages en provenance de l'hôte -> Démarrage du traitement des commandes
@@ -859,8 +859,17 @@ int makeStatusRequest(void){
 
 	AlgoidCommand.msgValueCnt=0;
 
-	AlgoidCommand.msgValueCnt = NBDIN + NBAIN + NBPWM + NBMOTOR; // Nombre de DIN à transmettre
+	AlgoidCommand.msgValueCnt = NBDIN + NBPWM + NBMOTOR +1 ; // Nombre de VALEUR à transmettre + 1 pour le SystemStatus
 
+        // Retourne le système status
+        strcpy(AlgoidResponse[ptrData].SYSresponse.name, ClientID);
+        AlgoidResponse[ptrData].SYSresponse.startUpTime=9999;
+        strcpy(AlgoidResponse[ptrData].SYSresponse.firmwareVersion,"18.06.01");
+        strcpy(AlgoidResponse[ptrData].SYSresponse.mcuVersion,"1.2");
+        strcpy(AlgoidResponse[ptrData].SYSresponse.HWrevision,"2");
+        AlgoidResponse[ptrData].SYSresponse.battVoltage=3.56;
+        ptrData++;
+        
 	for(i=0;i<NBDIN;i++){
 		AlgoidResponse[ptrData].DINresponse.id=i;
 		AlgoidResponse[ptrData].value=body.proximity[i].state;
@@ -874,8 +883,9 @@ int makeStatusRequest(void){
 	}
 
 	for(i=0;i<NBPWM;i++){
-		AlgoidResponse[ptrData].DISTresponse.id=i;
-		AlgoidResponse[ptrData].value=body.distance[i].value;
+		AlgoidResponse[ptrData].PWMresponse.id=i;
+		AlgoidResponse[ptrData].value=body.pwm[i].state;
+                AlgoidResponse[ptrData].PWMresponse.powerPercent=body.pwm[i].power;
 		ptrData++;
 	}
 
@@ -885,7 +895,6 @@ int makeStatusRequest(void){
 		AlgoidResponse[ptrData].MOTresponse.cm=body.motor[i].distance;
 		ptrData++;
 	}
-
 
 	// Envoie de la réponse MQTT
 	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, RESPONSE, STATUS, AlgoidCommand.msgValueCnt);

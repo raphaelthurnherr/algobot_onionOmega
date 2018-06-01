@@ -1,10 +1,10 @@
 #ifndef BOARDHWCTRL_H_
 #define BOARDHWCTRL_H_
 
-#define BOARD_REV1
+#define BOARD_REV2
 
 // Device addresses (7 bits, lsb is a don't care)
-#ifdef BOARD_REV1
+#ifdef BOARD_REV2
     #define  PCA9685               	0x40 	// Device address for PWM controller
     #define  MCP2308               	0x20	// Device address for GPIO controller
     #define  EFM8BB               	0x0A	// Device address for EFM8BB microcontroller

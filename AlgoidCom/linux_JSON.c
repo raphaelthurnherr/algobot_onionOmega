@@ -7,6 +7,7 @@
  Description : Hello World in C, Ansi-style
  ============================================================================
  */
+
 #define KEY_TO "{'MsgTo'"
 #define KEY_FROM "{'MsgFrom'"
 #define KEY_MSGID "{'MsgID'"
@@ -52,7 +53,7 @@
 #include "libs/lib_json/jRead.h"
 #include "libs/lib_json/jWrite.h"
 
-void ackToJSON(char * buffer, int msgId, char* to, char * from, char * msgType,char * msgParam, unsigned char valStr, unsigned char count);
+void ackToJSON(char * buffer, int msgId, char* to, char * from, char * msgType,char * msgParam, unsigned char orgType, unsigned char count);
 char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer);
 
 ALGOID myReplyMessage;
@@ -229,10 +230,10 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 // replyToHost
 // convert the structure in JSON format & Send to host
 // -----------------------------------------------------------------------------
-void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, char* msgParam, unsigned char valStr, unsigned char count ){
-	unsigned int buflen= 1024;
-	unsigned char i;
-
+void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, char* msgParam, unsigned char orgType, unsigned char count ){
+	unsigned int buflen= MAX_MQTT_BUFF;
+	unsigned char i,j;
+        
 // Formatage de la réponse en JSON
 	jwOpen( buffer, buflen, JW_OBJECT, JW_PRETTY );		// start root object
 		jwObj_string( "MsgTo", to );				// add object key:value pairs
@@ -248,7 +249,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
 				for(i=0;i<count;i++){
 					//printf("Make array: %d values: %d %d\n", i, 0,9);
 					jwArr_object();
-						switch(valStr){
+						switch(orgType){
 							case MOTORS :                   
                                                                                         switch(AlgoidResponse[i].responseType){
                                                                                             case -1 : jwObj_string("action", "error"); break;
@@ -317,11 +318,40 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                        else{
                                                                                             jwObj_string("state", "error");
                                                                                        }
-										   break;
+										    break;
 
-							case STATUS :
+							case STATUS :               
+                                                                                    // ETAT DU SYSTEM
+                                                                                    if(i==0){
+                                                                                        jwObj_string("name", AlgoidResponse[i].SYSresponse.name);
+                                                                                        jwObj_int("upTime",AlgoidResponse[i].SYSresponse.startUpTime);
+                                                                                        jwObj_string("firmwareVersion",AlgoidResponse[i].SYSresponse.firmwareVersion);	
+                                                                                        jwObj_string("mcuVersion",AlgoidResponse[i].SYSresponse.mcuVersion);
+                                                                                        jwObj_string("boardRev",AlgoidResponse[i].SYSresponse.HWrevision);
+                                                                                        jwObj_double("battery_mv",AlgoidResponse[i].SYSresponse.battVoltage);		// add object key:value pairs
+                                                                                    }
 
-                                                                                    switch(i){
+                                                                                    // ETAT DES DIN
+                                                                                    if(i>=1 && i<1+NBDIN){
+                                                                                        jwObj_int("din",AlgoidResponse[i].DINresponse.id);		// add object key:value pairs
+                                                                                        jwObj_int( "state", AlgoidResponse[i].value);
+                                                                                    }
+                                                                                     
+                                                                                    // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                                    if(i>=1+NBDIN && i<1+NBDIN+NBPWM){
+                                                                                            jwObj_int("pwm",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
+                                                                                            jwObj_int( "state", AlgoidResponse[i].value);
+                                                                                            jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);
+                                                                                    }
+                                                                                                                                                                        // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                                    if(i>=1+NBDIN+NBPWM && i<1+NBDIN+NBPWM+NBMOTOR){
+                                                                                            jwObj_int("motor",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
+                                                                                            jwObj_int("cm", round((AlgoidResponse[i].MOTresponse.cm)));		// add object key:value pairs
+                                                                                            jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.velocity)));
+                                                                                    }
+
+                                                                                    break;
+                                                                                        /*
                                                                                             case 0 :jwObj_int("din",AlgoidResponse[i].DINresponse.id);		// add object key:value pairs
                                                                                                             jwObj_int( "state", AlgoidResponse[i].value);			// add object key:value pairs
                                                                                                             break;
@@ -344,9 +374,9 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                                             break;
                                                                                                             
                                                                                             default : break;
-                                                                                    }
 
-										   break;
+                                                                                          */
+
                                                                                    
                                                         case pPWM :             switch(AlgoidResponse[i].responseType){
                                                                                     case -1 :   jwObj_string("action", "error");break;
