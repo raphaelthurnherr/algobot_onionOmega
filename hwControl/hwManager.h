@@ -16,6 +16,7 @@ int getMotorPulses(unsigned char motorNb);		// Retourne le nombre d'impulsion d'
 char getDigitalInput(unsigned char inputNb);	// Retourne l'état de l'entrée numérique spécifiée
 int getSonarDistance(void);						// Retourne la distance en cm
 int getBatteryVoltage(void);					// Retourne la tension battery en mV
+char getButtonInput(unsigned char buttonNumber);
 
 extern int setMotorSpeed(int motorName, int ratio);
 extern void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent);
@@ -27,4 +28,5 @@ extern void setLedPower(unsigned char ledID, unsigned char power);
 //extern char getOrganNumber(int organName);		// Retourne le numéro du moteur 0..xx selon le nom d'organe spécifié
 
 int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd);		//
+extern int getHWInfo(char* MCUversion, char* HWtype); // Get the hardware/software version
 #endif /* HWMANAGER_H_ */

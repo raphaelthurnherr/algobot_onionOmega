@@ -144,6 +144,16 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				    		 AlgoidMessageRX.DINsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
 					    	 //printf("id: %d event: %s Safety: %s Value: %d\n", AlgoidMessageRX.DINsens[i].id, AlgoidMessageRX.DINsens[i].event_state,AlgoidMessageRX.DINsens[i].safetyStop_state  ,AlgoidMessageRX.DINsens[i].safetyStop_value);
 				    	  }
+                                          
+                                          if(AlgoidMessageRX.msgParam == BUTTON){
+						 AlgoidMessageRX.BTNsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_BTN, &i);
+				    		 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_STATE, AlgoidMessageRX.BTNsens[i].event_state, 15, &i );
+				    		 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_STOP, AlgoidMessageRX.BTNsens[i].safetyStop_state, 15, &i );
+				    		 AlgoidMessageRX.BTNsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
+					    	 //printf("id: %d event: %s Safety: %s Value: %d\n", AlgoidMessageRX.DINsens[i].id, AlgoidMessageRX.DINsens[i].event_state,AlgoidMessageRX.DINsens[i].safetyStop_state  ,AlgoidMessageRX.DINsens[i].safetyStop_value);
+				    	  }
+
+                                          
 
 				    	  if(AlgoidMessageRX.msgParam == DISTANCE){
 				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_STATE, AlgoidMessageRX.DISTsens[i].event_state, 15, &i );
@@ -211,7 +221,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 
 
 				    	  if(AlgoidMessageRX.msgParam == STATUS){
-				    		  // To do: Detect if wheel, sonar, batery, etc...
+				    		  // Not use ! Returne all status.
 				    	  }
 				    }
 				  }
@@ -352,26 +362,25 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                         jwObj_int("din",AlgoidResponse[i].DINresponse.id);		// add object key:value pairs
                                                                                         jwObj_int( "state", AlgoidResponse[i].value);
                                                                                     }
-                                                                                     
-                                                                                    // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN && i<1+NBDIN+NBPWM){
-                                                                                            jwObj_int("pwm",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
-                                                                                            jwObj_int( "state", AlgoidResponse[i].value);
-                                                                                            jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);
+                                                                                   
+                                                                                    // ETAT DES BOUTON     
+                                                                                    if(i>=1+NBDIN && i<1+NBDIN+NBBTN){
+                                                                                        jwObj_int("btn",AlgoidResponse[i].BTNresponse.id);		// add object key:value pairs
+                                                                                        jwObj_int( "state", AlgoidResponse[i].value);
                                                                                     }
-                                                                                                                                                                        // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBPWM && i<1+NBDIN+NBPWM+NBMOTOR){
+                                                                                    // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                                    if(i>=1+NBDIN+NBBTN && i<1+NBDIN+NBBTN+NBMOTOR){
                                                                                             jwObj_int("motor",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
                                                                                             jwObj_int("cm", round((AlgoidResponse[i].MOTresponse.cm)));		// add object key:value pairs
                                                                                             jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.velocity)));
                                                                                     }
                                                                                     
-                                                                                                                                                                        // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBPWM+NBMOTOR && i<1+NBDIN+NBPWM+NBMOTOR+NBBTN){
-                                                                                        jwObj_int("btn",AlgoidResponse[i].BTNresponse.id);		// add object key:value pairs
-                                                                                        jwObj_int( "state", AlgoidResponse[i].value);
+                                                                                    // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR && i<1+NBDIN+NBBTN+NBMOTOR+NBPWM){
+                                                                                            jwObj_int("pwm",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
+                                                                                            jwObj_int( "state", AlgoidResponse[i].value);
+                                                                                            jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);
                                                                                     }
-
                                                                                     break;
                                                                                    
                                                         case pPWM :             switch(AlgoidResponse[i].responseType){

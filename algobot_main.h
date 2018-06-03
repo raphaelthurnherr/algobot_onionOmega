@@ -74,5 +74,17 @@ typedef struct tsensor{
         struct m_led pwm[NBPWM];
 }t_sensor;
 
+
+typedef struct tSystem{
+	char name[32];
+        int startUpTime;
+        char firmwareVersion[32];
+        char mcuVersion[32];
+        char HWrevision[32];
+        float battVoltage;
+}t_system;
+
 extern t_sensor body;
+extern t_system sysInfo;
+
 #endif /* ALGOID_2WD_BUGGY_H_ */

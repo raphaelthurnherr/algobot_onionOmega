@@ -28,7 +28,7 @@ int timeNow = 0;					// Variable de comptage de temp actuel pour les timers avec
 unsigned char checkMotorPowerFlag;
 unsigned char t100msFlag;
 unsigned char t10secFlag;
-
+unsigned char t60secFlag;
 
 // ------------------------------------------
 // Programme principale TIMER
@@ -38,6 +38,8 @@ void *TimerTask (void * arg){
 	unsigned int cyclicTimer50ms;	// Compteur du timer cyclique 50mS
 	unsigned int cyclicTimer100ms;	// Compteur du timer cyclique 100mS
 	unsigned int cyclicTimer10sec;	// Compteur du timer cyclique 10Secondes
+        unsigned int cyclicTimer60sec;	// Compteur du timer cyclique 10Secondes
+        
 	unsigned int endTimerValues[5]; // Memorisation des data du timer
 	while(1){
 
@@ -45,7 +47,7 @@ void *TimerTask (void * arg){
 		// fonctionnement des roues. Une fois le timeout atteind, appelle la fonction call-back
 		// de l'action à effectuer
 		for(i=0;i<10;i++){
-			if(myTimer[i][STOPTIME]!=0){						// Timer Actif (!=0), Ne provoque pas d'action si timer inactif
+			if(myTimer[i][STOPTIME]!=0){					// Timer Actif (!=0), Ne provoque pas d'action si timer inactif
 				if(timeNow >= myTimer[i][STOPTIME]){			// Fin du timer ?
 
 					// Memorise les data timer pour appelle de fonction callback
@@ -81,9 +83,15 @@ void *TimerTask (void * arg){
 			cyclicTimer10sec=0;				// Reset le compteur 10secondes
 		}
 
+                // Controle le time out de 10 secondes
+		if(cyclicTimer60sec>=60000){
+			t60secFlag=1;
+			cyclicTimer60sec=0;				// Reset le compteur 10secondes
+		}
 		cyclicTimer50ms++;				// Reset le compteur 10secondes
-		cyclicTimer100ms++;				// Reset le compteur 10secondes
+		cyclicTimer100ms++;				// Reset le compteur 100ms
 		cyclicTimer10sec++;				// Reset le compteur 10secondes
+                cyclicTimer60sec++;
 		timeNow++;
 		usleep(1000);
 	}

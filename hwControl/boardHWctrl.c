@@ -3,18 +3,20 @@
 #include "../buggy_descriptor.h"
 
 
-unsigned char configPWMdevice(void);		// Configuration of the PCA9685 for 50Hz operation
-unsigned char configGPIOdevice(void);		// Configuration IO mode of the MCP28003
+unsigned char configPWMdevice(void);                            // Configuration of the PCA9685 for 50Hz operation
+unsigned char configGPIOdevice(void);                           // Configuration IO mode of the MCP28003
 
-char MCP2308_ReadGPIO(unsigned char input);                    // Get the selected input value on device
-int EFM8BB_readSonarDistance(void);							// Get distance in mm from the EFM8BB microcontroller
+char MCP2308_ReadGPIO(unsigned char input);                     // Get the selected input value on device
+int EFM8BB_readSonarDistance(void);				// Get distance in mm from the EFM8BB microcontroller
 char EFM8BB_readDigitalInput(unsigned char InputNr);		// Get digital input state in mm from the EFM8BB microcontroller
-int EFM8BB_readBatteryVoltage(void);						// Get the battery voltage in mV from EFM8BB microcontroller
-int EFM8BB_readFrequency(unsigned char wheelNb);			// Get the wheel frequency
+int EFM8BB_readBatteryVoltage(void);				// Get the battery voltage in mV from EFM8BB microcontroller
+int EFM8BB_readFrequency(unsigned char wheelNb);		// Get the wheel frequency
 int EFM8BB_readPulseCounter(unsigned char wheelNb);
 int EFM8BB_clearWheelDistance(unsigned char wheelNb);
-
-unsigned char motorDCadr[2]={PCA_DCM0, PCA_DCM1};			// Valeur de la puissance moteur
+char MCP2308_ReadGPIO(unsigned char input);
+int EFM8BB_getFirmwareVersion(void);                            // Get the MCU firmware version
+int EFM8BB_getBoardType(void);                                  // Get the type of the board.
+unsigned char motorDCadr[2]={PCA_DCM0, PCA_DCM1};		// Valeur de la puissance moteur
 
 //================================================================================
 // BUGGYBOARDINIT
@@ -41,9 +43,9 @@ unsigned char buggyBoardInit(void){
 
 void MCP2308_DCmotorState(unsigned char state){
 	int MCP2308_GPIO_STATE;
-
-	//i2cSelectSlave(MCP2308);						// selection du CHIP d'entrï¿½e/sortie
-        i2c_readByte(0, MCP2308, 0x09, &MCP2308_GPIO_STATE);
+        char err;
+        
+        err=i2c_readByte(0, MCP2308, 0x09, &MCP2308_GPIO_STATE);
         
 	if(state) MCP2308_GPIO_STATE |= 0x10;                                   // Activation du driver pont en H
 	else MCP2308_GPIO_STATE &= 0xEF;					// dï¿½sactivation du driver pont en H
@@ -59,17 +61,23 @@ void MCP2308_DCmotorState(unsigned char state){
 
 char MCP2308_ReadGPIO(unsigned char input){
 	int MCP2308_GPIO_STATE;
-        char value;
+        unsigned char value=0;
+        unsigned char err;
         
-        i2c_readByte(0, MCP2308, 0x09, &MCP2308_GPIO_STATE);
-        
+        err=i2c_readByte(0, MCP2308, 0x09, &MCP2308_GPIO_STATE);
         
         switch(input){
-            case BTN_0 : value=MCP2308_GPIO_STATE & 0x32; break;
-            case BTN_1 : value=MCP2308_GPIO_STATE & 0x32; break;
+            case BTN_0 : if(MCP2308_GPIO_STATE & 0x40) value = 0;
+                         else value = 1; break;
+            case BTN_1 : if(MCP2308_GPIO_STATE & 0x20) value = 0;
+                         else value = 1; break;
             default : value = -1; break;
         }
-	return (value);
+        
+	if(!err){
+		return value;
+	}else return -1;
+       
 }
 
 
@@ -108,8 +116,9 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
 
 	// Sï¿½lection du chip d'entrï¿½e/sortie qui pilote le pont en H
 
-	//MCP2308_GPIO_STATE=i2cReadByte(0x09);	// Rï¿½cupï¿½ration de l'ï¿½tat actuel des sortie sur le chip pour ne modifier que
 	i2c_readByte(0, MCP2308, 0x09, &MCP2308_GPIO_STATE);
+        
+        
         
         // le bit nï¿½nï¿½ssaire
 	//	SELECTION DU MOTEUR No 0
@@ -266,10 +275,10 @@ unsigned char configGPIOdevice(void){
 
 	// Pas de auto-incrementation
         i2c_write(0, MCP2308, 0x05, 0x20);
-	// Pull up activï¿½e
+	// Pull up activee
         i2c_write(0, MCP2308, 0x06, 0xFF);
-	// Pin en sorties
-        i2c_write(0, MCP2308, 0x00, 0x00);
+	// GPIO 0..4 en sorties, GPIO 5..6 en entree pour boutons
+        i2c_write(0, MCP2308, 0x00, 0x60);
 	return err;
 }
 
@@ -324,6 +333,8 @@ int EFM8BB_readBatteryVoltage(void){
                 i2c_readByte(0, EFM8BB, VOLT0, &mVLSB);
                 i2c_readByte(0, EFM8BB, VOLT0+1, &mVMSB);
                 batteryVoltage_mV=mVLSB + (mVMSB<<8);
+                
+//                printf("VOLTAGE: %d mV\n", batteryVoltage_mV);
 		return batteryVoltage_mV;
 	}else return -1;
 }
@@ -405,7 +416,7 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb){
 
 // -------------------------------------------------------------------
 // GETDIGITALINPUT
-// Mesure de l'ï¿½tat des entrï¿½es digitale
+// Mesure de l'etat des entrees digitale
 // Paramètre "InputNr" plus utilisé...
 // -------------------------------------------------------------------
 char EFM8BB_readDigitalInput(unsigned char InputNr){
@@ -419,5 +430,34 @@ char EFM8BB_readDigitalInput(unsigned char InputNr){
 	}else return -1;
 }
 
+
+// -------------------------------------------------------------------
+// GETFIRMWAREVERSION
+// RECUPERE LA VERSION FIRMWARE DU MCU
+// -------------------------------------------------------------------
+int EFM8BB_getFirmwareVersion(void){
+	unsigned char err;
+	int value=-1;
+        
+        err = i2c_readByte(0, EFM8BB, FIRMWARE_REG, &value);
+
+	if(!err){
+		return value;
+	}else return -1;
+}
+
+// -------------------------------------------------------------------
+// GETBOARDTYPE
+// Recupere le type de montage de la carte
+// -------------------------------------------------------------------
+int EFM8BB_getBoardType(void){
+	unsigned char err;
+	int value=-1;
+        
+        err = i2c_readByte(0, EFM8BB, BOARDTYPE_REG, &value);
+	if(!err){
+		return value;
+	}else return -1;
+}
 
 

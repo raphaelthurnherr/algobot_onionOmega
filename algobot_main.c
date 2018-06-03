@@ -27,6 +27,7 @@ int removeBuggyTask(int actionNumber);
 void distanceEventCheck(void);
 void batteryEventCheck(void);
 void DINEventCheck(void);
+void BUTTONEventCheck(void);
 
 void DINSafetyCheck(void);
 void BatterySafetyCheck(void);
@@ -43,6 +44,7 @@ int makeDistanceRequest(void);
 int makeBatteryRequest(void);
 int makeStatusRequest(void);
 int makeMotorRequest(void);
+int makeButtonRequest(void);
 
 int runMotorAction(void);
 
@@ -66,6 +68,7 @@ int getServoSetting(int servoName);
 char reportBuffer[256];
 
 t_sensor body;
+t_system sysInfo;
 
 // -------------------------------------------------------------------
 // MAIN APPLICATION
@@ -79,7 +82,7 @@ int main(void) {
 	int i;
 
 	system("clear");
-        printf ("ALGOBOT Beta - Build 180601 \n");
+        printf ("ALGOBOT Beta - Build 180602 \n");
         printf ("----------------------------\n");
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID
@@ -93,7 +96,10 @@ int main(void) {
 
 // Création de la tâche pour la gestion hardware
 	if(InitHwManager()) printf ("#[CORE] Creation tâche hardware : ERREUR\n");
-		else printf ("#[CORE] Demarrage tache hardware: OK\n");
+		else {
+                    //getHWInfo(systemInfo.firmwareVersion, systemInfo.HWrevision);
+                    printf ("#[CORE] Demarrage tache hardware: OK\n");
+                }
 
 // Initialisation UDP pour broadcast IP Adresse
 	initUDP();
@@ -142,6 +148,7 @@ int main(void) {
                 body.motor[i].time=0;
 	}
 
+        sysInfo.startUpTime=0;
 	while(1){
 
 		// Contrôle de la messagerie, recherche d'éventuels messages ALGOID et effectue les traitements nécéssaire
@@ -174,6 +181,11 @@ int main(void) {
 //		printf("\n Send UDP: %s", udpMessage);
     		t10secFlag=0;
     	}
+                
+        if(t60secFlag){
+            sysInfo.startUpTime++;
+            t60secFlag=0;
+        }
 
 
 		// Contrôle du TIMER 100mS
@@ -183,17 +195,20 @@ int main(void) {
     	if(t100msFlag){
 
 
-			DINEventCheck();											// Contôle de l'état des entrées numérique
-																		// Génère un évenement si changement d'état détecté
+			DINEventCheck();										// Contôle de l'état des entrées numérique
+															// Génère un évenement si changement d'état détecté
 
-			DINSafetyCheck();											// Contôle de l'état des entrées numérique
+                        BUTTONEventCheck();										// Contôle de l'état des entrées bouton
+															// Génère un évenement si changement d'état détecté
+                        
+			DINSafetyCheck();										// Contôle de l'état des entrées numérique
 			BatterySafetyCheck();
 			DistanceSafetyCheck(); 										// effectue une action si safety actif
 
 
 			body.distance[0].value = getSonarDistance();
 			distanceEventCheck();										// Provoque un évenement de type "distance" si la distance mesurée
-																		// est hors de la plage spécifiée par l'utilisateur
+															// est hors de la plage spécifiée par l'utilisateur
 
 			body.battery[0].value = getBatteryVoltage();
 
@@ -312,14 +327,14 @@ int processAlgoidRequest(void){
 		case BATTERY :  makeBatteryRequest();					// Requete de tension batterie
 						break;
 
-		case DINPUT :	makeSensorsRequest();					// Requet d'état des entrées digitale
+		case DINPUT :	makeSensorsRequest();					// Requete d'état des entrées digitale
 						break;
-                case BUTTON :	makeButtonRequest();					// Requet d'état des entrées digitale
+                case BUTTON :	makeButtonRequest();					// Requete d'état des entrées digitale type bouton
 						break;
 
-		case STATUS :	makeStatusRequest();					// Requet d'état des entrées digitale
+		case STATUS :	makeStatusRequest();					// Requete d'état du systeme
 						break;
-        	case MOTORS :	makeMotorRequest();					// Requet d'état des entrées digitale
+        	case MOTORS :	makeMotorRequest();					// Requete commande moteur
 						break;
 
 		default : break;
@@ -381,7 +396,6 @@ int runMotorAction(void){
                                 setMotorAccelDecel(ID, body.motor[ID].accel, body.motor[ID].decel);
                             
                             // Effectue l'action sur la roue
-                            
                             if(body.motor[ID].cm <=0 && body.motor[ID].time<=0){
                                 sprintf(reportBuffer, "ERREUR: Aucun parametre defini \"time\" ou \"cm\" pour l'action sur le moteur %d\n", ID);
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
@@ -412,9 +426,9 @@ int runMotorAction(void){
         // Aucun paramètre trouvé ou moteur inexistant
         else{
             
-            //AlgoidResponse[0].responseType = -1;
+            AlgoidResponse[0].responseType = -1;
+            sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, MOTORS, 1);               // Envoie un message EVENT error
             sprintf(reportBuffer, "ERREUR: Aucun moteur défini ou inexistant pour le message #%d\n", AlgoidCommand.msgID);
-            //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, MOTORS, 1);  // Retourne une réponse d'erreur, (aucun moteur défini)
             printf(reportBuffer);                                                             // Affichage du message dans le shell
             sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"
         }
@@ -603,8 +617,8 @@ int runLedAction(void){
         }
         else{   
                 sprintf(reportBuffer, "ERREUR: ID LED INEXISTANT pour le message #%d\n", AlgoidCommand.msgID);
-                //AlgoidResponse[0].responseType=-1;
-                //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pLED, 1);  // Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                AlgoidResponse[0].responseType=-1;
+                sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pLED, 1);               // Envoie un message EVENT error
                 printf(reportBuffer);                                                           // Affichage du message dans le shell
                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
         }
@@ -725,8 +739,8 @@ int runPwmAction(void){
         }
         else{   
                 sprintf(reportBuffer, "ERREUR: ID PWM INEXISTANT pour le message #%d\n", AlgoidCommand.msgID);
-                //AlgoidResponse[0].responseType=-1;
-                //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                AlgoidResponse[0].responseType=-1;
+                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
                 printf(reportBuffer);							// Affichage du message dans le shell
                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
         }
@@ -894,15 +908,21 @@ int makeStatusRequest(void){
 
 	AlgoidCommand.msgValueCnt=0;
 
-	AlgoidCommand.msgValueCnt = NBDIN + NBPWM + NBMOTOR + NBBTN +1 ; // Nombre de VALEUR à transmettre + 1 pour le SystemStatus
+	AlgoidCommand.msgValueCnt = NBDIN + NBBTN + NBMOTOR + NBPWM +1 ; // Nombre de VALEUR à transmettre + 1 pour le SystemStatus
 
         // Retourne le système status
         strcpy(AlgoidResponse[ptrData].SYSresponse.name, ClientID);
-        AlgoidResponse[ptrData].SYSresponse.startUpTime=9999;
-        strcpy(AlgoidResponse[ptrData].SYSresponse.firmwareVersion,"18.06.01");
-        strcpy(AlgoidResponse[ptrData].SYSresponse.mcuVersion,"1.2");
-        strcpy(AlgoidResponse[ptrData].SYSresponse.HWrevision,"2");
-        AlgoidResponse[ptrData].SYSresponse.battVoltage=3.56;
+        AlgoidResponse[ptrData].SYSresponse.startUpTime=sysInfo.startUpTime;
+        
+        char fv[10];
+        sprintf(fv, "%d", getMcuFirmware());
+        char hv[10];
+        sprintf(hv, "%d", getMcuHWversion());
+        
+        strcpy(AlgoidResponse[ptrData].SYSresponse.firmwareVersion,"18.06.02");
+        strcpy(AlgoidResponse[ptrData].SYSresponse.mcuVersion,fv);
+        strcpy(AlgoidResponse[ptrData].SYSresponse.HWrevision,hv);
+        AlgoidResponse[ptrData].SYSresponse.battVoltage=body.battery[0].value;
         ptrData++;
         
 	for(i=0;i<NBDIN;i++){
@@ -911,19 +931,12 @@ int makeStatusRequest(void){
 		ptrData++;
 	}
 
-	for(i=0;i<NBAIN;i++){
-		AlgoidResponse[ptrData].BATTesponse.id=i;
-		AlgoidResponse[ptrData].value=body.battery[i].value;
-		ptrData++;
+        for(i=0;i<NBBTN;i++){
+                AlgoidResponse[ptrData].BTNresponse.id=i;
+                AlgoidResponse[ptrData].value=body.button[i].state;
+                ptrData++;
 	}
-
-	for(i=0;i<NBPWM;i++){
-		AlgoidResponse[ptrData].PWMresponse.id=i;
-		AlgoidResponse[ptrData].value=body.pwm[i].state;
-                AlgoidResponse[ptrData].PWMresponse.powerPercent=body.pwm[i].power;
-		ptrData++;
-	}
-
+        
 	for(i=0;i<NBMOTOR;i++){
 		AlgoidResponse[ptrData].MOTresponse.motor=i;
 		AlgoidResponse[ptrData].MOTresponse.velocity=body.motor[i].speed;
@@ -931,12 +944,12 @@ int makeStatusRequest(void){
 		ptrData++;
 	}
         
-        for(i=0;i<NBBTN;i++){
-                AlgoidResponse[ptrData].BTNresponse.id=i;
-                AlgoidResponse[ptrData].value=body.button[i].state;
-                ptrData++;
+        for(i=0;i<NBPWM;i++){
+		AlgoidResponse[ptrData].PWMresponse.id=i;
+		AlgoidResponse[ptrData].value=body.pwm[i].state;
+                AlgoidResponse[ptrData].PWMresponse.powerPercent=body.pwm[i].power;
+		ptrData++;
 	}
-
 	// Envoie de la réponse MQTT
 	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, RESPONSE, STATUS, AlgoidCommand.msgValueCnt);
 	return (1);
@@ -1005,7 +1018,7 @@ int makeSensorsRequest(void){
 // -------------------------------------------------------------------
 int makeButtonRequest(void){
 	unsigned char i;
-
+        
 	// Pas de paramètres spécifiés dans le message, retourne l'ensemble des états des DIN
 	if(AlgoidCommand.msgValueCnt==0){
 		AlgoidCommand.msgValueCnt=NBBTN;
@@ -1023,9 +1036,9 @@ int makeButtonRequest(void){
 				else if(!strcmp(AlgoidCommand.BTNsens[i].event_state, "off"))	body.button[AlgoidCommand.BTNsens[i].id].event_enable=0;    // Désactivation de l'envoie de messages sur évenements
 
 				if(!strcmp(AlgoidCommand.BTNsens[i].safetyStop_state, "on"))	body.button[AlgoidCommand.BTNsens[i].id].safetyStop_state=1; 			// Activation de l'envoie de messages sur évenements
-				else if(!strcmp(AlgoidCommand.BTNsens[i].safetyStop_state, "off"))	body.button[AlgoidCommand.DINsens[i].id].safetyStop_state=0;    // Désactivation de l'envoie de messages sur évenemen
+				else if(!strcmp(AlgoidCommand.BTNsens[i].safetyStop_state, "off"))	body.button[AlgoidCommand.BTNsens[i].id].safetyStop_state=0;    // Désactivation de l'envoie de messages sur évenemen
 
-				body.button[AlgoidCommand.BTNsens[i].id].safetyStop_value = AlgoidCommand.DINsens[i].safetyStop_value;
+				body.button[AlgoidCommand.BTNsens[i].id].safetyStop_value = AlgoidCommand.BTNsens[i].safetyStop_value;
 			} else
 				AlgoidResponse[i].value = -1;
 		};
@@ -1040,7 +1053,7 @@ int makeButtonRequest(void){
 			if(body.button[temp].event_enable) strcpy(AlgoidResponse[i].BTNresponse.event_state, "on");
 				else strcpy(AlgoidResponse[i].BTNresponse.event_state, "off");
 
-			if(body.proximity[temp].safetyStop_state) strcpy(AlgoidResponse[i].BTNresponse.safetyStop_state, "on");
+			if(body.button[temp].safetyStop_state) strcpy(AlgoidResponse[i].BTNresponse.safetyStop_state, "on");
 				else strcpy(AlgoidResponse[i].BTNresponse.safetyStop_state, "off");
 			AlgoidResponse[i].BTNresponse.safetyStop_value = body.button[temp].safetyStop_value;
 		} else
@@ -1207,7 +1220,7 @@ int makeBatteryRequest(void){
 int makeMotorRequest(void){
 	unsigned char i;
 
-	// Pas de paramètres spécifiés dans le message, retourne l'ensemble des états des DIN
+	// Pas de paramètres spécifiés dans le message, retourne l'ensemble des états des moteurs
 	if(AlgoidCommand.msgValueCnt==0){
 		AlgoidCommand.msgValueCnt=NBMOTOR;
 		for(i=0;i<NBMOTOR;i++){
@@ -1375,13 +1388,14 @@ void DINEventCheck(void){
 // et envoie un event si tel est les cas.
 // Seul les DIN ayant change d'etat font partie du message de reponse
 // -------------------------------------------------------------------
+
 void BUTTONEventCheck(void){
 	// Mise à jour de l'état des E/S
 	unsigned char ptrBuff=0, BTNevent=0, oldBtnValue[NBBTN], i;
 
 	for(i=0;i<NBBTN;i++){
 		// Mise à jour de l'état des E/S
-		oldBtnValue[i]=body.proximity[i].state;
+		oldBtnValue[i]=body.button[i].state;
 		body.button[i].state = getButtonInput(i);
 
 		// Vérifie si un changement a eu lieu sur les entrees et transmet un message
@@ -1428,6 +1442,39 @@ void DINSafetyCheck(void){
 		}
 	}
 	if(DINsafety>0){
+		// ACTION A EFFECTUER
+		//sendResponse(AlgoidCommand.msgID, EVENT, DINPUT, DINsafety);
+	}
+}
+
+// -------------------------------------------------------------------
+// BTNSAFETYCHECK
+// Vérifie si une changement d'état à eu lieu sur les boutons
+// et effectue une action si safety actif et valeur concordante
+// -------------------------------------------------------------------
+void BTNSafetyCheck(void){
+	// Mise à jour de l'état des E/S
+	unsigned char ptrBuff=0, BTNsafety=0, i;
+	static unsigned char safetyAction[NBBTN];
+
+	for(i=0;i<NBBTN;i++){
+		// Mise à jour de l'état des E/S
+		body.button[i].state = getButtonInput(i);
+
+		// Vérifie si un changement a eu lieu sur les entrees et transmet un message
+		// "event" listant les modifications
+		if(body.button[i].safetyStop_state){
+			if((body.button[i].safetyStop_value == body.button[i].state)){
+				if(!safetyAction[i]){
+					ptrBuff++;
+					printf("SAFETY DETECTION ON BUTTON%d, ETAT:%d\n", i, body.button[i].state);
+					BTNsafety++;
+					safetyAction[i]=1;
+				}
+			} else safetyAction[i]=0;
+		}
+	}
+	if(BTNsafety>0){
 		// ACTION A EFFECTUER
 		//sendResponse(AlgoidCommand.msgID, EVENT, DINPUT, DINsafety);
 	}

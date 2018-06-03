@@ -11,6 +11,7 @@
 
 #include "pthread.h"
 #include <unistd.h>
+#include <stdio.h>
 #include "hwManager.h"
 #include "boardHWctrl.h"
 #include "../buggy_descriptor.h"
@@ -31,7 +32,14 @@ typedef struct tmeasures{
         unsigned char btn[NBBTN];
 }t_measure;
 
+typedef struct tHWversion{
+        int mcuVersion;
+        int HWrevision;
+}t_HWversion;
+
+
 t_measure sensor;
+t_HWversion BoardInfo;
 
 int i2c_command_queuing[50][3];
 
@@ -65,6 +73,9 @@ void setPwmPower(unsigned char ID, unsigned char power);
 void processCommandQueue(void);
 void execCommand(void (*ptrFunc)(char, int), char adr, int cmd);
 int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd);		//
+
+int getHWversion(void);                                                 // Get the hardware
+int getMcuFirmware(void);                                              // Get the hardware
 // ------------------------------------------
 // Programme principale TIMER
 // ------------------------------------------
@@ -73,6 +84,7 @@ void *hwTask (void * arg){
         char dinState=0;
 
 	if(buggyBoardInit()){
+                
 		printf("\n#[HW MANAGER] Initialisation carte HW: OK\n");
 		sendMqttReport(0,"#[HW MANAGER] Initialisation carte HW: OK\n");
 		setLedPower(LED_0,5);
@@ -87,7 +99,12 @@ void *hwTask (void * arg){
 	// Reset la distance de la carte EFM8BB
 	EFM8BB_clearWheelDistance(MOTOR_ENCODER_LEFT);
 	EFM8BB_clearWheelDistance(MOTOR_ENCODER_RIGHT);
-
+        
+        BoardInfo.mcuVersion=EFM8BB_getFirmwareVersion();      
+        BoardInfo.HWrevision=EFM8BB_getBoardType();
+        
+        
+        
 	while(1){
 		// Sequencage des messages sur bus I2C à interval régulier
 		switch(timeCount_ms){
@@ -95,7 +112,7 @@ void *hwTask (void * arg){
 					  sensor.counter[MOTOR_ENCODER_LEFT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_LEFT); break;
 			case 10	: sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_RIGHT);
 					  sensor.counter[MOTOR_ENCODER_RIGHT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_RIGHT); break;
-			case 15	:   dinState = EFM8BB_readDigitalInput(0);      // Paramètre transmis non utilisé par la fonction...
+			case 15	:   dinState = EFM8BB_readDigitalInput(0);              // Paramètre transmis non utilisé par la fonction...
                                     if(dinState & 0x01) sensor.din[DIN_0] = 1;
                                     else sensor.din[DIN_0]=0;
                         
@@ -178,13 +195,7 @@ char getDigitalInput(unsigned char inputNumber){
 	char inputState=0;
 
 	inputState = sensor.din[inputNumber];
-                             			/*;
-	switch(inputNumber){
-		case 0: inputState = buggySensor.din0; break;
-		case 1: inputState = buggySensor.din1; break;
-		default: inputState=-1; break;
-	}
-	*/
+//        printf("DIG %d: %d\n",inputNumber, inputState);
 	return inputState;
 }
 
@@ -192,7 +203,6 @@ char getButtonInput(unsigned char buttonNumber){
 	char inputState=0;
 
 	inputState = sensor.btn[buttonNumber];
-
 	return inputState;
 }
 
@@ -234,7 +244,6 @@ int getBatteryVoltage(void){
 // !!!!!!!!!!!!! FONCTION A RETRAVAILLER !!!!!!!!!!!!!!!!!!!
 // ---------------------------------------------------------------------------
 int setMotorDirection(int motorName, int direction){
-
 	unsigned char motorAdress;
 
 	// Conversion No de moteur en adresse du registre du PWM controleur
@@ -242,16 +251,30 @@ int setMotorDirection(int motorName, int direction){
 
 	switch(direction){
 		case BUGGY_FORWARD :	set_i2c_command_queue(&MCP2308_DCmotorSetRotation, motorAdress, MCW); break;
-
 		case BUGGY_BACK :       set_i2c_command_queue(&MCP2308_DCmotorSetRotation, motorAdress, MCCW); break;
 
 		case BUGGY_STOP : 		break;
 		default :		     	break;
 	}
-
-
 	return(1);
 }
+
+// ---------------------------------------------------------------------------
+// GETMCUHWVERSION
+// Get the hardware/software version
+// ---------------------------------------------------------------------------
+int getMcuHWversion(void){
+	return(BoardInfo.HWrevision);
+}
+
+// ---------------------------------------------------------------------------
+// GETMCUFIRMWARE
+// Get the hardware/software version
+// ---------------------------------------------------------------------------
+int getMcuFirmware(void){
+	return(BoardInfo.mcuVersion);
+}
+
 
 // ------------------------------------------------------------------------------------
 // CHECKMOTORPOWER:

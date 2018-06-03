@@ -33,6 +33,8 @@
 
     // REGISTER DEFINITION FOR EFM8 MICROCONTROLLER
     
+    #define FIRMWARE_REG                        0x01
+    #define BOARDTYPE_REG                       0x00
     #define DIN_REG                             0x04
     #define SON0                                0x08
     #define VOLT0                               0x0E
@@ -72,7 +74,7 @@
 
 
 extern unsigned char buggyBoardInit(void);
-extern unsigned char motorDCadr[2];			// Valeur de la puissance moteur
+extern unsigned char motorDCadr[2];                                             // Valeur de la puissance moteur
 extern void MCP2308_DCmotorState(unsigned char state);
 extern void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction);
 extern void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
@@ -80,11 +82,12 @@ extern void PCA9685_setServoPos(unsigned char smAddr, unsigned char position);
 extern void PCA9685_setLedPower(unsigned char smAddr, unsigned char power);
 //extern void setDCmotorPower(unsigned char motorAdr, unsigned char power);
 
-extern int EFM8BB_readSonarDistance(void);							// Get distance in mm from the EFM8BB microcontroller
+extern int EFM8BB_readSonarDistance(void);					// Get distance in mm from the EFM8BB microcontroller
 extern char EFM8BB_readDigitalInput(unsigned char InputNr);			// Get digital input state in mm from the EFM8BB microcontroller
-extern int EFM8BB_readBatteryVoltage(void);							// Get the battery voltage in mV from EFM8BB microcontroller
+extern int EFM8BB_readBatteryVoltage(void);					// Get the battery voltage in mV from EFM8BB microcontroller
 extern int EFM8BB_readFrequency(unsigned char wheelNb);				// Get frequency measured on EFM8BB
 extern int EFM8BB_readPulseCounter(unsigned char wheelNb);			// Get pulse counter on EFM8BB
-extern int EFM8BB_clearWheelDistance(unsigned char wheelNb);		// Reset to 0 the pulse counter on EFM8BB
-
+extern int EFM8BB_clearWheelDistance(unsigned char wheelNb);                    // Reset to 0 the pulse counter on EFM8BB
+extern int EFM8BB_getFirmwareVersion(void);                                     // Get the MCU firmware version
+extern int EFM8BB_getBoardType(void);                                           // Get the type of the board.
 #endif
