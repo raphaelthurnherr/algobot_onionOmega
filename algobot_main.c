@@ -82,7 +82,7 @@ int main(void) {
 	int i;
 
 	system("clear");
-        printf ("ALGOBOT Beta - Build 180602 \n");
+        printf ("ALGOBOT Beta - Build 180604 \n");
         printf ("----------------------------\n");
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID
@@ -260,8 +260,15 @@ int processAlgoidCommand(void){
                                     else
                                         AlgoidResponse[i].MOTresponse.motor=-1;
                                             
-                                    // Récupération des paramètes 
-                                    AlgoidResponse[i].MOTresponse.velocity=AlgoidCommand.DCmotor[i].velocity;
+                                    // Récupération des paramètes de commandes
+                                    
+                                    // Retourne un message ALGOID si velocité hors tolérences
+                                    if((AlgoidCommand.DCmotor[i].velocity < -100) ||(AlgoidCommand.DCmotor[i].velocity > 100)){
+                                            AlgoidCommand.DCmotor[i].velocity=0;
+                                            AlgoidResponse[i].MOTresponse.velocity=-1;
+                                    }else
+                                        AlgoidResponse[i].MOTresponse.velocity=AlgoidCommand.DCmotor[i].velocity;
+                                    
                                     AlgoidResponse[i].MOTresponse.cm=AlgoidCommand.DCmotor[i].cm;
                                     AlgoidResponse[i].MOTresponse.time=AlgoidCommand.DCmotor[i].time;
                                     AlgoidResponse[i].responseType = 3;
@@ -362,16 +369,11 @@ int runMotorAction(void){
             if(ptrData>=0){
                 actionCount++;
                 
-                    // Retourne un message ALGOID si velocité hors tolérences
-                    if((AlgoidCommand.DCmotor[ptrData].velocity < -100) ||(AlgoidCommand.DCmotor[ptrData].velocity > 100))
-                            sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  WARNING, MOTORS, 0);
-                    else{
                         body.motor[i].speed=AlgoidCommand.DCmotor[ptrData].velocity;
                         body.motor[i].accel=AlgoidCommand.DCmotor[ptrData].accel;
                         body.motor[i].decel=AlgoidCommand.DCmotor[ptrData].decel;
                         body.motor[i].cm=AlgoidCommand.DCmotor[ptrData].cm;
                         body.motor[i].time=AlgoidCommand.DCmotor[ptrData].time;
-                    }  
             }
         }
 
@@ -396,12 +398,11 @@ int runMotorAction(void){
                                 setMotorAccelDecel(ID, body.motor[ID].accel, body.motor[ID].decel);
                             
                             // Effectue l'action sur la roue
-                            if(body.motor[ID].cm <=0 && body.motor[ID].time<=0){
-                                sprintf(reportBuffer, "ERREUR: Aucun parametre defini \"time\" ou \"cm\" pour l'action sur le moteur %d\n", ID);
+                            if(body.motor[ID].cm <=0 && body.motor[ID].time<=0){                                
+                                sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\" ou \"cm\" pour l'action sur le moteur %d\n", ID);
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
-                                sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"
-                                AlgoidResponse[0].responseType = -1;
-                                removeBuggyTask(myTaskId);	// Supprime l'ancienne tâche
+                                sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
+                                setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, INFINITE, NULL);
                             }else
                             {
                                 if(body.motor[ID].cm > 0)
@@ -409,9 +410,12 @@ int runMotorAction(void){
                                 else{
                                         setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
                                 }
-                                // Défini l'état de laction comme "démarrée" pour message de réponse
-                                AlgoidResponse[0].responseType = 1;
+                                
+                                
+
                             }
+                                                            // Défini l'état de laction comme "démarrée" pour message de réponse
+                            AlgoidResponse[0].responseType = 1;
                         }
                         action++;
                     }
@@ -574,12 +578,24 @@ int runLedAction(void){
                     for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
                             ID = AlgoidCommand.LEDarray[ptrData].id;
                             if(ID >= 0){
-                                    time=AlgoidCommand.LEDarray[ptrData].time;
+                                
                                     power=AlgoidCommand.LEDarray[ptrData].powerPercent;
                                     Count=AlgoidCommand.LEDarray[ptrData].blinkCount;
-
+                                    time=AlgoidCommand.LEDarray[ptrData].time;
                                     // Mode blink
+                                    if(time<=0){
+                                            time=500;
+                                            sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"count\"  pour l'action sur la LED %d\n", ID);
+                                            printf(reportBuffer);                                                             // Affichage du message dans le shell
+                                            sendMqttReport(AlgoidCommand.msgID, reportBuffer);	
+                                    }
                                     if(body.led[ID].state==2){
+                                        if(Count<=0){
+                                            sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"count\"  pour l'action sur la LED %d\n", ID);
+                                            printf(reportBuffer);                                                             // Affichage du message dans le shell
+                                            sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
+                                        }
+            
                                         // Creation d'un timer effectué sans erreur, ni ecrasement de timer
                                          setAsyncLedAction(myTaskId, ID, time, Count);
 ;                                    }
@@ -859,7 +875,7 @@ int createBuggyTask(int MsgId, int actionCount){
                                 sendResponse(actionID, getSenderFromMsgId(actionID), RESPONSE, ERR_HEADER, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
 				sendMqttReport(actionID, reportBuffer);
 				return -1;
-				}
+                        }
 		}
 	}
 	sprintf(reportBuffer, "ERREUR: Table de tâches pleine\n");
@@ -1232,8 +1248,9 @@ int makeMotorRequest(void){
 	for(i=0;i<AlgoidCommand.msgValueCnt;i++){
 		int temp = AlgoidResponse[i].MOTresponse.motor;
 
-		// Contrôle que le capteur soit pris en charge
+		// Contrôle que le moteur soit pris en charge
 		if(AlgoidCommand.DCmotor[i].motor < NBMOTOR){
+                    
 			AlgoidResponse[i].MOTresponse.velocity = body.motor[temp].cm;
                         AlgoidResponse[i].MOTresponse.velocity = body.motor[temp].speed;
                         AlgoidResponse[i].responseType=3;

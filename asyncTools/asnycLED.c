@@ -19,6 +19,7 @@ char reportBuffer[256];
 int setAsyncLedAction(int actionNumber, int ledName, int time, int count);
 int endLedAction(int actionNumber, int ledNumber);
 int checkBlinkLedCount(int actionNumber, int ledName);
+int dummyLedAction(int actionNumber, int ledName); // Fonction sans action, appelee en cas de blink infini
 
 // -------------------------------------------------------------------
 // SETASYNCLEDACTION
@@ -34,8 +35,12 @@ int setAsyncLedAction(int actionNumber, int ledName, int time, int count){
 
 	// Démarre un timer d'action sur la led et spécifie la fonction call back à appeler en time-out
 	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
-        setTimerResult=setTimer(time, &checkBlinkLedCount, actionNumber, ledName, LED);
-
+        if(count>0)
+            setTimerResult=setTimer(time, &checkBlinkLedCount, actionNumber, ledName, LED);
+        else
+            setTimerResult=setTimer(time, &dummyLedAction, actionNumber, ledName, LED);     // Considère un blink infini
+        
+        
 	if(setTimerResult!=0){                                          // Timer pret, action effectuée
 		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur le meme peripherique
 			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
@@ -127,4 +132,26 @@ int checkBlinkLedCount(int actionNumber, int ledName){
         blinkCount++;
         
 	return 0;
+}
+
+
+// ----------------------------------------------------------------------
+// DUMMYLEDACTION
+// Fonction sans action, appelee en cas de blink infini
+// -----------------------------------------------------------------------
+
+int dummyLedAction(int actionNumber, int ledName){
+    	static int blinkCount=0;     // Variable de comptage du nombre de clignotements       
+
+        // Inverse l'état de la led
+        if(body.led[ledName].state>0){
+            setLedPower(ledName, 0);
+            body.led[ledName].state=0;
+        }else
+        {
+            setLedPower(ledName, body.led[ledName].power);
+            body.led[ledName].state=1;
+        }
+    setTimer(100, &dummyLedAction, actionNumber, ledName, LED);
+    return 0;
 }

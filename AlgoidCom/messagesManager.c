@@ -275,9 +275,7 @@ void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char 
 		case ACK : strcpy(ackType, "ack");  strcpy(topic, TOPIC_ACK); break;				// Ack vers l'hôte
 		case RESPONSE : strcpy(ackType, "response"); strcpy(topic, TOPIC_RESPONSE); break;		// Reponse vers l'hôte
 		case EVENT : strcpy(ackType, "event"); strcpy(topic, TOPIC_EVENT); break;				// Reponse vers l'hôtebreak;
-		case NEGOC : strcpy(ackType, "negoc"); break;
 		case ERR_TYPE : strcpy(ackType, "error"); break;
-		case WARNING : strcpy(ackType, "warning"); break;
 		default : strcpy(ackType, "unknown"); break;
 	}
 

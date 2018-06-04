@@ -9,8 +9,6 @@ typedef enum msgtype{
 	ACK,
 	RESPONSE,
 	EVENT,
-	NEGOC,          // Not use
-	WARNING         // Not use
 } t_msgtype;
 
 // DEFINITION DES PARAMETRES DE TYPE PARAMETRE

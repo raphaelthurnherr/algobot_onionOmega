@@ -10,6 +10,8 @@
 
 #define MILLISECOND       0
 #define CENTIMETER	  1
+#define INFINITE         -1
+
 #define CMPP		  0.723
 
 

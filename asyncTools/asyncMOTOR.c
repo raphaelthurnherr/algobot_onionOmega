@@ -19,7 +19,7 @@ char reportBuffer[256];
 int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value);
 int endWheelAction(int actionNumber, int motorNb);
 int checkMotorEncoder(int actionNumber, int encoderName);
-
+int dummyMotorAction(int actionNumber, int encoderName);
 // -------------------------------------------------------------------
 // SETASYNCMOTORLACTION
 // Effectue l'action sur une roue spécifiée
@@ -55,9 +55,10 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 		case  CENTIMETER:   //motorNb = getOrganNumber(motorNb);
                                     body.encoder[motorNb].startEncoderValue=getMotorPulses(motorNb)*CMPP;
                                     body.encoder[motorNb].stopEncoderValue = body.encoder[motorNb].startEncoderValue+ value;
-                                    setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, motorNb, MOTOR);			// Démarre un timer pour contrôle de distance chaque 35mS
-                                    break;
-		default: printf("\n!!! ERROR Function [setAsyncMotorAction] -> undefined unit");break;
+                                    setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, motorNb, MOTOR); break;// Démarre un timer pour contrôle de distance chaque 35mS
+                                   
+                case  INFINITE:     setTimerResult=setTimer(100, &dummyMotorAction, actionNumber, motorNb, MOTOR); break;
+		default: printf("\n!!! ERROR Function [setAsyncMotorAction] -> unknown mode");break;
 	}
 
 	if(setTimerResult!=0){						// Timer pret, action effectuée ()
@@ -177,4 +178,9 @@ int checkMotorEncoder(int actionNumber, int encoderName){
 		setTimer(50, &checkMotorEncoder, actionNumber, encoderName, MOTOR);
 
 	return 0;
+}
+
+int dummyMotorAction(int actionNumber, int encoderName){
+        setTimer(0, &dummyMotorAction, actionNumber, encoderName, MOTOR);
+    return 0;
 }

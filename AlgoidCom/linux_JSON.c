@@ -91,7 +91,6 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				if(!strcmp(myDataString, "ack")) AlgoidMessageRX.msgType = ACK;
 				if(!strcmp(myDataString, "response")) AlgoidMessageRX.msgType = RESPONSE;
 				if(!strcmp(myDataString, "event")) AlgoidMessageRX.msgType = EVENT;
-				if(!strcmp(myDataString, "negoc")) AlgoidMessageRX.msgType = NEGOC;
 				if(!strcmp(myDataString, "error")) AlgoidMessageRX.msgType = ERR_TYPE;
 
 	// MESSAGE PARAM
