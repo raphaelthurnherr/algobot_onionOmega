@@ -260,11 +260,11 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
 						switch(orgType){
 							case MOTORS :                   
                                                                                         switch(AlgoidResponse[i].responseType){
-                                                                                            case -1 : jwObj_string("action", "error"); break;
-                                                                                            case 0 : jwObj_string("action", "end"); break;
-                                                                                            case 1 : jwObj_string("action", "begin"); break;
-                                                                                            case 2 : jwObj_string("action", "abort"); break;
-                                                                                            case 3 :    if(AlgoidResponse[i].MOTresponse.motor>=0)
+                                                                                            case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
+                                                                                            case EVENT_ACTION_END : jwObj_string("action", "end"); break;
+                                                                                            case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
+                                                                                            case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
+                                                                                            case RESP_STD_MESSAGE   :    if(AlgoidResponse[i].MOTresponse.motor>=0)
                                                                                                             jwObj_int( "motor", AlgoidResponse[i].MOTresponse.motor);
                                                                                                         else
                                                                                                             jwObj_string("motor", "unknown");
@@ -383,11 +383,11 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     break;
                                                                                    
                                                         case pPWM :             switch(AlgoidResponse[i].responseType){
-                                                                                    case -1 :   jwObj_string("action", "error");break;
-                                                                                    case 0  :   jwObj_string("action", "end"); break;
-                                                                                    case 1  :   jwObj_string("action", "begin"); break;
-                                                                                    case 2  :   jwObj_string("action", "abort"); break;
-                                                                                    case 3  :   if(AlgoidResponse[i].PWMresponse.id>=0)
+                                                                                    case EVENT_ACTION_ERROR :   jwObj_string("action", "error");break;
+                                                                                    case EVENT_ACTION_END  :   jwObj_string("action", "end"); break;
+                                                                                    case EVENT_ACTION_BEGIN  :   jwObj_string("action", "begin"); break;
+                                                                                    case EVENT_ACTION_ABORT  :   jwObj_string("action", "abort"); break;
+                                                                                    case RESP_STD_MESSAGE  :   if(AlgoidResponse[i].PWMresponse.id>=0)
                                                                                                     jwObj_int( "pwm", AlgoidResponse[i].PWMresponse.id);
                                                                                                 else
                                                                                                     jwObj_string("pwm", "unknown");
@@ -400,17 +400,18 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                 break;
                                                                                    
                                                         case pLED :             switch(AlgoidResponse[i].responseType){
-                                                                                    case -1 :   jwObj_string("action", "error");break;
-                                                                                    case 0  :   jwObj_string("action", "end"); break;
-                                                                                    case 1  :   jwObj_string("action", "begin"); break;
-                                                                                    case 2  :   jwObj_string("action", "abort"); break;
-                                                                                    case 3  :   if(AlgoidResponse[i].LEDresponse.id>=0)
-                                                                                                    jwObj_int( "led", AlgoidResponse[i].LEDresponse.id);
-                                                                                                else
-                                                                                                    jwObj_string("led", "unknown");
-                                                                                                jwObj_string( "state", AlgoidResponse[i].LEDresponse.state);				// add object key:value pairs
-                                                                                                jwObj_int( "power", AlgoidResponse[i].LEDresponse.powerPercent);				// add object key:value pairs
-                                                                                                jwObj_int("time", AlgoidResponse[i].LEDresponse.time);
+                                                                                    case EVENT_ACTION_ERROR :    jwObj_string("action", "error");break;
+                                                                                    case EVENT_ACTION_END  :     jwObj_string("action", "end"); break;
+                                                                                    case EVENT_ACTION_BEGIN  :   jwObj_string("action", "begin"); break;
+                                                                                    case EVENT_ACTION_ABORT  :   jwObj_string("action", "abort"); break;
+                                                                                    case RESP_STD_MESSAGE  :    if(AlgoidResponse[i].LEDresponse.id>=0)
+                                                                                                                    jwObj_int( "led", AlgoidResponse[i].LEDresponse.id);
+                                                                                                                else
+                                                                                                                    jwObj_string("led", "unknown");
+                                                                                                                jwObj_string( "state", AlgoidResponse[i].LEDresponse.state);				// add object key:value pairs
+                                                                                                                jwObj_int( "power", AlgoidResponse[i].LEDresponse.powerPercent);				// add object key:value pairs
+                                                                                                                jwObj_int("time", AlgoidResponse[i].LEDresponse.time);
+                                                                                                                jwObj_int("count", AlgoidResponse[i].LEDresponse.blinkCount);
                                                                                                 break;
                                                                                     default :   jwObj_string("error", "unknown");break;
                                                                                 }

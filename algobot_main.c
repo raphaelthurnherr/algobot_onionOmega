@@ -271,7 +271,7 @@ int processAlgoidCommand(void){
                                     
                                     AlgoidResponse[i].MOTresponse.cm=AlgoidCommand.DCmotor[i].cm;
                                     AlgoidResponse[i].MOTresponse.time=AlgoidCommand.DCmotor[i].time;
-                                    AlgoidResponse[i].responseType = 3;
+                                    AlgoidResponse[i].responseType = RESP_STD_MESSAGE;
                                 }
                                 // Retourne en réponse le message vérifié
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, MOTORS, AlgoidCommand.msgValueCnt);  // Retourne une réponse d'erreur, (aucun moteur défini)
@@ -291,7 +291,7 @@ int processAlgoidCommand(void){
                                     AlgoidResponse[i].PWMresponse.powerPercent=AlgoidCommand.PWMarray[i].powerPercent;
                                     AlgoidResponse[i].PWMresponse.blinkCount=AlgoidCommand.PWMarray[i].blinkCount;
                                     AlgoidResponse[i].PWMresponse.time=AlgoidCommand.PWMarray[i].time;
-                                    AlgoidResponse[i].responseType = 3;
+                                    AlgoidResponse[i].responseType = RESP_STD_MESSAGE;
                                 }
                                 // Retourne en réponse le message vérifié
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, AlgoidCommand.msgValueCnt);     
@@ -310,7 +310,7 @@ int processAlgoidCommand(void){
                                     AlgoidResponse[i].LEDresponse.powerPercent=AlgoidCommand.LEDarray[i].powerPercent;
                                     AlgoidResponse[i].LEDresponse.blinkCount=AlgoidCommand.LEDarray[i].blinkCount;
                                     AlgoidResponse[i].LEDresponse.time=AlgoidCommand.LEDarray[i].time;
-                                    AlgoidResponse[i].responseType = 3;
+                                    AlgoidResponse[i].responseType = RESP_STD_MESSAGE;
                                 }
                                 // Retourne en réponse le message vérifié
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pLED, AlgoidCommand.msgValueCnt);               
@@ -367,8 +367,7 @@ int runMotorAction(void){
         for(i=0;i<NBMOTOR;i++){
             ptrData=getWDvalue(i);
             if(ptrData>=0){
-                actionCount++;
-                
+                actionCount++;   
                         body.motor[i].speed=AlgoidCommand.DCmotor[ptrData].velocity;
                         body.motor[i].accel=AlgoidCommand.DCmotor[ptrData].accel;
                         body.motor[i].decel=AlgoidCommand.DCmotor[ptrData].decel;
@@ -410,12 +409,9 @@ int runMotorAction(void){
                                 else{
                                         setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
                                 }
-                                
-                                
-
                             }
-                                                            // Défini l'état de laction comme "démarrée" pour message de réponse
-                            AlgoidResponse[0].responseType = 1;
+                             // Défini l'état de laction comme "démarrée" pour message de réponse
+                            AlgoidResponse[0].responseType = EVENT_ACTION_BEGIN;
                         }
                         action++;
                     }
@@ -430,7 +426,7 @@ int runMotorAction(void){
         // Aucun paramètre trouvé ou moteur inexistant
         else{
             
-            AlgoidResponse[0].responseType = -1;
+            AlgoidResponse[0].responseType = EVENT_ACTION_ERROR;
             sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, MOTORS, 1);               // Envoie un message EVENT error
             sprintf(reportBuffer, "ERREUR: Aucun moteur défini ou inexistant pour le message #%d\n", AlgoidCommand.msgID);
             printf(reportBuffer);                                                             // Affichage du message dans le shell
@@ -520,9 +516,9 @@ int runLedAction(void){
         int i;
         int ID;
         
-        int time=0;
+        int time=-1;
         int power=0;
-        int Count=0;
+        int Count=-1;
         
 	unsigned char actionCount=0;
 	unsigned char action=0;
@@ -541,11 +537,11 @@ int runLedAction(void){
                 
                 // Récupération de commande d'état de la led dans le message
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"off"))
-                    body.led[i].state=0;
+                    body.led[i].state=LED_OFF;
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"on"))
-                    body.led[i].state=1;
+                    body.led[i].state=LED_ON;
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"blink"))
-                    body.led[i].state=2;
+                    body.led[i].state=LED_BLINK;
                 
                 // Récupération des consignes dans le message (si disponible)
                 if(AlgoidCommand.LEDarray[ptrData].powerPercent > 0)
@@ -578,62 +574,51 @@ int runLedAction(void){
                     for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
                             ID = AlgoidCommand.LEDarray[ptrData].id;
                             if(ID >= 0){
-                                
                                     power=AlgoidCommand.LEDarray[ptrData].powerPercent;
                                     Count=AlgoidCommand.LEDarray[ptrData].blinkCount;
                                     time=AlgoidCommand.LEDarray[ptrData].time;
                                     // Mode blink
-                                    if(time<=0){
+                                    if(body.led[ID].state==LED_BLINK){
+                                        
+                                        // Verifie la presence de parametres de type "time" et "count", sinon applique des
+                                        // valeurs par defaut
+                                        if(time<=0){
                                             time=500;
-                                            sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"count\"  pour l'action sur la LED %d\n", ID);
+                                            sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\"  pour l'action sur la LED %d\n", ID);
                                             printf(reportBuffer);                                                             // Affichage du message dans le shell
                                             sendMqttReport(AlgoidCommand.msgID, reportBuffer);	
-                                    }
-                                    if(body.led[ID].state==2){
+                                        }
+                                        
                                         if(Count<=0){
                                             sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"count\"  pour l'action sur la LED %d\n", ID);
                                             printf(reportBuffer);                                                             // Affichage du message dans le shell
                                             sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
                                         }
             
-                                        // Creation d'un timer effectué sans erreur, ni ecrasement de timer
-                                         setAsyncLedAction(myTaskId, ID, time, Count);
+                                        // Creation d'un timer effectué sans erreur, ni ecrasement d'une ancienne action
+                                         setAsyncLedAction(myTaskId, ID, INFINITE, time, Count);
 ;                                    }
 
                                     // Mode on ou off
                                     else{
-                                            if(body.led[ID].state==0)
-                                                setLedPower(ID, 0); 
+                                        
+                                            if(body.led[ID].state==OFF)
+                                                setAsyncLedAction(myTaskId, ID, OFF, NULL, NULL);
 
-                                            if(body.led[ID].state==1)
-                                                 setLedPower(ID, body.led[ID].power); 
-
-                                             endOfTask=removeBuggyTask(myTaskId);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
-
-                                            if(endOfTask){
-                                                sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
-                                                int ptr=getSenderFromMsgId(endOfTask);
-                                                strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-                                                // Libère la memorisation de l'expediteur
-                                                removeSenderOfMsgId(endOfTask);
-                                                AlgoidResponse[0].responseType=0;
-                                                sendResponse(endOfTask, msgTo, EVENT, pLED, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
-                                            }
-                                                printf(reportBuffer);							// Affichage du message dans le shell
-                                                sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-
+                                            if(body.led[ID].state==ON)
+                                                setAsyncLedAction(myTaskId, ID, ON, NULL, NULL);
                                     }
 
                                     action++;
                             }
                     }
-                    AlgoidResponse[0].responseType=1;
+                    AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
                     sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pLED, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
             }            
         }
         else{   
                 sprintf(reportBuffer, "ERREUR: ID LED INEXISTANT pour le message #%d\n", AlgoidCommand.msgID);
-                AlgoidResponse[0].responseType=-1;
+                AlgoidResponse[0].responseType=EVENT_ACTION_ERROR;
                 sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pLED, 1);               // Envoie un message EVENT error
                 printf(reportBuffer);                                                           // Affichage du message dans le shell
                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
@@ -738,7 +723,7 @@ int runPwmAction(void){
                                                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                                                 // Libère la memorisation de l'expediteur
                                                 removeSenderOfMsgId(endOfTask);
-                                                AlgoidResponse[0].responseType=0;
+                                                AlgoidResponse[0].responseType=EVENT_ACTION_END;
                                                 sendResponse(endOfTask, msgTo, EVENT, pPWM, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
                                             }
                                                 printf(reportBuffer);							// Affichage du message dans le shell
@@ -749,13 +734,13 @@ int runPwmAction(void){
                                     action++;
                             }
                     }
-                    AlgoidResponse[0].responseType=1;
+                    AlgoidResponse[0].responseType=EVENT_ACTION_END;
                     sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pPWM, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
             }            
         }
         else{   
                 sprintf(reportBuffer, "ERREUR: ID PWM INEXISTANT pour le message #%d\n", AlgoidCommand.msgID);
-                AlgoidResponse[0].responseType=-1;
+                AlgoidResponse[0].responseType=EVENT_ACTION_ERROR;
                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, 1);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
                 printf(reportBuffer);							// Affichage du message dans le shell
                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
@@ -871,7 +856,7 @@ int createBuggyTask(int MsgId, int actionCount){
                                
 				sprintf(reportBuffer, "ERREUR: Tache déja existante et en cours de traitement: %d\n", actionID);
                                 printf(reportBuffer);
-                                AlgoidResponse[0].responseType=0;
+                                AlgoidResponse[0].responseType=EVENT_ACTION_END;
                                 sendResponse(actionID, getSenderFromMsgId(actionID), RESPONSE, ERR_HEADER, 0);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
 				sendMqttReport(actionID, reportBuffer);
 				return -1;
@@ -1253,7 +1238,7 @@ int makeMotorRequest(void){
                     
 			AlgoidResponse[i].MOTresponse.velocity = body.motor[temp].cm;
                         AlgoidResponse[i].MOTresponse.velocity = body.motor[temp].speed;
-                        AlgoidResponse[i].responseType=3;
+                        AlgoidResponse[i].responseType=RESP_STD_MESSAGE;
                         
 			
 		} else

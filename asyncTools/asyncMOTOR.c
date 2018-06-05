@@ -75,12 +75,11 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 				// Libère la memorisation de l'expediteur
 				removeSenderOfMsgId(endOfTask);
 
-				AlgoidResponse[0].responseType=2;
+				AlgoidResponse[0].responseType=EVENT_ACTION_ABORT;
 				sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, MOTORS, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
 				printf(reportBuffer);									// Affichage du message dans le shell
 				sendMqttReport(endOfTask, reportBuffer);                                                // Envoie le message sur le canal MQTT "Report"
 			}
-
 		}
 
 		// Défini le "nouveau" sens de rotation à applique au moteur ainsi que la consigne de vitesse
@@ -130,17 +129,7 @@ int endWheelAction(int actionNumber, int motorNb){
 		// Libère la memorisation de l'expediteur
 		removeSenderOfMsgId(endOfTask);
 
-		// Récupère la distance et la vitesse actuelle du moteur
-		// Pour retour event a l'expediteur originel
-/*		int i;
-		for(i=0;i<NBMOTOR;i++){
-			AlgoidResponse[i].MOTresponse.id=i;
-			AlgoidResponse[i].MOTresponse.speed=body.motor[i].speed;
-			AlgoidResponse[i].MOTresponse.distance=body.motor[i].distance;
-			AlgoidResponse[i].MOTresponse.time=9999;
-		}
-*/
-		AlgoidResponse[0].responseType=0;
+		AlgoidResponse[0].responseType=EVENT_ACTION_END;
 
 		sendResponse(endOfTask, msgTo, EVENT, MOTORS, 1);
 		sprintf(reportBuffer, "FIN DES ACTIONS \"WHEEL\" pour la tache #%d\n", endOfTask);

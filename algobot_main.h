@@ -8,9 +8,19 @@
 #ifndef ALGOID_2WD_BUGGY_H_
 #define ALGOID_2WD_BUGGY_H_
 
+
+//
+#define LED_OFF           0
+#define LED_ON            1
+#define LED_BLINK         2
+
+#define INFINITE          2
+#define ON                1
+#define OFF               0
+
 #define MILLISECOND       0
 #define CENTIMETER	  1
-#define INFINITE         -1
+
 
 #define CMPP		  0.723
 
