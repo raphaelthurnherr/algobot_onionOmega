@@ -373,9 +373,13 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                             jwObj_int("cm", round((AlgoidResponse[i].MOTresponse.cm)));		// add object key:value pairs
                                                                                             jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.velocity)));
                                                                                     }
-                                                                                    
+                                                                                                                                                                        // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR){
+                                                                                        jwObj_int("sonar",AlgoidResponse[i].DISTresponse.id);		// add object key:value pairs
+                                                                                        jwObj_int("cm", round((AlgoidResponse[i].value)));
+                                                                                    }
                                                                                     // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR && i<1+NBDIN+NBBTN+NBMOTOR+NBPWM){
+                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM){
                                                                                             jwObj_int("pwm",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
                                                                                             jwObj_int( "state", AlgoidResponse[i].value);
                                                                                             jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);

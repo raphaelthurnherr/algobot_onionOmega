@@ -17,9 +17,9 @@
 
 char reportBuffer[256];
 
-int setAsyncPwmAction(int actionNumber, int ledName, int time, int count);
-int checkBlinkPwmCount(int actionNumber, int ledName);
-int endPwmAction(int actionNumber, int wheelNumber);
+int setAsyncPwmAction(int actionNumber, int pwmName, int mode, int time, int count);
+int checkBlinkPwmCount(int actionNumber, int pwmName);
+int endPwmAction(int actionNumber, int pwmNumber);
 
 // -------------------------------------------------------------------
 // SETASYNCPWMACTION
@@ -29,14 +29,25 @@ int endPwmAction(int actionNumber, int wheelNumber);
 // - vitesse de clignotement en mS
 // -------------------------------------------------------------------
 
-int setAsyncPwmAction(int actionNumber, int ledName, int time, int count){
+int setAsyncPwmAction(int actionNumber, int pwmName, int mode, int time, int count){
 	int setTimerResult;
 	int endOfTask;
 
 	// Démarre un timer d'action sur la led et spécifie la fonction call back à appeler en time-out
 	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
-        setTimerResult=setTimer(time, &checkBlinkPwmCount, actionNumber, ledName, PWM);
-
+        if(mode==INFINITE){
+            setTimerResult=setTimer(time, &checkBlinkPwmCount, actionNumber, pwmName, PWM);
+        }
+        else{
+            if(mode==ON)
+                setPwmPower(pwmName, body.pwm[pwmName].power); 
+            else
+                if(mode==OFF)
+                    setPwmPower(pwmName, 0);
+            // Utilise un delais de 5ms sinon message "Begin" arrive apres
+            setTimerResult=setTimer(5, &checkBlinkPwmCount, actionNumber, pwmName, PWM);     // Considère un blink infini  
+        }
+        
 	if(setTimerResult!=0){                                          // Timer pret, action effectuée
 		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur le meme peripherique
 			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
@@ -51,12 +62,14 @@ int setAsyncPwmAction(int actionNumber, int ledName, int time, int count){
                                 // Libère la memorisation de l'expediteur
                                 removeSenderOfMsgId(endOfTask);
                                 
-                                AlgoidResponse[0].responseType=2;
+                                AlgoidResponse[0].responseType=EVENT_ACTION_ABORT;
                                 sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, pPWM, 1);		// Envoie un message ALGOID de fin de tâche pour l'action écrasé
                                 printf(reportBuffer);                                                   // Affichage du message dans le shell
                                 sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
                         }
 		}
+                
+                
                 
                 return 0;
 	}
@@ -64,7 +77,6 @@ int setAsyncPwmAction(int actionNumber, int ledName, int time, int count){
             printf("Error, Impossible to set timer led\n");
             return -1;
         }
-	
 }
 
 
@@ -74,32 +86,39 @@ int setAsyncPwmAction(int actionNumber, int ledName, int time, int count){
 // Fonction appelée après le timout défini par l'utilisateur.
 // -----------------------------------------------------------------------
 
-int checkBlinkPwmCount(int actionNumber, int ledName){
-	static int blinkCount=0;     // Variable de comptage du nombre de clignotements
+int checkBlinkPwmCount(int actionNumber, int pwmName){
+	static int blinkCount=0;     // Variable de comptage du nombre de clignotements       
+        static int PWMtoggleState[NBPWM];
 
-        // Inverse l'état de la led
-        if(body.pwm[ledName].state>0){
-            setPwmPower(ledName, 0);
-            body.pwm[ledName].state=0;
-        }else
-        {
-            setPwmPower(ledName, body.pwm[ledName].power);
-            body.pwm[ledName].state=1;
-        }
-        
-        // Contrôle le nombre de clignotement
-	if(blinkCount >= body.pwm[ledName].blinkCount){
-            endPwmAction(actionNumber, ledName);
-            blinkCount=0;                                   // Reset le compteur
-        }
-		
-	else    {
-		setTimer(body.pwm[ledName].blinkTime, &checkBlinkPwmCount, actionNumber, ledName, PWM);      
-        }
-        
-                blinkCount++;
+        // Si mode blink actif, toggle sur PWM et comptage
+        if(body.pwm[pwmName].state==LED_BLINK){    
+            
+            // Consigned de clignotement atteinte ?
+            if(blinkCount >= body.pwm[pwmName].blinkCount){
+                endPwmAction(actionNumber, pwmName);
+                blinkCount=0;                                   // Reset le compteur
+            }
+            else{
+                    setTimer(body.pwm[pwmName].blinkTime, &checkBlinkPwmCount, actionNumber, pwmName, PWM);      
+            }
 
-        
+            blinkCount++;
+
+            // Realisation du TOGGLE sur la sortie PWM
+            if(PWMtoggleState[pwmName]>0){
+                setPwmPower(pwmName, 0);
+                PWMtoggleState[pwmName]=0;
+            }else
+            {
+                setPwmPower(pwmName, body.pwm[pwmName].power);
+                PWMtoggleState[pwmName]=1;
+            }
+        }
+        else{
+            // Termine l'action unique (on/off)
+            endPwmAction(actionNumber, pwmName);
+        }
+    
 	return 0;
 }
 
@@ -108,7 +127,7 @@ int checkBlinkPwmCount(int actionNumber, int ledName){
 // Fin de l'action de clignotement
 // Fonction appelée après le timout défini par l'utilisateur, Stop le clignotement
 // -------------------------------------------------------------------
-int endPwmAction(int actionNumber, int LedNumber){
+int endPwmAction(int actionNumber, int pwmNumber){
 	int endOfTask;
 
 	// Retire l'action de la table et vérification si toute les actions sont effectuées
@@ -125,7 +144,7 @@ int endPwmAction(int actionNumber, int LedNumber){
                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
                 // Libère la memorisation de l'expediteur
                 removeSenderOfMsgId(endOfTask);
-                AlgoidResponse[0].responseType=0;
+                AlgoidResponse[0].responseType=EVENT_ACTION_END;
                 sendResponse(endOfTask, msgTo, EVENT, pPWM, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
                 printf(reportBuffer);									// Affichage du message dans le shell
                 sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"

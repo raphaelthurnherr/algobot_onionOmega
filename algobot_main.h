@@ -75,6 +75,11 @@ struct m_led{
         int blinkTime;
 };
 
+struct m_dataStream{
+	int state;
+	int time_ms;
+};
+
 typedef struct tsensor{
 	struct m_prox proximity[NBDIN];
         struct m_prox button[NBBTN];
@@ -96,7 +101,12 @@ typedef struct tSystem{
         float battVoltage;
 }t_system;
 
+typedef struct tConfig{
+	struct m_dataStream statusStream;   
+}t_sysConfig;
+
 extern t_sensor body;
 extern t_system sysInfo;
+extern t_sysConfig sysConfig;
 
 #endif /* ALGOID_2WD_BUGGY_H_ */

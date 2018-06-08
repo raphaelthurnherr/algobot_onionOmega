@@ -19,7 +19,6 @@ char reportBuffer[256];
 int setAsyncLedAction(int actionNumber, int ledName, int mode, int time, int count);
 int endLedAction(int actionNumber, int ledNumber);
 int checkBlinkLedCount(int actionNumber, int ledName);
-int dummyLedAction(int actionNumber, int ledName); // Fonction sans action, appelee en cas de blink infini
 
 // -------------------------------------------------------------------
 // SETASYNCLEDACTION
@@ -149,26 +148,4 @@ int checkBlinkLedCount(int actionNumber, int ledName){
         }
     
 	return 0;
-}
-
-
-// ----------------------------------------------------------------------
-// DUMMYLEDACTION
-// Fonction sans action, appelee en cas de blink infini
-// -----------------------------------------------------------------------
-
-int dummyLedAction(int actionNumber, int ledName){       
-
-    // Inverse l'état de la led
-    if(body.led[ledName].state==1){
-        setLedPower(ledName, 0);
-        body.led[ledName].state=0;
-    }else
-    {
-        setLedPower(ledName, body.led[ledName].power);
-        body.led[ledName].state=1;
-    }
-  
-    setTimer(100, &dummyLedAction, actionNumber, ledName, LED);
-    return 0;
 }

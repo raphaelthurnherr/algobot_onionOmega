@@ -19,6 +19,7 @@ typedef enum msgtype{
 	ACK,
 	RESPONSE,
 	EVENT,
+        DATAFLOW,
 } t_msgtype;
 
 // DEFINITION DES PARAMETRES DE TYPE PARAMETRE

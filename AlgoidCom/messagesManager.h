@@ -16,6 +16,7 @@ extern char ClientID[50];
 #define TOPIC_EVENT "Event"						// Topic d'envoie des evenements à l'hote
 #define TOPIC_ACK "Ack"					// Topic de réponse ack du gestionnaire de message
 #define TOPIC_DEBUG "Debug"
+#define TOPIC_DATAFLOW "Stream"
 
 // Initialisation de la messagerie system (JSON<->MQTT)
 int InitMessager(void);

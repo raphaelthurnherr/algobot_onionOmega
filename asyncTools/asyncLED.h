@@ -21,7 +21,6 @@ extern "C" {
 int setAsyncLedAction(int actionNumber, int ledName, int mode, int time, int count);
 int endLedAction(int actionNumber, int ledNumber);
 int checkBlinkLedCount(int actionNumber, int ledName);
-int dummyLedAction(int actionNumber, int ledName); // Fonction sans action, appelee en cas de blink infini
 
 
 #ifdef __cplusplus

@@ -18,9 +18,9 @@
 extern "C" {
 #endif
 
-int setAsyncPwmAction(int actionNumber, int ledName, int time, int count);
-int checkBlinkPwmCount(int actionNumber, int ledName);
-int endPwmAction(int actionNumber, int wheelNumber);
+int setAsyncPwmAction(int actionNumber, int pwmName, int mode, int time, int count);
+int checkBlinkPwmCount(int actionNumber, int pwmName);
+int endPwmAction(int actionNumber, int pwmNumber);
 
 #ifdef __cplusplus
 }
