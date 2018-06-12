@@ -85,7 +85,7 @@ int main(void) {
                                               // si activé.
 
 	system("clear");
-        printf ("ALGOBOT Beta - Build 180608 \n");
+        printf ("ALGOBOT Beta - Build 180612 \n");
         printf ("----------------------------\n");
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID

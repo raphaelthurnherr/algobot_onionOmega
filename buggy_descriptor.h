@@ -36,6 +36,12 @@ typedef enum o_btn{
 	NBBTN
 }t_btn;
 
+typedef enum o_colorSens{
+	RGBC_SENS_0,
+	RGBC_SENS_1,
+	NBRGBC
+}t_rgbc;
+
 typedef enum o_ain{
 	BATT_0,
 	NBAIN

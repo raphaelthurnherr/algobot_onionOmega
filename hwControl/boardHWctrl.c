@@ -5,6 +5,7 @@
 
 unsigned char configPWMdevice(void);                            // Configuration of the PCA9685 for 50Hz operation
 unsigned char configGPIOdevice(void);                           // Configuration IO mode of the MCP28003
+unsigned char configRGBdevice(void);                            // Configuration mode of the BH1745NUC RGB sensor
 
 char MCP2308_ReadGPIO(unsigned char input);                     // Get the selected input value on device
 int EFM8BB_readSonarDistance(void);				// Get distance in mm from the EFM8BB microcontroller
@@ -16,6 +17,8 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb);
 char MCP2308_ReadGPIO(unsigned char input);
 int EFM8BB_getFirmwareVersion(void);                            // Get the MCU firmware version
 int EFM8BB_getBoardType(void);                                  // Get the type of the board.
+int BH1745_getRGBvalue(unsigned char sensorNb, int color);                              // Get the value for specified color
+
 unsigned char motorDCadr[2]={PCA_DCM0, PCA_DCM1};		// Valeur de la puissance moteur
 
 //================================================================================
@@ -28,6 +31,8 @@ unsigned char buggyBoardInit(void){
 
 	err+=configPWMdevice();					// Configuration du Chip PWM pour gestion de la vï¿½locitï¿½ des DC moteur et angle servomoteur
 	err+=configGPIOdevice();				// Confguration du chip d'entrï¿½es/sortie pour la gestion du sens de rotation des moteur DC
+        err+=configRGBdevice();                                 // Configuration du capteur de couleur RGBC
+        
 	MCP2308_DCmotorState(1);				// Set the HDRIVER ON
 	if(err)
 		return 0;							// Erreur
@@ -283,6 +288,44 @@ unsigned char configGPIOdevice(void){
 }
 
 
+//================================================================================
+// CONFIGRGBDEVICE
+// Configuration initiale pour le capteur RGB BH1745NUC
+//	- Registre de contrôle
+
+//================================================================================
+unsigned char configRGBdevice(void){
+    
+    // --- CONFIGURATION DU CAPTEUR 1
+    
+    // Configuration du registre de contrôle du capteur 1
+    // b7:Initial reset, b6, INT inactive
+    i2c_write(0, BH1745_0, 0x40, 0xC0);   
+    // Configuration du registre de contrôle mode1 (Measurement time=640mS)
+    i2c_write(0, BH1745_0, 0x41, 0x02);   
+    // Configuration du registre de contrôle mode2 (Mesure RGBC active, Gain=1)
+    i2c_write(0, BH1745_0, 0x42, 0x10);   
+    // Configuration du registre d'interruption (Interruption désactivées, pin désactivée
+    i2c_write(0, BH1745_0, 0x60, 0x00);
+    // Configuration du registre de persistance (Interruption après chaque mesure)
+    i2c_write(0, BH1745_0, 0x61, 0x00);  
+    
+    // --- CONFIGURATION DU CAPTEUR 2
+    
+    // Configuration du registre de contrôle du capteur 1
+    // b7:Initial reset, b6, INT inactive
+    i2c_write(0, BH1745_1, 0x40, 0xC0);   
+    // Configuration du registre de contrôle mode1 (Measurement time=640mS)
+    i2c_write(0, BH1745_1, 0x41, 0x02);   
+    // Configuration du registre de contrôle mode2 (Mesure RGBC active, Gain=1)
+    i2c_write(0, BH1745_1, 0x42, 0x10);   
+    // Configuration du registre d'interruption (Interruption désactivées, pin désactivée
+    i2c_write(0, BH1745_1, 0x60, 0x00);
+    // Configuration du registre de persistance (Interruption après chaque mesure)
+    i2c_write(0, BH1745_1, 0x61, 0x00);      
+}
+
+
 
 
 
@@ -460,4 +503,41 @@ int EFM8BB_getBoardType(void){
 	}else return -1;
 }
 
-
+// -------------------------------------------------------------------
+// BH1445GETRGBVALUE
+// RECUPERE LA VALEUR DU REGISTRE POUR LA COULEUR:
+// RED =0, GREEN=1, BLUE=2, CLEAR=3
+// -------------------------------------------------------------------
+int BH1745_getRGBvalue(unsigned char sensorNb, int color){
+	unsigned char err;
+	int value=-1;
+        int RGBregAdr = 0x56;  // Registre CLEAR LSB par defaut 
+        unsigned char SensorAdr=BH1745_0;
+        
+        unsigned int pcMSB=0;
+        unsigned int pcLSB=0;
+        
+        switch(sensorNb){
+            case RGBC_SENS_0: SensorAdr=BH1745_0;break;
+            case RGBC_SENS_1: SensorAdr=BH1745_1;break;
+            default: SensorAdr=BH1745_0;break;
+        }
+        
+        switch(color){
+            case RED :   RGBregAdr=0x50; break;
+            case GREEN : RGBregAdr=0x52; break;
+            case BLUE :  RGBregAdr=0x54; break;
+            case CLEAR : RGBregAdr=0x56; break;
+            
+            default : value=-1; break;
+        }
+        
+        err = i2c_readByte(0, SensorAdr, RGBregAdr, &pcLSB);
+        err = i2c_readByte(0, SensorAdr, RGBregAdr+1, &pcMSB);
+                
+	if(!err){
+            value = pcLSB + (pcMSB<<8);
+		return value;
+	}else
+            return -1;
+}

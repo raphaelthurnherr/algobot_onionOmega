@@ -24,12 +24,20 @@ struct s_encoder{
 	int frequency;
 };
 
+struct s_colorSensor{
+	int red;
+	int green;
+        int blue;
+        int clear;
+};
+
 typedef struct tmeasures{
 	unsigned char din[NBDIN];
 	int ain[NBAIN];
 	struct s_encoder counter[NBCOUNTER];
 	int pwm[NBPWM];
         unsigned char btn[NBBTN];
+        struct s_colorSensor RGBC[NBRGBC];
 }t_measure;
 
 typedef struct tHWversion{
@@ -131,12 +139,32 @@ void *hwTask (void * arg){
                         case 30	: sensor.btn[BTN_0] = MCP2308_ReadGPIO(BTN_0) ;
                                   sensor.btn[BTN_1] = MCP2308_ReadGPIO(BTN_1) ; break;
 
+                        case 35	: sensor.RGBC[RGBC_SENS_0].red = BH1745_getRGBvalue(RGBC_SENS_0, RED) ;
+                                  sensor.RGBC[RGBC_SENS_0].green = BH1745_getRGBvalue(RGBC_SENS_0, GREEN) ;
+                                  sensor.RGBC[RGBC_SENS_0].blue = BH1745_getRGBvalue(RGBC_SENS_0,BLUE) ;
+                                  sensor.RGBC[RGBC_SENS_0].clear = BH1745_getRGBvalue(RGBC_SENS_0,CLEAR) ; break;
+ 
+                        case 36	: sensor.RGBC[RGBC_SENS_1].red = BH1745_getRGBvalue(RGBC_SENS_1, RED) ;
+                        sensor.RGBC[RGBC_SENS_1].green = BH1745_getRGBvalue(RGBC_SENS_1, GREEN) ;
+                        sensor.RGBC[RGBC_SENS_1].blue = BH1745_getRGBvalue(RGBC_SENS_1, BLUE) ;
+                        sensor.RGBC[RGBC_SENS_1].clear = BH1745_getRGBvalue(RGBC_SENS_1, CLEAR) ; break;
+                        
 			default:
                             if(i2c_command_queuing[0][CALLBACK]!=0)processCommandQueue(); break;
 		}
                 
 //                printf("\n LEFT: %d   RIGHT: %d", sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup, sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
 
+                printf("RGBC#1 Values: RED: %d, GREEN: %d, BLUE: %d, CLEAR: %d\n", 
+                        sensor.RGBC[RGBC_SENS_0].red,
+                        sensor.RGBC[RGBC_SENS_0].green,
+                        sensor.RGBC[RGBC_SENS_0].blue,
+                        sensor.RGBC[RGBC_SENS_0].clear);
+                printf("RGBC#2 Values: RED: %d, GREEN: %d, BLUE: %d, CLEAR: %d\n\n", 
+                        sensor.RGBC[RGBC_SENS_1].red,
+                        sensor.RGBC[RGBC_SENS_1].green,
+                        sensor.RGBC[RGBC_SENS_1].blue,
+                        sensor.RGBC[RGBC_SENS_1].clear);
 		// Reset le compteur au bout de 100mS
 		if(timeCount_ms<50)
 			timeCount_ms++;
@@ -466,16 +494,16 @@ unsigned char getOrganI2Cregister(char organType, unsigned char organName){
 
 	if(organType == PWM){
 		switch(organName){
-			case PWM_0 : organAdr = PCA_CN13_4; break;
-			case PWM_1 : organAdr = PCA_CN11_4; break;
-			case PWM_2 : organAdr = PCA_CN14_7; break;
-                        case PWM_3 : organAdr = PCA_CN15_4; break;
-                        case PWM_4 : organAdr = PCA_CN8_3; break;
-                        case PWM_5 : organAdr = PCA_CN7_3; break;
-                        case PWM_6 : organAdr = PCA_CN5_7; break;
-                        case PWM_7 : organAdr = PCA_CN4_4; break;
-                        case PWM_8 : organAdr = PCA_CN9_3; break;
-                        case PWM_9 : organAdr = PCA_CN10_3; break;
+			case PWM_0 : organAdr = PCA_CN1_4; break;
+			case PWM_1 : organAdr = PCA_CN2_4; break;
+			case PWM_2 : organAdr = PCA_CN3_7; break;
+                        case PWM_3 : organAdr = PCA_CN4_4; break;
+                        case PWM_4 : organAdr = PCA_CN7_3; break;
+                        case PWM_5 : organAdr = PCA_CN8_3; break;
+                        case PWM_6 : organAdr = PCA_CN9_7; break;
+                        case PWM_7 : organAdr = PCA_CN10_4; break;
+                        case PWM_8 : organAdr = PCA_CN11_3; break;
+                        case PWM_9 : organAdr = PCA_CN12_3; break;
                         
 			default :	organAdr = UNKNOWN; break;
 		}

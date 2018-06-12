@@ -8,6 +8,8 @@
     #define  PCA9685               	0x40 	// Device address for PWM controller
     #define  MCP2308               	0x20	// Device address for GPIO controller
     #define  EFM8BB               	0x0A	// Device address for EFM8BB microcontroller
+    #define  BH1745_0               	0x38	// Device address for RGB SENSOR
+    #define  BH1745_1               	0x39	// Device address for RGB SENSOR
 
     // REGISTER DEFINITION FOR PWM DRIVER
 
@@ -20,16 +22,16 @@
     #define PCA_LED1				0x2C	//  (Led 1 pwm)
     #define PCA_LED2				0x38	//  (Led 2 pwm)
   
-    #define PCA_CN13_4				0x10	//  (PWM on CN13 connector)
-    #define PCA_CN11_4				0x14	//  (PWM on CN11 connector)
-    #define PCA_CN14_7				0x1C	//  (PWM on CN14 connector)
-    #define PCA_CN15_4                          0x20    //  (PWM on CN15 connector)
-    #define PCA_CN8_3				0x44	//  (PWM on CN8 connector)
-    #define PCA_CN7_3				0x28	//  (PWM on CN7 connector)
-    #define PCA_CN5_7				0x24	//  (PWM on CN5 connector)
-    #define PCA_CN4_4				0x3C	//  (PWM on CN4 connector)
-    #define PCA_CN9_3				0x30	//  (PWM on CN9 connector)
-    #define PCA_CN10_3				0x34	//  (PWM on CN10 connector)
+    #define PCA_CN1_4				0x10	//  (PWM on CN1 connector)
+    #define PCA_CN2_4				0x14	//  (PWM on CN2 connector)
+    #define PCA_CN3_7				0x1C	//  (PWM on CN14 connector)
+    #define PCA_CN4_4                           0x20    //  (PWM on CN15 connector)
+    #define PCA_CN7_3				0x44	//  (PWM on CN8 connector)
+    #define PCA_CN8_3				0x28	//  (PWM on CN7 connector)
+    #define PCA_CN9_7				0x24	//  (PWM on CN5 connector)
+    #define PCA_CN10_4				0x3C	//  (PWM on CN4 connector)
+    #define PCA_CN11_3				0x30	//  (PWM on CN9 connector)
+    #define PCA_CN12_3				0x34	//  (PWM on CN10 connector)
 
     // REGISTER DEFINITION FOR EFM8 MICROCONTROLLER
     
@@ -45,9 +47,16 @@
     #define ENC_CNT1_RESET                      0x28
     #define ENC_CNT1                            0x18
 
-    #define MCW 			0
-    #define MCCW			1
-    #define MSTOP 			2
+    #define MCW                                 0
+    #define MCCW                                1
+    #define MSTOP                               2
+
+// Definition des couleurs pour le capteur RGB
+    #define RED                                 0
+    #define GREEN                               1
+    #define BLUE                                2
+    #define CLEAR                               3
+
 #endif
 
 #ifdef BOARD_BETA
@@ -90,4 +99,5 @@ extern int EFM8BB_readPulseCounter(unsigned char wheelNb);			// Get pulse counte
 extern int EFM8BB_clearWheelDistance(unsigned char wheelNb);                    // Reset to 0 the pulse counter on EFM8BB
 extern int EFM8BB_getFirmwareVersion(void);                                     // Get the MCU firmware version
 extern int EFM8BB_getBoardType(void);                                           // Get the type of the board.
+extern int BH1745_getRGBvalue(unsigned char sensorNb, int color);                              // Get the value for specified color
 #endif
