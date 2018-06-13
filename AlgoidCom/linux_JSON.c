@@ -253,10 +253,17 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
 
 			if(count>0){
 
-				jwObj_array( "MsgValue" );
+				//
+                                if(orgType==STATUS)
+                                    jwObj_object("MsgMap");
+                                else
+                                    jwObj_array( "MsgValue" );
+                                
 				for(i=0;i<count;i++){
 					//printf("Make array: %d values: %d %d\n", i, 0,9);
-					jwArr_object();
+					if(orgType!=STATUS)
+                                            jwArr_object();
+
 						switch(orgType){
 							case MOTORS :                   
                                                                                         switch(AlgoidResponse[i].responseType){
@@ -344,7 +351,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                             jwObj_string("state", "error");
                                                                                        }
 										    break;                                                                                    
-
+/*
 							case STATUS :               
                                                                                     // ETAT DU SYSTEM
                                                                                     if(i==0){
@@ -385,7 +392,96 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                             jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);
                                                                                     }
                                                                                     break;
+*/                                                                             
+                                                                                    							case STATUS :               
+                                                                                    // ETAT DU SYSTEM
+                                                                                    if(i==0){
+                                                                                        jwObj_string("name", AlgoidResponse[i].SYSresponse.name);
+                                                                                        jwObj_int("upTime",AlgoidResponse[i].SYSresponse.startUpTime);
+                                                                                        jwObj_string("firmwareVersion",AlgoidResponse[i].SYSresponse.firmwareVersion);	
+                                                                                        jwObj_string("mcuVersion",AlgoidResponse[i].SYSresponse.mcuVersion);
+                                                                                        jwObj_string("boardRev",AlgoidResponse[i].SYSresponse.HWrevision);
+                                                                                        jwObj_double("battery_mv",AlgoidResponse[i].SYSresponse.battVoltage);		// add object key:value pairs
+                                                                                    }
+
+                                                                                    // ETAT DES DIN
+                                                                                    if(i>=1 && i<1+NBDIN){
+//                                                                                        jwObj_int("din",AlgoidResponse[i].DINresponse.id);		// add object key:value pairs
+//                                                                                        jwObj_int( "state", AlgoidResponse[i].value);
+                                                                                        jwObj_array( "din" );
+                                                                                            
+                                                                                            for(j=0;j<NBDIN;j++){
+                                                                                                jwArr_object();
+                                                                                                    jwObj_int("state",AlgoidResponse[i].value);
+                                                                                                jwEnd();           
+                                                                                                i++;
+                                                                                            }
+                                                                                        jwEnd();       
+                                                                                    }
                                                                                    
+                                                                                    // ETAT DES BOUTON     
+                                                                                    if(i>=1+NBDIN && i<1+NBDIN+NBBTN){
+                                                                                    //    jwObj_int("btn",AlgoidResponse[i].BTNresponse.id);		// add object key:value pairs
+                                                                                    //    jwObj_int( "state", AlgoidResponse[i].value);
+                                                                                        jwObj_array( "btn" );
+                                                                                            for(j=0;j<NBBTN;j++){
+                                                                                                jwArr_object();
+                                                                                                    jwObj_int("state",AlgoidResponse[i].value);
+                                                                                                jwEnd();           
+                                                                                                i++;
+                                                                                            }
+                                                                                        jwEnd();     
+                                                                                    }
+                                                                                    
+                                                                                    
+                                                                                    // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                                    if(i>=1+NBDIN+NBBTN && i<1+NBDIN+NBBTN+NBMOTOR){
+                                                                                    //        jwObj_int("motor",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
+                                                                                    //        jwObj_int("cm", round((AlgoidResponse[i].MOTresponse.cm)));		// add object key:value pairs
+                                                                                    //        jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.velocity)));
+                                                                                        jwObj_array( "motor" );
+                                                                                            for(j=0;j<NBMOTOR;j++){
+                                                                                                jwArr_object();
+                                                                                                    jwObj_int("cm",round((AlgoidResponse[i].MOTresponse.cm)));
+                                                                                                    jwObj_int("speed",round((AlgoidResponse[i].MOTresponse.velocity)));
+                                                                                                jwEnd();           
+                                                                                                i++;
+                                                                                            }
+                                                                                        jwEnd(); 
+                                                                                    }
+                                                                                    
+                                                                                                                                                                        // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR){
+                                                                                    //    jwObj_int("sonar",AlgoidResponse[i].DISTresponse.id);		// add object key:value pairs
+                                                                                    //    jwObj_int("cm", round((AlgoidResponse[i].value)));
+                                                                                        jwObj_array( "sonar" );
+                                                                                            for(j=0;j<NBSONAR;j++){
+                                                                                                jwArr_object();
+                                                                                                    jwObj_int("cm", round((AlgoidResponse[i].value)));
+                                                                                                jwEnd();           
+                                                                                                i++;
+                                                                                            }
+                                                                                        jwEnd(); 
+                                                                                    }
+                                                                                    
+                                                                                      
+                                                                                    // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM){
+                                                                                     //       jwObj_int("pwm",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
+                                                                                     //       jwObj_int( "state", AlgoidResponse[i].value);
+                                                                                     //       jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);
+                                                                                        jwObj_array( "pwm" );
+                                                                                            for(j=0;j<NBPWM;j++){
+                                                                                                jwArr_object();
+                                                                                                    jwObj_int("state",AlgoidResponse[i].value);
+                                                                                                    jwObj_int("power",AlgoidResponse[i].PWMresponse.powerPercent);
+                                                                                                jwEnd();           
+                                                                                                i++;
+                                                                                            }
+                                                                                        jwEnd();                                                                                             
+                                                                                    }
+                                                                                    break;
+                                                                                    
                                                         case pPWM :             switch(AlgoidResponse[i].responseType){
                                                                                     case EVENT_ACTION_ERROR :   jwObj_string("action", "error");break;
                                                                                     case EVENT_ACTION_END  :   jwObj_string("action", "end"); break;
@@ -424,7 +520,8 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
 							default:                break;
 
 						}
-					jwEnd();
+                                    if(orgType!=STATUS)
+                                        jwEnd();
 				}
 				jwEnd();
 			}
