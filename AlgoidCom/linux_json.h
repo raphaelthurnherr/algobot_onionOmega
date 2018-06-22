@@ -37,6 +37,7 @@ typedef enum msgparam{
         pSERVO,
 	STATUS,
         BUTTON,
+        COLORS,
 }t_msgparam;
 
 
@@ -105,6 +106,21 @@ struct mSystem{
         float battVoltage;
 };
 
+struct mColor{
+        int value;
+	int event_low;
+	int event_high;
+};
+
+struct mRGB{
+	int id;
+        char event_state[50];
+        struct mColor red;
+        struct mColor green;
+        struct mColor blue;
+        struct mColor clear;
+};
+
 // Structure d'un message algoid recu
 typedef struct JsonCommand{
 	char msgTo[32];
@@ -124,6 +140,7 @@ typedef struct JsonCommand{
 	struct mPwm PWMout[20]; // ---> SERVO
 	struct mLed PWMarray[20];
         struct mLed LEDarray[20]; // LED (internal board pwm)
+        struct mRGB RGBsens[20]; 
 	// UNION ???
 
 }ALGOID;
@@ -143,6 +160,7 @@ typedef struct JsonResponse{
         struct mLed PWMresponse;
         struct mLed LEDresponse;
         struct mDin BTNresponse;
+        struct mRGB RGBresponse; 
 	// UNION ???
 }ALGOID_RESPONSE;
 

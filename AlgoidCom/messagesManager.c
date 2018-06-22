@@ -124,8 +124,6 @@ int pushMsgStack(void){
 	if(ptrMsgRXstack>=10){
 		return -1;
 	}else{
-
-
 		// ENREGISTREMENT DU MESSAGE DANS LA PILE
 		AlgoidMsgRXStack[ptrMsgRXstack]=AlgoidMessageRX;
 
@@ -292,6 +290,7 @@ void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char 
 		case DISTANCE : strcpy(ackParam, "distance"); break;
 		case pLED : strcpy(ackParam, "led"); break;
 		case STATUS : strcpy(ackParam, "status"); break;
+                case COLORS : strcpy(ackParam, "rgb"); break;
 		case ERR_PARAM : strcpy(ackParam, "error"); break;
 		default : strcpy(ackParam, "unknown"); break;
 	}

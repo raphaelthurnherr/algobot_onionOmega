@@ -41,11 +41,11 @@
     #define SON0                                0x08
     #define VOLT0                               0x0E
     #define ENC_FREQ0                           0x12
-    #define ENC_CNT0_RESET                      0x24
-    #define ENC_CNT0                            0x14    
+    #define ENC_CNT1_RESET                      0x24
+    #define ENC_CNT1                            0x14    
     #define ENC_FREQ1                           0x16
-    #define ENC_CNT1_RESET                      0x28
-    #define ENC_CNT1                            0x18
+    #define ENC_CNT0_RESET                      0x28
+    #define ENC_CNT0                            0x18
 
     #define MCW                                 0
     #define MCCW                                1

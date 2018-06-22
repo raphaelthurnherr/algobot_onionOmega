@@ -22,7 +22,7 @@
 #define CENTIMETER	  1
 
 
-#define CMPP		  0.723
+#define CMPP		  0.248             // For 57 pulses per rotation and wheel diameter 45mm
 
 
 struct m_prox{
@@ -80,6 +80,22 @@ struct m_dataStream{
 	int time_ms;
 };
 
+struct m_color{
+        int value;
+	int event_low;
+	int event_high;
+        int event_hysteresis;
+};
+
+struct m_RGB{
+	int id;
+        int event_enable;
+        struct m_color red;
+        struct m_color green;
+        struct m_color blue;
+        struct m_color clear;
+};
+
 typedef struct tsensor{
 	struct m_prox proximity[NBDIN];
         struct m_prox button[NBBTN];
@@ -89,6 +105,7 @@ typedef struct tsensor{
 	struct m_motor motor[NBMOTOR];
         struct m_led led[NBLED];
         struct m_led pwm[NBPWM];
+        struct m_RGB rgb[NBRGBC];
 }t_sensor;
 
 

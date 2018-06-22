@@ -18,20 +18,29 @@
 
 #define KEY_MESSAGE_VALUE_DIN "{'MsgData'{'MsgValue'[*{'din'"
 #define KEY_MESSAGE_VALUE_BTN "{'MsgData'{'MsgValue'[*{'btn'"
-
 #define KEY_MESSAGE_VALUE_SONAR "{'MsgData'{'MsgValue'[*{'sonar'"
 #define KEY_MESSAGE_VALUE_ANGLE "{'MsgData'{'MsgValue'[*{'angle'"
 #define KEY_MESSAGE_VALUE_BATT "{'MsgData'{'MsgValue'[*{'battery'"
+#define KEY_MESSAGE_VALUE_RGB "{'MsgData'{'MsgValue'[*{'rgb'"
 
 #define KEY_MESSAGE_VALUE_PWM "{'MsgData'{'MsgValue'[*{'pwm'"
 #define KEY_MESSAGE_VALUE_LED "{'MsgData'{'MsgValue'[*{'led'"
 #define KEY_MESSAGE_VALUE_POWER "{'MsgData'{'MsgValue'[*{'power'"
 #define KEY_MESSAGE_VALUE_STATE "{'MsgData'{'MsgValue'[*{'state'"
 #define KEY_MESSAGE_VALUE_COUNT "{'MsgData'{'MsgValue'[*{'count'"
+//#define KEY_MESSAGE_VALUE_COLOR "{'MsgData'{'MsgValue'[*{'color'"
 
 #define KEY_MESSAGE_VALUE_EVENT_STATE "{'MsgData'{'MsgValue'[*{'event'"
 #define KEY_MESSAGE_VALUE_EVENT_LOWER "{'MsgData'{'MsgValue'[*{'event_lower'"
 #define KEY_MESSAGE_VALUE_EVENT_HIGHER "{'MsgData'{'MsgValue'[*{'event_higher'"
+#define KEY_MESSAGE_VALUE_EVENT_RED_LOWER "{'MsgData'{'MsgValue'[*{'red'{'event_lower'"
+#define KEY_MESSAGE_VALUE_EVENT_RED_HIGHER "{'MsgData'{'MsgValue'[*{'red'{'event_higher'"
+#define KEY_MESSAGE_VALUE_EVENT_GREEN_LOWER "{'MsgData'{'MsgValue'[*{'green'{'event_lower'"
+#define KEY_MESSAGE_VALUE_EVENT_GREEN_HIGHER "{'MsgData'{'MsgValue'[*{'green'{'event_higher'"
+#define KEY_MESSAGE_VALUE_EVENT_BLUE_LOWER "{'MsgData'{'MsgValue'[*{'blue'{'event_lower'"
+#define KEY_MESSAGE_VALUE_EVENT_BLUE_HIGHER "{'MsgData'{'MsgValue'[*{'blue'{'event_higher'"
+#define KEY_MESSAGE_VALUE_EVENT_CLEAR_LOWER "{'MsgData'{'MsgValue'[*{'clear'{'event_lower'"
+#define KEY_MESSAGE_VALUE_EVENT_CLEAR_HIGHER "{'MsgData'{'MsgValue'[*{'clear'{'event_higher'"
 
 #define KEY_MESSAGE_VALUE_SAFETY_STOP "{'MsgData'{'MsgValue'[*{'safety_stop'"
 #define KEY_MESSAGE_VALUE_SAFETY_VALUE "{'MsgData'{'MsgValue'[*{'safety_value'"
@@ -109,6 +118,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 					if(!strcmp(myDataString, "battery")) AlgoidMessageRX.msgParam = BATTERY;
 					if(!strcmp(myDataString, "din")) AlgoidMessageRX.msgParam = DINPUT;
 					if(!strcmp(myDataString, "status")) AlgoidMessageRX.msgParam = STATUS;
+                                        if(!strcmp(myDataString, "rgb")) AlgoidMessageRX.msgParam = COLORS;
 
 				  jRead((char *)srcBuffer, KEY_MESSAGE_VALUE, &element );
 
@@ -162,10 +172,32 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				    		  AlgoidMessageRX.DISTsens[i].event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_HIGHER, &i);
 							 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_STOP, AlgoidMessageRX.DISTsens[i].safetyStop_state, 15, &i );
 							 AlgoidMessageRX.DISTsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
+				    	  }
+
+                                          if(AlgoidMessageRX.msgParam == COLORS){
+				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_STATE, AlgoidMessageRX.RGBsens[i].event_state, 15, &i );
+				    		  AlgoidMessageRX.RGBsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_RGB, &i);
+				    		  AlgoidMessageRX.RGBsens[i].red.event_low= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_RED_LOWER, &i);
+				    		  AlgoidMessageRX.RGBsens[i].red.event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_RED_HIGHER, &i);
+                                                  AlgoidMessageRX.RGBsens[i].green.event_low= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_GREEN_LOWER, &i);
+				    		  AlgoidMessageRX.RGBsens[i].green.event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_GREEN_HIGHER, &i);
+                                                  AlgoidMessageRX.RGBsens[i].blue.event_low= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_BLUE_LOWER, &i);
+				    		  AlgoidMessageRX.RGBsens[i].blue.event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_BLUE_HIGHER, &i);
+                                                  AlgoidMessageRX.RGBsens[i].clear.event_low= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_CLEAR_LOWER, &i);
+				    		  AlgoidMessageRX.RGBsens[i].clear.event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_CLEAR_HIGHER, &i);
+                                                  printf("RED EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].red.event_low);
+                                                  printf("RED EVENT HIGH: %d\n", AlgoidMessageRX.RGBsens[i].red.event_high);
+                                                  printf("GREEN EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].green.event_low);
+                                                  printf("GREEN EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].green.event_high);
+                                                  printf("BLUE EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].blue.event_low);
+                                                  printf("BLUE EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].blue.event_high);
+                                                  printf("CLEAR EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].clear.event_low);
+                                                  
 //				    		  printf("\n-SONAR: %d DIST_EVENT_HIGH: %d, DIST_EVENT_LOW: %d  DIST_EVENT_ENABLE: %s\n", AlgoidMessageRX.DISTsens[i].id,
 //				    		  AlgoidMessageRX.DISTsens[i].event_high, AlgoidMessageRX.DISTsens[i].event_low, AlgoidMessageRX.DISTsens[i].event_state);
 				    	  }
 
+                                          
 				    	  if(AlgoidMessageRX.msgParam == BATTERY){
 				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_STATE, AlgoidMessageRX.BATTsens[i].event_state, 15, &i );
 				    		  AlgoidMessageRX.BATTsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_BATT, &i);
@@ -301,6 +333,42 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                         
                                                                                 break;
 
+							case COLORS :                 
+                                                                                jwObj_int( "rgb",AlgoidResponse[i].RGBresponse.id);
+
+                                                                                jwObj_string("event", AlgoidResponse[i].RGBresponse.event_state);				// add object key:value pairs
+                                                                                
+                                                                                jwObj_array( "color" );
+                                                                                    jwArr_object();
+                                                                                        jwObj_int("red", AlgoidResponse[i].RGBresponse.red.value);
+                                                                                        jwObj_int("green", AlgoidResponse[i].RGBresponse.green.value);
+                                                                                        jwObj_int("blue", AlgoidResponse[i].RGBresponse.blue.value);
+                                                                                        jwObj_int("clear", AlgoidResponse[i].RGBresponse.clear.value);
+                                                                                    jwEnd();
+                                                                                jwEnd();
+                                                                                
+                                                                                jwObj_object( "red" );                                                                                 
+                                                                                        jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.red.event_low);
+                                                                                        jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.red.event_high);
+                                                                                jwEnd();
+                                                                                
+                                                                                jwObj_object( "green" );                                                                                 
+                                                                                        jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.green.event_low);
+                                                                                        jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.green.event_high);           
+                                                                                jwEnd(); 
+                                                                                
+                                                                                jwObj_object( "blue" );                                                                                 
+                                                                                        jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.blue.event_low);
+                                                                                        jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.blue.event_high);
+                                                                                jwEnd();
+                                                                                
+                                                                                jwObj_object( "clear" );                                                                                 
+                                                                                        jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.clear.event_low);
+                                                                                        jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.clear.event_high);
+                                                                                jwEnd(); 
+ 
+                                                                                break;                                                                                
+
 							case BATTERY :                  
                                                                                         jwObj_int( "battery",AlgoidResponse[i].BATTesponse.id);
 
@@ -351,49 +419,8 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                             jwObj_string("state", "error");
                                                                                        }
 										    break;                                                                                    
-/*
-							case STATUS :               
-                                                                                    // ETAT DU SYSTEM
-                                                                                    if(i==0){
-                                                                                        jwObj_string("name", AlgoidResponse[i].SYSresponse.name);
-                                                                                        jwObj_int("upTime",AlgoidResponse[i].SYSresponse.startUpTime);
-                                                                                        jwObj_string("firmwareVersion",AlgoidResponse[i].SYSresponse.firmwareVersion);	
-                                                                                        jwObj_string("mcuVersion",AlgoidResponse[i].SYSresponse.mcuVersion);
-                                                                                        jwObj_string("boardRev",AlgoidResponse[i].SYSresponse.HWrevision);
-                                                                                        jwObj_double("battery_mv",AlgoidResponse[i].SYSresponse.battVoltage);		// add object key:value pairs
-                                                                                    }
 
-                                                                                    // ETAT DES DIN
-                                                                                    if(i>=1 && i<1+NBDIN){
-                                                                                        jwObj_int("din",AlgoidResponse[i].DINresponse.id);		// add object key:value pairs
-                                                                                        jwObj_int( "state", AlgoidResponse[i].value);
-                                                                                    }
-                                                                                   
-                                                                                    // ETAT DES BOUTON     
-                                                                                    if(i>=1+NBDIN && i<1+NBDIN+NBBTN){
-                                                                                        jwObj_int("btn",AlgoidResponse[i].BTNresponse.id);		// add object key:value pairs
-                                                                                        jwObj_int( "state", AlgoidResponse[i].value);
-                                                                                    }
-                                                                                    // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBBTN && i<1+NBDIN+NBBTN+NBMOTOR){
-                                                                                            jwObj_int("motor",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
-                                                                                            jwObj_int("cm", round((AlgoidResponse[i].MOTresponse.cm)));		// add object key:value pairs
-                                                                                            jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.velocity)));
-                                                                                    }
-                                                                                                                                                                        // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR){
-                                                                                        jwObj_int("sonar",AlgoidResponse[i].DISTresponse.id);		// add object key:value pairs
-                                                                                        jwObj_int("cm", round((AlgoidResponse[i].value)));
-                                                                                    }
-                                                                                    // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM){
-                                                                                            jwObj_int("pwm",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
-                                                                                            jwObj_int( "state", AlgoidResponse[i].value);
-                                                                                            jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);
-                                                                                    }
-                                                                                    break;
-*/                                                                             
-                                                                                    							case STATUS :               
+                                                        case STATUS :               
                                                                                     // ETAT DU SYSTEM
                                                                                     if(i==0){
                                                                                         jwObj_string("name", AlgoidResponse[i].SYSresponse.name);

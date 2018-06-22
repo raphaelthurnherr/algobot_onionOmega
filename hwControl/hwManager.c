@@ -64,7 +64,7 @@ char getDigitalInput(unsigned char inputNumber);	// Retourne l'état de l'entrée 
 char getButtonInput(unsigned char buttonNumber);        // Retourne l'état du bouton
 int getSonarDistance(void);						// Retourne la distance en cm
 int getBatteryVoltage(void);					// Retourne la tension battery en mV
-
+int getColorValue(unsigned char sensorID, unsigned char color);      // Retourne la valeur de la couleur définie sur le capteur défini
 //char getOrganNumber(int organName);		// Retourne le numéro du moteur 0..xx selon le nom d'organe spécifié
 unsigned char getOrganI2Cregister(char organType, unsigned char organName); // Retourne l'adresse du registre correspondant au nom de l'organe
 
@@ -155,17 +155,8 @@ void *hwTask (void * arg){
                 
 //                printf("\n LEFT: %d   RIGHT: %d", sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup, sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
 
-                printf("RGBC#1 Values: RED: %d, GREEN: %d, BLUE: %d, CLEAR: %d\n", 
-                        sensor.RGBC[RGBC_SENS_0].red,
-                        sensor.RGBC[RGBC_SENS_0].green,
-                        sensor.RGBC[RGBC_SENS_0].blue,
-                        sensor.RGBC[RGBC_SENS_0].clear);
-                printf("RGBC#2 Values: RED: %d, GREEN: %d, BLUE: %d, CLEAR: %d\n\n", 
-                        sensor.RGBC[RGBC_SENS_1].red,
-                        sensor.RGBC[RGBC_SENS_1].green,
-                        sensor.RGBC[RGBC_SENS_1].blue,
-                        sensor.RGBC[RGBC_SENS_1].clear);
-		// Reset le compteur au bout de 100mS
+
+		// Reset le compteur au bout de 50mS
 		if(timeCount_ms<50)
 			timeCount_ms++;
 		else timeCount_ms=0;
@@ -266,6 +257,25 @@ int getBatteryVoltage(void){
 	return voltage;
 }
 
+int getColorValue(unsigned char sensorID, unsigned char color){
+    int colorValue;
+    
+    switch(color){
+        case RED : colorValue= sensor.RGBC[sensorID].red; break;
+        case GREEN : colorValue=sensor.RGBC[sensorID].green; break;
+        case BLUE : colorValue=sensor.RGBC[sensorID].blue; break;
+        case CLEAR : colorValue=sensor.RGBC[sensorID].clear; break;
+        default : colorValue = -1; break;
+    }
+/*    
+    printf("RGBC# %d Values: RED: %d, GREEN: %d, BLUE: %d, CLEAR: %d VALUE: %d\n", sensorID,
+                        sensor.RGBC[RGBC_SENS_0].red,
+                        sensor.RGBC[RGBC_SENS_0].green,
+                        sensor.RGBC[RGBC_SENS_0].blue,
+                        sensor.RGBC[RGBC_SENS_0].clear,colorValue);
+  */      
+	return colorValue;
+}
 
 // ---------------------------------------------------------------------------
 // SETMOTORDIRECTION

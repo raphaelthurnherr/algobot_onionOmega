@@ -28,6 +28,7 @@ void distanceEventCheck(void);
 void batteryEventCheck(void);
 void DINEventCheck(void);
 void BUTTONEventCheck(void);
+void COLOREventCheck(void);
 
 void DINSafetyCheck(void);
 void BatterySafetyCheck(void);
@@ -45,6 +46,7 @@ int makeBatteryRequest(void);
 int makeStatusRequest(int msgType);
 int makeMotorRequest(void);
 int makeButtonRequest(void);
+int makeRgbRequest(void);
 
 int runMotorAction(void);
 
@@ -85,7 +87,7 @@ int main(void) {
                                               // si activé.
 
 	system("clear");
-        printf ("ALGOBOT Beta - Build 180613 \n");
+        printf ("ALGOBOT Beta - Build 180622 \n");
         printf ("----------------------------\n");
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID
@@ -150,6 +152,26 @@ int main(void) {
                 body.motor[i].speed=0;
                 body.motor[i].time=0;
 	}
+        
+        for(i=0;i<NBRGBC;i++){
+                body.rgb[i].event_enable=0;
+                
+		body.rgb[i].red.value=-1;
+		body.rgb[i].red.event_low=0;
+		body.rgb[i].red.event_high=65535;
+                
+                body.rgb[i].green.value=-1;
+		body.rgb[i].green.event_low=0;
+		body.rgb[i].green.event_high=65535;
+                
+                body.rgb[i].blue.value=-1;
+		body.rgb[i].blue.event_low=0;
+		body.rgb[i].blue.event_high=65535;
+                
+                body.rgb[i].clear.value=-1;
+		body.rgb[i].clear.event_low=0;
+		body.rgb[i].clear.event_high=65535;
+	}
 
         sysInfo.startUpTime=0;
         
@@ -157,7 +179,7 @@ int main(void) {
         
         // Initialisation configuration de flux de données periodique
         sysConfig.statusStream.state=ON;
-        sysConfig.statusStream.time_ms=100;
+        sysConfig.statusStream.time_ms=250;
                 
 	while(1){
             
@@ -222,6 +244,8 @@ int main(void) {
                         BUTTONEventCheck();										// Contôle de l'état des entrées bouton
 															// Génère un évenement si changement d'état détecté
                         
+                        COLOREventCheck();										// Contôle les valeur RGB des capteurs
+                        
 			DINSafetyCheck();										// Contôle de l'état des entrées numérique
 			BatterySafetyCheck();
 			DistanceSafetyCheck(); 										// effectue une action si safety actif
@@ -233,6 +257,14 @@ int main(void) {
 
 			body.battery[0].value = getBatteryVoltage();
 
+                        // Récupération des couleur mesurée sur les capteurs
+                        for(i=0;i<NBRGBC;i++){
+                            body.rgb[i].red.value=getColorValue(i,RED);
+                            body.rgb[i].green.value=getColorValue(i,GREEN);
+                            body.rgb[i].blue.value=getColorValue(i,BLUE);
+                            body.rgb[i].clear.value=getColorValue(i,CLEAR);
+                        }
+                        
 			batteryEventCheck();
 
                         for(i=0;i<NBMOTOR;i++){
@@ -363,7 +395,10 @@ int processAlgoidRequest(void){
 		case STATUS :	makeStatusRequest(RESPONSE);					// Requete d'état du systeme
 						break;
         	case MOTORS :	makeMotorRequest();					// Requete commande moteur
-						break;
+
+                case COLORS :	makeRgbRequest();					// Requete commande moteur
+                                                break;
+                                                
 
 		default : break;
 	}
@@ -969,6 +1004,17 @@ int makeStatusRequest(int msgType){
                 AlgoidResponse[ptrData].PWMresponse.powerPercent=body.pwm[i].power;
 		ptrData++;
 	}
+        
+        for(i=0;i<NBRGBC;i++){
+		AlgoidResponse[ptrData].RGBresponse.id=i;
+		AlgoidResponse[ptrData].RGBresponse.red.value=body.rgb[i].red.value;
+                AlgoidResponse[ptrData].RGBresponse.green.value=body.rgb[i].green.value;
+                AlgoidResponse[ptrData].RGBresponse.blue.value=body.rgb[i].blue.value;
+                AlgoidResponse[ptrData].RGBresponse.blue.value=body.rgb[i].clear.value;
+		ptrData++;
+	}
+
+        
 	// Envoie de la réponse MQTT
 	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, msgType, STATUS, AlgoidCommand.msgValueCnt);
 	return (1);
@@ -1157,6 +1203,114 @@ int makeDistanceRequest(void){
 		return 1;
 }
 
+// -------------------------------------------------------------------
+// MAKERGBREQUEST
+// Traitement de la requete de mesure de couleur
+// // Récupère les valeurs des paramètres "EVENT", "EVENT_HIGH", "EVENT_LOW", ANGLE
+// Envoie un message ALGOID de type "response" avec les valeurs RGB mesurées
+// -------------------------------------------------------------------
+int makeRgbRequest(void){
+	unsigned char i;
+
+	// Pas de paramètres spécifié dans le message, retourne l'ensemble des capteur RGB
+	if(AlgoidCommand.msgValueCnt==0){
+		AlgoidCommand.msgValueCnt=NBRGBC;
+		for(i=0;i<NBRGBC;i++){
+			AlgoidResponse[i].RGBresponse.id=i;
+		}
+	}else
+			// ENREGISTREMENT DES NOUVEAUX PARAMETRES RECUS
+			for(i=0;i<AlgoidCommand.msgValueCnt; i++){
+				AlgoidResponse[i].RGBresponse.id=AlgoidCommand.RGBsens[i].id;
+
+				if(AlgoidCommand.RGBsens[i].id <NBRGBC){
+
+					// PARAMETRAGE DE L'ENVOIE DES MESSAGES SUR EVENEMENTS.
+					if(!strcmp(AlgoidCommand.RGBsens[i].event_state, "on")){
+							body.rgb[AlgoidCommand.RGBsens[i].id].event_enable=1;
+							saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
+					}
+					else if(!strcmp(AlgoidCommand.RGBsens[i].event_state, "off")){
+						body.rgb[AlgoidCommand.RGBsens[i].id].event_enable=0;
+						removeSenderOfMsgId(AlgoidCommand.msgID);
+					}
+
+                                        // Paramètre capteur ROUGE
+					// Evemenent haut
+					if(AlgoidCommand.RGBsens[i].red.event_high!=0)
+						body.rgb[AlgoidCommand.RGBsens[i].id].red.event_high=AlgoidCommand.RGBsens[i].red.event_high;
+					// Evemenent bas
+					if(AlgoidCommand.RGBsens[i].red.event_low!=0)
+						body.rgb[AlgoidCommand.RGBsens[i].id].red.event_low=AlgoidCommand.RGBsens[i].red.event_low;
+                                        
+                                        // Paramètre capteur VERT
+                                        // Evemenent haut
+					if(AlgoidCommand.RGBsens[i].green.event_high!=0)
+                                            body.rgb[AlgoidCommand.RGBsens[i].id].green.event_high=AlgoidCommand.RGBsens[i].green.event_high;
+					// Evemenent bas
+					if(AlgoidCommand.RGBsens[i].green.event_low!=0)
+						body.rgb[AlgoidCommand.RGBsens[i].id].green.event_low=AlgoidCommand.RGBsens[i].green.event_low;
+                                        
+                                        // Paramètre capteur BLEU
+                                        // Evemenent haut
+					if(AlgoidCommand.RGBsens[i].blue.event_high!=0)
+						body.rgb[AlgoidCommand.RGBsens[i].id].blue.event_high=AlgoidCommand.RGBsens[i].blue.event_high;
+					// Evemenent bas
+					if(AlgoidCommand.RGBsens[i].blue.event_low!=0)
+                                                body.rgb[AlgoidCommand.RGBsens[i].id].blue.event_low=AlgoidCommand.RGBsens[i].blue.event_low;
+
+                                        // Paramètre capteur CLEAR
+                                        // Evemenent haut
+					if(AlgoidCommand.RGBsens[i].clear.event_high!=0)
+						body.rgb[AlgoidCommand.RGBsens[i].id].clear.event_high=AlgoidCommand.RGBsens[i].clear.event_high;
+					// Evemenent bas
+					if(AlgoidCommand.RGBsens[i].clear.event_low!=0)
+						body.rgb[AlgoidCommand.RGBsens[i].id].clear.event_low=AlgoidCommand.RGBsens[i].clear.event_low;
+				} else
+					AlgoidResponse[i].value = -1;
+			};
+
+	for(i=0;i<AlgoidCommand.msgValueCnt; i++){
+		// RETOURNE EN REPONSE LES PARAMETRES ENREGISTRES
+		// Récupération des paramètres actuels et chargement du buffer de réponse
+		int temp = AlgoidResponse[i].RGBresponse.id;
+
+		if(AlgoidCommand.RGBsens[i].id <NBRGBC){
+			AlgoidResponse[i].RGBresponse.red.value=body.rgb[temp].red.value;
+                        AlgoidResponse[i].RGBresponse.green.value=body.rgb[temp].green.value;
+                        AlgoidResponse[i].RGBresponse.blue.value=body.rgb[temp].blue.value;
+                        AlgoidResponse[i].RGBresponse.clear.value=body.rgb[temp].clear.value;
+
+                        // Copie de l'etat de l'evenement
+			if(body.rgb[temp].event_enable)strcpy(AlgoidResponse[i].RGBresponse.event_state, "on");
+			else strcpy(AlgoidResponse[i].RGBresponse.event_state, "off");
+                        
+                        // Copie des paramètres évenements haut/bas pour le ROUGE
+			AlgoidResponse[i].RGBresponse.red.event_high=body.rgb[temp].red.event_high;
+			AlgoidResponse[i].RGBresponse.red.event_low=body.rgb[temp].red.event_low;
+
+                        // Copie des paramètres évenements haut/bas pour le VERT
+			AlgoidResponse[i].RGBresponse.green.event_high=body.rgb[temp].green.event_high;
+			AlgoidResponse[i].RGBresponse.green.event_low=body.rgb[temp].green.event_low;
+                        
+                        // Copie des paramètres évenements haut/bas pour le BLEU
+			AlgoidResponse[i].RGBresponse.blue.event_high=body.rgb[temp].blue.event_high;
+			AlgoidResponse[i].RGBresponse.blue.event_low=body.rgb[temp].blue.event_low;
+                        
+                        // Copie des paramètres évenements haut/bas pour le CLEAR
+			AlgoidResponse[i].RGBresponse.clear.event_high=body.rgb[temp].clear.event_high;
+			AlgoidResponse[i].RGBresponse.clear.event_low=body.rgb[temp].clear.event_low;
+                        
+                        
+		} else
+			AlgoidResponse[i].value = -1;
+	};
+
+	// Envoie de la réponse MQTT
+	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, RESPONSE, COLORS, AlgoidCommand.msgValueCnt);
+
+		return 1;
+}
 
 // -------------------------------------------------------------------
 // MAKEBATTERYREQUEST
@@ -1433,6 +1587,56 @@ void BUTTONEventCheck(void){
 		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BUTTON, BTNevent);
 }
 
+
+// -------------------------------------------------------------------
+// COLOREVENTCHECK
+// Vérifie si une changement d'état à eu lieu sur les entrées numériques
+// -------------------------------------------------------------------
+void COLOREventCheck(void){
+	// Mise à jour de l'état des couleurs des capteur
+	static unsigned char RGBWarningSended[1];
+	unsigned char i;
+
+	for(i=0;i<NBRGBC;i++){
+		if(body.rgb[i].event_enable){
+
+			int red_event_low_disable, red_event_high_disable;                     
+                        int redLowDetected, redHighDetected;
+
+			// Contrôle l' individuelle des evenements ( = si valeur < 0)
+			if(body.rgb[i].red.event_low < 0) red_event_low_disable = 1;
+			else red_event_low_disable = 0;
+
+			if(body.rgb[i].red.event_high < 0) red_event_high_disable = 1;
+			else red_event_high_disable = 0;
+
+			// Detection des seuils d'alarme
+			if(body.rgb[i].red.value < body.rgb[i].red.event_low) redLowDetected = 1;
+			else redLowDetected = 0;
+
+			if(body.rgb[i].red.value > body.rgb[i].red.event_high) redHighDetected = 1;
+			else redHighDetected = 0;
+
+			// Evaluation des alarmes à envoyer
+			if((redLowDetected && !red_event_low_disable) || (redHighDetected && !red_event_high_disable)){				// Mesure tension hors plage
+				if(RGBWarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
+					AlgoidResponse[i].RGBresponse.id=i;
+					AlgoidResponse[i].RGBresponse.red.value=body.rgb[i].red.value;
+					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+					RGBWarningSended[i]=1;
+				}
+			}
+			// Envoie un évenement Fin de niveau bas (+50mV Hysterese)
+			else if (RGBWarningSended[i]==1 && body.rgb[i].red.value > (body.rgb[i].red.event_low + body.rgb[i].red.event_hysteresis)){				// Mesure tension dans la plage
+					AlgoidResponse[i].RGBresponse.id=i;											// n'envoie qu'une seule fois après
+					AlgoidResponse[i].RGBresponse.red.value=body.rgb[i].red.value;											// une hysterese de 50mV
+					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+					RGBWarningSended[i]=0;
+			}
+		}
+	}
+ 
+}
 
 // -------------------------------------------------------------------
 // DINSAFETYCHECK

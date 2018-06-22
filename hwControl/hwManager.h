@@ -8,6 +8,12 @@
 #ifndef HWMANAGER_H_
 #define HWMANAGER_H_
 
+// Definition des couleurs pour le capteur RGB
+    #define RED                                 0
+    #define GREEN                               1
+    #define BLUE                                2
+    #define CLEAR                               3
+
 int InitHwManager(void);						// Ouverture du thread Timer
 int CloseHwManager(void);						// Fermeture du thread Timer
 
@@ -17,6 +23,7 @@ char getDigitalInput(unsigned char inputNb);	// Retourne l'état de l'entrée numé
 int getSonarDistance(void);						// Retourne la distance en cm
 int getBatteryVoltage(void);					// Retourne la tension battery en mV
 char getButtonInput(unsigned char buttonNumber);
+int getColorValue(unsigned char sensorID, unsigned char color);      // Retourne la valeur de la couleur définie sur le capteur défini
 
 extern int setMotorSpeed(int motorName, int ratio);
 extern void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent);
