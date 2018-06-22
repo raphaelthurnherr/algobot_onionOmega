@@ -338,14 +338,14 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
 
                                                                                 jwObj_string("event", AlgoidResponse[i].RGBresponse.event_state);				// add object key:value pairs
                                                                                 
-                                                                                jwObj_array( "color" );
-                                                                                    jwArr_object();
+//                                                                               // jwObj_array( "color" );
+                                                                                    jwObj_object("color");
                                                                                         jwObj_int("red", AlgoidResponse[i].RGBresponse.red.value);
                                                                                         jwObj_int("green", AlgoidResponse[i].RGBresponse.green.value);
                                                                                         jwObj_int("blue", AlgoidResponse[i].RGBresponse.blue.value);
                                                                                         jwObj_int("clear", AlgoidResponse[i].RGBresponse.clear.value);
                                                                                     jwEnd();
-                                                                                jwEnd();
+                                                                                //jwEnd();
                                                                                 
                                                                                 jwObj_object( "red" );                                                                                 
                                                                                         jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.red.event_low);
