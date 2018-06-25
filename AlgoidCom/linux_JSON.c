@@ -28,7 +28,7 @@
 #define KEY_MESSAGE_VALUE_POWER "{'MsgData'{'MsgValue'[*{'power'"
 #define KEY_MESSAGE_VALUE_STATE "{'MsgData'{'MsgValue'[*{'state'"
 #define KEY_MESSAGE_VALUE_COUNT "{'MsgData'{'MsgValue'[*{'count'"
-//#define KEY_MESSAGE_VALUE_COLOR "{'MsgData'{'MsgValue'[*{'color'"
+
 
 #define KEY_MESSAGE_VALUE_EVENT_STATE "{'MsgData'{'MsgValue'[*{'event'"
 #define KEY_MESSAGE_VALUE_EVENT_LOWER "{'MsgData'{'MsgValue'[*{'event_lower'"
@@ -53,6 +53,9 @@
 #define KEY_MESSAGE_VALUE_ACCEL "{'MsgData'{'MsgValue'[*{'accel'"
 #define KEY_MESSAGE_VALUE_DECEL "{'MsgData'{'MsgValue'[*{'decel'"
 
+#define KEY_MESSAGE_VALUE_CFG_STREAM_STATE "{'MsgData'{'MsgValue'[*{'stream'{'state'"
+#define KEY_MESSAGE_VALUE_CFG_STREAM_TIME "{'MsgData'{'MsgValue'[*{'stream'{'time'"
+#define KEY_MESSAGE_VALUE_CFG_STREAM_ONEVENT "{'MsgData'{'MsgValue'[*{'stream'{'onEvent'"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -119,6 +122,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 					if(!strcmp(myDataString, "din")) AlgoidMessageRX.msgParam = DINPUT;
 					if(!strcmp(myDataString, "status")) AlgoidMessageRX.msgParam = STATUS;
                                         if(!strcmp(myDataString, "rgb")) AlgoidMessageRX.msgParam = COLORS;
+                                        if(!strcmp(myDataString, "config")) AlgoidMessageRX.msgParam = CONFIG;
 
 				  jRead((char *)srcBuffer, KEY_MESSAGE_VALUE, &element );
 
@@ -252,7 +256,13 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 
 
 				    	  if(AlgoidMessageRX.msgParam == STATUS){
-				    		  // Not use ! Returne all status.
+                                                  // Nothing to get, return status of all system
+				    	  }
+                                          
+                                          if(AlgoidMessageRX.msgParam == CONFIG){
+                                                  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_STATE, AlgoidMessageRX.Config.stream.state, 15, &i );
+                                                  AlgoidMessageRX.Config.stream.time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_TIME, &i);
+                                                  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_ONEVENT, AlgoidMessageRX.Config.stream.onEvent, 15, &i );
 				    	  }
 				    }
 				  }

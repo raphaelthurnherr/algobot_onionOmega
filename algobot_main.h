@@ -77,6 +77,7 @@ struct m_led{
 
 struct m_dataStream{
 	int state;
+        int onEvent;
 	int time_ms;
 };
 
@@ -119,7 +120,7 @@ typedef struct tSystem{
 }t_system;
 
 typedef struct tConfig{
-	struct m_dataStream statusStream;   
+	struct m_dataStream dataStream;   
 }t_sysConfig;
 
 extern t_sensor body;

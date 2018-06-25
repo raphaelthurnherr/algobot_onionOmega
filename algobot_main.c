@@ -178,17 +178,16 @@ int main(void) {
         // ------------ Initialisation de la configuration systeme
         
         // Initialisation configuration de flux de données periodique
-        sysConfig.statusStream.state=ON;
-        sysConfig.statusStream.time_ms=250;
+        sysConfig.dataStream.state=OFF;
+        sysConfig.dataStream.time_ms=250;
                 
 	while(1){
             
         // Controle periodique de l'envoie du flux de donnees des capteurs (status)
-        if(sysConfig.statusStream.state==ON){
-            if(systemDataStreamCounter++ == sysConfig.statusStream.time_ms){
+        if(sysConfig.dataStream.state==ON){
+            if(systemDataStreamCounter++ == sysConfig.dataStream.time_ms){
                 
                 // Retourne un message "Status" sur topic "Stream"
-                
                 makeStatusRequest(DATAFLOW);
                 systemDataStreamCounter=0;
             }
@@ -368,7 +367,36 @@ int processAlgoidCommand(void){
                                 // Retourne en réponse le message vérifié
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pLED, AlgoidCommand.msgValueCnt);               
                                 
-                                runLedAction();break;
+                                runLedAction();
+                                break;
+                                
+            case CONFIG  : 	
+                                for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+
+                                    // Récupère les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par polling
+                                    if(!strcmp(AlgoidCommand.Config.stream.state, "on"))
+                                        sysConfig.dataStream.state=1; 			// Activation de l'envoie du datastream
+                                    else
+                                        if(!strcmp(AlgoidCommand.Config.stream.state, "off"))
+                                            sysConfig.dataStream.state=0; 		// Desactivation de l'envoie du datastream
+
+                                    
+                                    // Récupère les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par evenement
+                                    if(!strcmp(AlgoidCommand.Config.stream.onEvent, "on"))
+                                        sysConfig.dataStream.onEvent=1; 			// Activation de l'envoie du datastream
+                                    else
+                                        if(!strcmp(AlgoidCommand.Config.stream.onEvent, "off"))
+                                            sysConfig.dataStream.onEvent=0; 		// Desactivation de l'envoie du datastr
+                                    
+                                    if(AlgoidCommand.Config.stream.time>0)
+                                        sysConfig.dataStream.time_ms=AlgoidCommand.Config.stream.time;
+
+                                    printf("StatusStream state: %d time:%d Event: %d\n", sysConfig.dataStream.state, sysConfig.dataStream.time_ms, sysConfig.dataStream.onEvent);
+  
+                                }
+                                // Retourne en réponse le message vérifié
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, CONFIG, AlgoidCommand.msgValueCnt);
+                                break;                                
 		default : break;
 	}
 
@@ -392,7 +420,7 @@ int processAlgoidRequest(void){
                 case BUTTON :	makeButtonRequest();					// Requete d'état des entrées digitale type bouton
 						break;
 
-		case STATUS :	makeStatusRequest(RESPONSE);					// Requete d'état du systeme
+		case STATUS :	makeStatusRequest(RESPONSE);				// Requete d'état du systeme
 						break;
         	case MOTORS :	makeMotorRequest();					// Requete commande moteur
 
@@ -955,10 +983,9 @@ int makeStatusRequest(int msgType){
 	unsigned char ptrData=0;
 
 	AlgoidCommand.msgValueCnt=0;
-
 	AlgoidCommand.msgValueCnt = NBDIN + NBBTN + NBMOTOR + NBSONAR + NBPWM +1 ; // Nombre de VALEUR à transmettre + 1 pour le SystemStatus
-
-        // Retourne le système status
+     
+        // Preparation du message de reponse pour le status systeme
         strcpy(AlgoidResponse[ptrData].SYSresponse.name, ClientID);
         AlgoidResponse[ptrData].SYSresponse.startUpTime=sysInfo.startUpTime;
         
@@ -1461,6 +1488,10 @@ void distanceEventCheck(void){
 					AlgoidResponse[i].value=body.distance[i].value;
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DISTANCE, NBSONAR);
 					distWarningSended[i]=1;
+                                        
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);
 				}
 			}
 			else if (distWarningSended[i]==1){													// Mesure de distance revenu dans la plage
@@ -1468,6 +1499,10 @@ void distanceEventCheck(void){
 					AlgoidResponse[i].value=body.distance[i].value;
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DISTANCE, NBSONAR);
 					distWarningSended[i]=0;
+                                        
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);                                        
 			}
 		}
 	}
@@ -1512,6 +1547,10 @@ void batteryEventCheck(void){
 					AlgoidResponse[i].value=body.battery[i].value;
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BATTERY, 1);
 					battWarningSended[i]=1;
+                                        
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);                                        
 				}
 			}
 			// Envoie un évenement Fin de niveau bas (+50mV Hysterese)
@@ -1520,6 +1559,10 @@ void batteryEventCheck(void){
 					AlgoidResponse[i].value=body.battery[i].value;											// une hysterese de 50mV
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BATTERY, 1);
 					battWarningSended[i]=0;
+                                        
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);                                        
 			}
 		}
 	}
@@ -1552,8 +1595,15 @@ void DINEventCheck(void){
 		}
 	}
 
-	if(DINevent>0)
+	if(DINevent>0){
 		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DINPUT, DINevent);
+                
+                // Si evenement pour stream activé, envoie une trame de type status
+                if(sysConfig.dataStream.onEvent==1)
+                    makeStatusRequest(DATAFLOW);
+        }
+        
+
 }
 
 // -------------------------------------------------------------------
@@ -1583,8 +1633,13 @@ void BUTTONEventCheck(void){
 		}
 	}
 
-	if(BTNevent>0)
-		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BUTTON, BTNevent);
+	if(BTNevent>0){
+            sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BUTTON, BTNevent);
+        
+            // Si evenement pour stream activé, envoie une trame de type status
+            if(sysConfig.dataStream.onEvent==1)
+                makeStatusRequest(DATAFLOW);
+        }
 }
 
 
@@ -1624,14 +1679,22 @@ void COLOREventCheck(void){
 					AlgoidResponse[i].RGBresponse.red.value=body.rgb[i].red.value;
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
 					RGBWarningSended[i]=1;
+                                        
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);
 				}
 			}
+                        
 			// Envoie un évenement Fin de niveau bas (+50mV Hysterese)
 			else if (RGBWarningSended[i]==1 && body.rgb[i].red.value > (body.rgb[i].red.event_low + body.rgb[i].red.event_hysteresis)){				// Mesure tension dans la plage
 					AlgoidResponse[i].RGBresponse.id=i;											// n'envoie qu'une seule fois après
 					AlgoidResponse[i].RGBresponse.red.value=body.rgb[i].red.value;											// une hysterese de 50mV
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
 					RGBWarningSended[i]=0;
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);
 			}
 		}
 	}

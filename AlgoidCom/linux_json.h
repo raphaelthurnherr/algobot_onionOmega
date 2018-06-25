@@ -38,6 +38,7 @@ typedef enum msgparam{
 	STATUS,
         BUTTON,
         COLORS,
+        CONFIG,
 }t_msgparam;
 
 
@@ -55,6 +56,16 @@ struct mDin{
 	char event_state[25];
 	char safetyStop_state[25];
 	int safetyStop_value;
+};
+
+struct mStream{
+	char state[25];
+        char onEvent[25];
+	int time;
+};
+
+struct mConfig{
+	struct mStream stream;
 };
 
 struct mDistance{
@@ -141,6 +152,7 @@ typedef struct JsonCommand{
 	struct mLed PWMarray[20];
         struct mLed LEDarray[20]; // LED (internal board pwm)
         struct mRGB RGBsens[20]; 
+        struct mConfig Config;
 	// UNION ???
 
 }ALGOID;
