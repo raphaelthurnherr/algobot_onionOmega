@@ -91,11 +91,11 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega_1.2.0
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega_1.2.0: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega ${OBJECTFILES} ${LDLIBSOPTIONS} -pthread
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega_1.2.0 ${OBJECTFILES} ${LDLIBSOPTIONS} -pthread
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_json/jRead.o: AlgoidCom/libs/lib_json/jRead.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_json

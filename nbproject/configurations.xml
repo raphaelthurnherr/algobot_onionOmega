@@ -142,6 +142,7 @@
           <commandLine>-pthread</commandLine>
         </cTool>
         <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega_1.2.0</output>
           <commandLine>-pthread</commandLine>
         </linkerTool>
       </compileType>
@@ -370,13 +371,22 @@
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
-        <compilerSet>default</compilerSet>
+        <compilerSet>GNU_Omega|GNU</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <cTool>
           <developmentMode>5</developmentMode>
+          <incDir>
+            <pElem>hwControl/libs/i2c</pElem>
+            <pElem>hwControl/libs/onion-debug</pElem>
+            <pElem>AlgoidCom/libs/lib_json</pElem>
+            <pElem>AlgoidCom/libs/lib_mqtt</pElem>
+            <pElem>AlgoidCom</pElem>
+            <pElem>hwControl</pElem>
+            <pElem>asyncTools</pElem>
+          </incDir>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
@@ -387,6 +397,9 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega_1.2.0</output>
+        </linkerTool>
       </compileType>
       <item path="AlgoidCom/libs/lib_json/jRead.c" ex="false" tool="0" flavor2="0">
       </item>
