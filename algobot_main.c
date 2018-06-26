@@ -1,3 +1,6 @@
+
+#define DEFAULT_EVENT_STATE 1   
+
 #define TASK_NUMBER 0
 #define ACTION_ALGOID_ID 1
 #define ACTION_COUNT 2
@@ -87,8 +90,9 @@ int main(void) {
                                               // si activé.
 
 	system("clear");
-        printf ("ALGOBOT Beta - Build 180622 \n");
+        printf ("ALGOBOT Beta - Build date :%s\n",__DATE__);
         printf ("----------------------------\n");
+        
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID
 	if(InitMessager()) printf ("#[CORE] Creation tâche messagerie : ERREUR\n");
@@ -123,7 +127,7 @@ int main(void) {
 	// Init body membre
 	for(i=0;i<NBAIN;i++){
 		body.battery[i].safetyStop_value=0;
-		body.battery[i].event_enable=0;
+		body.battery[i].event_enable=DEFAULT_EVENT_STATE;
 		body.battery[i].event_high=65535;
 		body.battery[i].event_low=0;
 		body.battery[i].safetyStop_state=0;
@@ -132,14 +136,14 @@ int main(void) {
 
 	for(i=0;i<NBDIN;i++){
 		body.proximity[i].em_stop=0;
-		body.proximity[i].event_enable=0;
+		body.proximity[i].event_enable=DEFAULT_EVENT_STATE;
 		body.proximity[i].safetyStop_state=0;
 		body.proximity[i].safetyStop_value=0;
 	}
         
         for(i=0;i<NBBTN;i++){
 		body.button[i].em_stop=0;
-		body.button[i].event_enable=0;
+		body.button[i].event_enable=DEFAULT_EVENT_STATE;
 		body.button[i].safetyStop_state=0;
 		body.button[i].safetyStop_value=0;
 	}
@@ -153,8 +157,17 @@ int main(void) {
                 body.motor[i].time=0;
 	}
         
+        for(i=0;i<NBSONAR;i++){
+		body.distance[i].event_enable=DEFAULT_EVENT_STATE;
+                body.distance[i].event_high=100;
+                body.distance[i].event_low=15;
+                body.distance[i].event_hysteresis=0;
+                body.distance[i].value=-1;
+	}
+      
+        
         for(i=0;i<NBRGBC;i++){
-                body.rgb[i].event_enable=0;
+                body.rgb[i].event_enable=DEFAULT_EVENT_STATE;
                 
 		body.rgb[i].red.value=-1;
 		body.rgb[i].red.event_low=0;

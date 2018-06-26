@@ -16,6 +16,7 @@
 // Thread Messager
 pthread_t th_messager;
 
+char BroadcastID[50]="algo_";
 char ClientID[50]="algo_";
 
 
@@ -72,7 +73,7 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
 	    // RECEPTION DES DONNES UTILES
                 if(GetAlgoidMsg(AlgoidMessageRX, MqttDataBuffer)>0){
                         // Contrôle du destinataire
-                        if(!strcmp(AlgoidMessageRX.msgTo, ClientID)){
+                        if(!strcmp(AlgoidMessageRX.msgTo, ClientID) || !strcmp(AlgoidMessageRX.msgTo, BroadcastID)){
                                 // Enregistrement du message dans la pile
                                 lastMessage=pushMsgStack();
                                 if(lastMessage>=0){
