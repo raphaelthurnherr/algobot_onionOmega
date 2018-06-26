@@ -90,7 +90,7 @@ int main(void) {
                                               // si activé.
 
 	system("clear");
-        printf ("ALGOBOT Beta - Build date :%s\n",__DATE__);
+        printf ("ALGOBOT Beta - Build date : %s\n",__DATE__);
         printf ("----------------------------\n");
         
         
@@ -996,7 +996,7 @@ int makeStatusRequest(int msgType){
 	unsigned char ptrData=0;
 
 	AlgoidCommand.msgValueCnt=0;
-	AlgoidCommand.msgValueCnt = NBDIN + NBBTN + NBMOTOR + NBSONAR + NBPWM +1 ; // Nombre de VALEUR à transmettre + 1 pour le SystemStatus
+	AlgoidCommand.msgValueCnt = NBDIN + NBBTN + NBMOTOR + NBSONAR + NBPWM + NBRGBC +1 ; // Nombre de VALEUR à transmettre + 1 pour le SystemStatus
      
         // Preparation du message de reponse pour le status systeme
         strcpy(AlgoidResponse[ptrData].SYSresponse.name, ClientID);
@@ -1050,7 +1050,7 @@ int makeStatusRequest(int msgType){
 		AlgoidResponse[ptrData].RGBresponse.red.value=body.rgb[i].red.value;
                 AlgoidResponse[ptrData].RGBresponse.green.value=body.rgb[i].green.value;
                 AlgoidResponse[ptrData].RGBresponse.blue.value=body.rgb[i].blue.value;
-                AlgoidResponse[ptrData].RGBresponse.blue.value=body.rgb[i].clear.value;
+                AlgoidResponse[ptrData].RGBresponse.clear.value=body.rgb[i].clear.value;
 		ptrData++;
 	}
 

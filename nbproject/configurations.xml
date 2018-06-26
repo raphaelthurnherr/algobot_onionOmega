@@ -142,7 +142,7 @@
           <commandLine>-pthread</commandLine>
         </cTool>
         <linkerTool>
-          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega_1.2.0</output>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega</output>
           <commandLine>-pthread</commandLine>
         </linkerTool>
       </compileType>
