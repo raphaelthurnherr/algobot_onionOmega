@@ -529,9 +529,6 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                             }
                                                                                         jwEnd();                                                                                             
                                                                                     }
-                                                                                    
-                                                                                    
-                                                                                    
                                                                                     break;
                                                                                     
                                                         case pPWM :             switch(AlgoidResponse[i].responseType){
@@ -568,6 +565,24 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     default :   jwObj_string("error", "unknown");break;
                                                                                 }
                                                                                 break;
+                                                                                
+							case CONFIG :           
+                                                                                switch(AlgoidResponse[i].responseType){
+                                                                                    case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
+                                                                                    case EVENT_ACTION_END :   jwObj_string("action", "end"); break;
+                                                                                    case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
+                                                                                    case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
+                                                                                    case RESP_STD_MESSAGE   :    
+                                                                                                                jwObj_object( "stream" );                                                                                 
+                                                                                                                        jwObj_string("state", AlgoidResponse[i].CONFIGresponse.stream.state);
+                                                                                                                        jwObj_int("time", AlgoidResponse[i].CONFIGresponse.stream.time);
+                                                                                                                        jwObj_string("onEvent", AlgoidResponse[i].CONFIGresponse.stream.onEvent);         
+                                                                                                                jwEnd(); 
+                                                                                                                ; break;
+                                                                                    default : jwObj_string("error", "unknown"); break;
+                                                                                }		// add object key:value pairs
+                                                                                       
+											break;                                                                                
                                                                                    
 							default:                break;
 

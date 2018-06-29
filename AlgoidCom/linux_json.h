@@ -151,7 +151,7 @@ typedef struct JsonCommand{
 	struct mPwm PWMout[20]; // ---> SERVO
 	struct mLed PWMarray[20];
         struct mLed LEDarray[20]; // LED (internal board pwm)
-        struct mRGB RGBsens[20]; 
+        struct mRGB RGBsens[20];
         struct mConfig Config;
 	// UNION ???
 
@@ -173,6 +173,7 @@ typedef struct JsonResponse{
         struct mLed LEDresponse;
         struct mDin BTNresponse;
         struct mRGB RGBresponse; 
+        struct mConfig CONFIGresponse; 
 	// UNION ???
 }ALGOID_RESPONSE;
 

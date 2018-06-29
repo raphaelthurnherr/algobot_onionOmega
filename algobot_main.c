@@ -1,3 +1,4 @@
+#define FIRMWARE_VERSION "1.2.1"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -88,10 +89,11 @@ int main(void) {
 	int i;
         int systemDataStreamCounter =0;       // Compteur pour l'envoie periodique du flux de donnees des capteur
                                               // si activé.
-
+        char welcomeMessage[100];
 	system("clear");
-        printf ("ALGOBOT Beta - Build date : %s\n",__DATE__);
-        printf ("----------------------------\n");
+        sprintf(&welcomeMessage[0], "ALGOBOT V%s Build date: %s\n", FIRMWARE_VERSION, __DATE__);		// Formattage du message avec le Nom du client buggy
+        printf(welcomeMessage);
+        printf ("------------------------------------\n");
         
         
 // Création de la tâche pour la gestion de la messagerie avec ALGOID
@@ -404,11 +406,31 @@ int processAlgoidCommand(void){
                                     if(AlgoidCommand.Config.stream.time>0)
                                         sysConfig.dataStream.time_ms=AlgoidCommand.Config.stream.time;
 
-                                    printf("StatusStream state: %d time:%d Event: %d\n", sysConfig.dataStream.state, sysConfig.dataStream.time_ms, sysConfig.dataStream.onEvent);
+                                    //printf("StatusStream state: %d time:%d Event: %d\n", sysConfig.dataStream.state, sysConfig.dataStream.time_ms, sysConfig.dataStream.onEvent);
   
+                                    
+                                    // Préparation des valeurs du message de réponse
+                                    AlgoidResponse[i].CONFIGresponse.stream.time=sysConfig.dataStream.time_ms;
+                                    if(sysConfig.dataStream.onEvent==0) 
+                                        strcpy(AlgoidResponse[i].CONFIGresponse.stream.onEvent, "off");
+                                    else strcpy(AlgoidResponse[i].CONFIGresponse.stream.onEvent, "on");
+
+                                    if(sysConfig.dataStream.state==0) 
+                                        strcpy(AlgoidResponse[i].CONFIGresponse.stream.state, "off");
+                                    else strcpy(AlgoidResponse[i].CONFIGresponse.stream.state, "on");
+                                    AlgoidResponse[i].responseType = RESP_STD_MESSAGE; 
                                 }
+                                
+                                                                   // Récupération des paramètes 
+                                 
                                 // Retourne en réponse le message vérifié
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, CONFIG, AlgoidCommand.msgValueCnt);
+                                
+                                AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, CONFIG, AlgoidCommand.msgValueCnt);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
+
+                                AlgoidResponse[0].responseType=EVENT_ACTION_END;
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, CONFIG, AlgoidCommand.msgValueCnt);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
                                 break;                                
 		default : break;
 	}
@@ -1007,7 +1029,7 @@ int makeStatusRequest(int msgType){
         char hv[10];
         sprintf(hv, "%d", getMcuHWversion());
         
-        strcpy(AlgoidResponse[ptrData].SYSresponse.firmwareVersion,"18.06.02");
+        strcpy(AlgoidResponse[ptrData].SYSresponse.firmwareVersion,FIRMWARE_VERSION);
         strcpy(AlgoidResponse[ptrData].SYSresponse.mcuVersion,fv);
         strcpy(AlgoidResponse[ptrData].SYSresponse.HWrevision,hv);
         AlgoidResponse[ptrData].SYSresponse.battVoltage=body.battery[0].value;
