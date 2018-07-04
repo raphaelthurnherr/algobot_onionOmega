@@ -95,9 +95,6 @@ void *hwTask (void * arg){
                 
 		printf("\n#[HW MANAGER] Initialisation carte HW: OK\n");
 		sendMqttReport(0,"#[HW MANAGER] Initialisation carte HW: OK\n");
-		setLedPower(LED_0,5);
-                setLedPower(LED_1,40);
-                setLedPower(LED_2,100);
 	}
 	else{
 		printf("#[HW MANAGER] Initialisation carte HW: ERREUR \n");

@@ -17,8 +17,8 @@ CND_PACKAGE_PATH_Debug=dist/Debug/GNU_Omega-Linux/package/algobotonionomega.tar
 # Release configuration
 CND_PLATFORM_Release=GNU_Omega-Linux
 CND_ARTIFACT_DIR_Release=dist/Release/GNU_Omega-Linux
-CND_ARTIFACT_NAME_Release=algobot_onionomega_1.2.0
-CND_ARTIFACT_PATH_Release=dist/Release/GNU_Omega-Linux/algobot_onionomega_1.2.0
+CND_ARTIFACT_NAME_Release=algobot_onionomega
+CND_ARTIFACT_PATH_Release=dist/Release/GNU_Omega-Linux/algobot_onionomega
 CND_PACKAGE_DIR_Release=dist/Release/GNU_Omega-Linux/package
 CND_PACKAGE_NAME_Release=algobotonionomega.tar
 CND_PACKAGE_PATH_Release=dist/Release/GNU_Omega-Linux/package/algobotonionomega.tar

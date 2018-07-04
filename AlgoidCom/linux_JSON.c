@@ -189,14 +189,14 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				    		  AlgoidMessageRX.RGBsens[i].blue.event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_BLUE_HIGHER, &i);
                                                   AlgoidMessageRX.RGBsens[i].clear.event_low= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_CLEAR_LOWER, &i);
 				    		  AlgoidMessageRX.RGBsens[i].clear.event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_CLEAR_HIGHER, &i);
-                                                  printf("RED EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].red.event_low);
+/*                                                  printf("RED EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].red.event_low);
                                                   printf("RED EVENT HIGH: %d\n", AlgoidMessageRX.RGBsens[i].red.event_high);
                                                   printf("GREEN EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].green.event_low);
                                                   printf("GREEN EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].green.event_high);
                                                   printf("BLUE EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].blue.event_low);
                                                   printf("BLUE EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].blue.event_high);
                                                   printf("CLEAR EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].clear.event_low);
-                                                  
+*/                                                  
 //				    		  printf("\n-SONAR: %d DIST_EVENT_HIGH: %d, DIST_EVENT_LOW: %d  DIST_EVENT_ENABLE: %s\n", AlgoidMessageRX.DISTsens[i].id,
 //				    		  AlgoidMessageRX.DISTsens[i].event_high, AlgoidMessageRX.DISTsens[i].event_low, AlgoidMessageRX.DISTsens[i].event_state);
 				    	  }
@@ -434,7 +434,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     // ETAT DU SYSTEM
                                                                                     if(i==0){
                                                                                         jwObj_string("name", AlgoidResponse[i].SYSresponse.name);
-                                                                                        jwObj_int("upTime",AlgoidResponse[i].SYSresponse.startUpTime);
+                                                                                        jwObj_double("upTime",AlgoidResponse[i].SYSresponse.startUpTime);
                                                                                         jwObj_string("firmwareVersion",AlgoidResponse[i].SYSresponse.firmwareVersion);	
                                                                                         jwObj_string("mcuVersion",AlgoidResponse[i].SYSresponse.mcuVersion);
                                                                                         jwObj_string("boardRev",AlgoidResponse[i].SYSresponse.HWrevision);

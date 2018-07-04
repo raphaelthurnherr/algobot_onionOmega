@@ -112,7 +112,7 @@ typedef struct tsensor{
 
 typedef struct tSystem{
 	char name[32];
-        int startUpTime;
+        long startUpTime;
         char firmwareVersion[32];
         char mcuVersion[32];
         char HWrevision[32];

@@ -398,7 +398,7 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
-          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega_1.2.0</output>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega</output>
         </linkerTool>
       </compileType>
       <item path="AlgoidCom/libs/lib_json/jRead.c" ex="false" tool="0" flavor2="0">

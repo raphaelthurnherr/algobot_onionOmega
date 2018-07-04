@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.2.1"
+#define FIRMWARE_VERSION "1.2.2"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -211,11 +211,11 @@ int main(void) {
         // Contrôle de la messagerie, recherche d'éventuels messages ALGOID et effectue les traitements nécéssaire
         // selon le type du message [COMMAND, REQUEST, NEGOCIATION, ACK, REPONSE, ERROR, etc...]
         if(pullMsgStack(0)){
-                switch(AlgoidCommand.msgType){
-                        case COMMAND : processAlgoidCommand(); break;						// Traitement du message de type "COMMAND"
-                        case REQUEST : processAlgoidRequest(); break;						// Traitement du message de type "REQUEST"
-                        default : ; break;
-                }
+            switch(AlgoidCommand.msgType){
+                    case COMMAND : processAlgoidCommand(); break;						// Traitement du message de type "COMMAND"
+                    case REQUEST : processAlgoidRequest(); break;						// Traitement du message de type "REQUEST"
+                    default : ; break;
+            }
 
         }
 
@@ -223,12 +223,11 @@ int main(void) {
 	// Gestion de la vélocité pour une acceleration proggressive
     	// modification de la vélocité environ chaque 50mS
     	if(checkMotorPowerFlag){
-			checkDCmotorPower();													// Contrôle si la vélocité correspond à la consigne
-			checkMotorPowerFlag=0;
+            checkDCmotorPower();													// Contrôle si la vélocité correspond à la consigne
+            checkMotorPowerFlag=0;
     	}
 
-
-		// Contrôle du TIMER 10seconde
+        // Contrôle du TIMER 10seconde
     	if(t10secFlag){
     		// Envoie un message UDP sur le réseau, sur port 53530 (CF udpPublish.h)
     		// Avec le ID du buggy (fourni par le gestionnaire de messagerie)
@@ -240,7 +239,6 @@ int main(void) {
     	}
                 
         if(t60secFlag){
-            sysInfo.startUpTime++;
             t60secFlag=0;
         }
 
@@ -250,7 +248,18 @@ int main(void) {
     	// - Récupération de la distance mesurée au sonar
     	// - Gestion des évenements batterie, digital inputs et distance
     	if(t100msFlag){
+                        // Récupération des couleur mesurée sur les capteurs
+                        for(i=0;i<NBRGBC;i++){
+                            body.rgb[i].red.value=getColorValue(i,RED);
+                            body.rgb[i].green.value=getColorValue(i,GREEN);
+                            body.rgb[i].blue.value=getColorValue(i,BLUE);
+                            body.rgb[i].clear.value=getColorValue(i,CLEAR);
+                        }			
 
+                        for(i=0;i<NBMOTOR;i++){
+                            body.motor[i].speed= (getMotorFrequency(i)*CMPP) * body.motor[i].direction;
+                            body.motor[i].distance=getMotorPulses(i)*CMPP;
+                        }
 
 			DINEventCheck();										// Contôle de l'état des entrées numérique
 															// Génère un évenement si changement d'état détecté
@@ -270,21 +279,9 @@ int main(void) {
 															// est hors de la plage spécifiée par l'utilisateur
 
 			body.battery[0].value = getBatteryVoltage();
-
-                        // Récupération des couleur mesurée sur les capteurs
-                        for(i=0;i<NBRGBC;i++){
-                            body.rgb[i].red.value=getColorValue(i,RED);
-                            body.rgb[i].green.value=getColorValue(i,GREEN);
-                            body.rgb[i].blue.value=getColorValue(i,BLUE);
-                            body.rgb[i].clear.value=getColorValue(i,CLEAR);
-                        }
+                        batteryEventCheck();
                         
-			batteryEventCheck();
 
-                        for(i=0;i<NBMOTOR;i++){
-                            body.motor[i].speed= (getMotorFrequency(i)*CMPP) * body.motor[i].direction;
-                            body.motor[i].distance=getMotorPulses(i)*CMPP;
-                        }
 
 			// est hors a plage spécifiée par les paramettre utilisateur
 //			printf("Pulses left: %d    right: %d\n", test[0], test[1]);
@@ -296,6 +293,7 @@ int main(void) {
 			t100msFlag=0;												// Quittance le flag 100mS
     	}
 
+        sysInfo.startUpTime++;
     	usleep(1000);													// Attente de 1ms
     }
 	// ------------ FIN DE LA BOUCLE PRINCIPALE ----------------------
@@ -387,7 +385,7 @@ int processAlgoidCommand(void){
                                 
             case CONFIG  : 	
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
-
+                                    
                                     // Récupère les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par polling
                                     if(!strcmp(AlgoidCommand.Config.stream.state, "on"))
                                         sysConfig.dataStream.state=1; 			// Activation de l'envoie du datastream
@@ -1496,7 +1494,7 @@ void distanceEventCheck(void){
 	static unsigned char distWarningSended[1];
 	unsigned char i;
 	// Contrôle periodique des mesures de distances pour envoie d'evenement
-	for(i=0;i<NBPWM;i++){
+	for(i=0;i<NBSONAR;i++){
 		// Vérification si envoie des EVENT activés
 		if(body.distance[i].event_enable){
 
@@ -1527,6 +1525,7 @@ void distanceEventCheck(void){
                                         // Si evenement pour stream activé, envoie une trame de type status
                                         if(sysConfig.dataStream.onEvent==1)
                                             makeStatusRequest(DATAFLOW);
+//                                        printf("CHANGEMENT SONAR%d, VALUE:%d\n", i, body.distance[i].value);
 				}
 			}
 			else if (distWarningSended[i]==1){													// Mesure de distance revenu dans la plage
@@ -1537,7 +1536,8 @@ void distanceEventCheck(void){
                                         
                                         // Si evenement pour stream activé, envoie une trame de type status
                                         if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);                                        
+                                            makeStatusRequest(DATAFLOW); 
+                                        printf("CHANGEMENT SONAR%d, VALUE:%d\n", i, body.distance[i].value);
 			}
 		}
 	}
@@ -1625,7 +1625,7 @@ void DINEventCheck(void){
 			AlgoidResponse[ptrBuff].DINresponse.id=i;
 			AlgoidResponse[ptrBuff].value=body.proximity[i].state;
 			ptrBuff++;
-			printf("CHANGEMENT DIN%d, ETAT:%d\n", i, body.proximity[i].state);
+			//printf("CHANGEMENT DIN%d, ETAT:%d\n", i, body.proximity[i].state);
 			DINevent++;
 		}
 	}
@@ -1683,8 +1683,15 @@ void BUTTONEventCheck(void){
 // Vérifie si une changement d'état à eu lieu sur les entrées numériques
 // -------------------------------------------------------------------
 void COLOREventCheck(void){
+    
+        unsigned char ptrBuff=0, RGBevent=0;
+        
 	// Mise à jour de l'état des couleurs des capteur
-	static unsigned char RGBWarningSended[1];
+	static unsigned char RGB_red_WarningSended[NBRGBC];
+        static unsigned char RGB_green_WarningSended[NBRGBC];
+        static unsigned char RGB_blue_WarningSended[NBRGBC];
+        static unsigned char RGB_clear_WarningSended[NBRGBC];
+        
 	unsigned char i;
 
 	for(i=0;i<NBRGBC;i++){
@@ -1692,8 +1699,14 @@ void COLOREventCheck(void){
 
 			int red_event_low_disable, red_event_high_disable;                     
                         int redLowDetected, redHighDetected;
+                        
+                        int green_event_low_disable, green_event_high_disable;                     
+                        int greenLowDetected, greenHighDetected;
+                        
+                        int blue_event_low_disable, blue_event_high_disable;                     
+                        int blueLowDetected, blueHighDetected;
 
-			// Contrôle l' individuelle des evenements ( = si valeur < 0)
+			// Contrôle l' individuelle des evenements sur changement de couleur [ROUGE]
 			if(body.rgb[i].red.event_low < 0) red_event_low_disable = 1;
 			else red_event_low_disable = 0;
 
@@ -1709,30 +1722,135 @@ void COLOREventCheck(void){
 
 			// Evaluation des alarmes à envoyer
 			if((redLowDetected && !red_event_low_disable) || (redHighDetected && !red_event_high_disable)){				// Mesure tension hors plage
-				if(RGBWarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
-					AlgoidResponse[i].RGBresponse.id=i;
-					AlgoidResponse[i].RGBresponse.red.value=body.rgb[i].red.value;
-					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
-					RGBWarningSended[i]=1;
+				if(RGB_red_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
+					AlgoidResponse[ptrBuff].RGBresponse.id=i;
+					AlgoidResponse[ptrBuff].RGBresponse.red.value=body.rgb[i].red.value;
+					ptrBuff++;
+                                        RGBevent++;
+                                        //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+					RGB_red_WarningSended[i]=1;
                                         
                                         // Si evenement pour stream activé, envoie une trame de type status
                                         if(sysConfig.dataStream.onEvent==1)
                                             makeStatusRequest(DATAFLOW);
+//                                        printf("CHANGEMENT ROUGE RGB %d, VALUE:%d\n", i, body.rgb[i].red.value);
 				}
 			}
                         
 			// Envoie un évenement Fin de niveau bas (+50mV Hysterese)
-			else if (RGBWarningSended[i]==1 && body.rgb[i].red.value > (body.rgb[i].red.event_low + body.rgb[i].red.event_hysteresis)){				// Mesure tension dans la plage
-					AlgoidResponse[i].RGBresponse.id=i;											// n'envoie qu'une seule fois après
-					AlgoidResponse[i].RGBresponse.red.value=body.rgb[i].red.value;											// une hysterese de 50mV
-					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
-					RGBWarningSended[i]=0;
+			else if (RGB_red_WarningSended[i]==1 && body.rgb[i].red.value > (body.rgb[i].red.event_low + body.rgb[i].red.event_hysteresis)){				// Mesure tension dans la plage
+					AlgoidResponse[ptrBuff].RGBresponse.id=i;											// n'envoie qu'une seule fois après
+					AlgoidResponse[ptrBuff].RGBresponse.red.value=body.rgb[i].red.value;											// une hysterese de 50mV
+                                        ptrBuff++;
+                                        RGBevent++;
+					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+					RGB_red_WarningSended[i]=0;
                                         // Si evenement pour stream activé, envoie une trame de type status
                                         if(sysConfig.dataStream.onEvent==1)
                                             makeStatusRequest(DATAFLOW);
+ //                                        printf("- CHANGEMENT ROUGE RGB %d, VALUE:%d\n", i, body.rgb[i].red.value);
+			}
+                        
+                        // Contrôle l' individuelle des evenements sur changement de couleur [VERT]
+			if(body.rgb[i].green.event_low < 0) green_event_low_disable = 1;
+			else green_event_low_disable = 0;
+
+			if(body.rgb[i].green.event_high < 0) green_event_high_disable = 1;
+			else green_event_high_disable = 0;
+
+			// Detection des seuils d'alarme
+			if(body.rgb[i].green.value < body.rgb[i].green.event_low) greenLowDetected = 1;
+			else greenLowDetected = 0;
+
+			if(body.rgb[i].green.value > body.rgb[i].green.event_high) greenHighDetected = 1;
+			else greenHighDetected = 0;
+
+			// Evaluation des alarmes à envoyer
+			if((greenLowDetected && !green_event_low_disable) || (greenHighDetected && !green_event_high_disable)){				// Mesure tension hors plage
+				if(RGB_green_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
+					AlgoidResponse[ptrBuff].RGBresponse.id=i;
+					AlgoidResponse[ptrBuff].RGBresponse.green.value=body.rgb[i].green.value;
+                                        ptrBuff++;
+                                        RGBevent++;
+					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+					RGB_green_WarningSended[i]=1;
+                                        
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);
+ //                                        printf("CHANGEMENT VERT RGB %d, VALUE:%d\n", i, body.rgb[i].green.value);
+				}
+			}
+                        
+			// Envoie un évenement Fin de niveau bas (+50mV Hysterese)
+			else if (RGB_green_WarningSended[i]==1 && body.rgb[i].green.value > (body.rgb[i].green.event_low + body.rgb[i].green.event_hysteresis)){				// Mesure tension dans la plage
+					AlgoidResponse[ptrBuff].RGBresponse.id=i;											// n'envoie qu'une seule fois après
+					AlgoidResponse[ptrBuff].RGBresponse.green.value=body.rgb[i].green.value;											// une hysterese de 50mV
+                                        ptrBuff++;
+                                        RGBevent++;
+					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+					RGB_green_WarningSended[i]=0;
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);
+ //                                       printf("-CHANGEMENT VERT RGB %d, VALUE:%d\n", i, body.rgb[i].green.value);
+			}
+                        
+                        
+                        // Contrôle l' individuelle des evenements sur changement de couleur [BLEU]
+			if(body.rgb[i].blue.event_low < 0) blue_event_low_disable = 1;
+			else blue_event_low_disable = 0;
+
+			if(body.rgb[i].blue.event_high < 0) blue_event_high_disable = 1;
+			else blue_event_high_disable = 0;
+
+			// Detection des seuils d'alarme
+			if(body.rgb[i].blue.value < body.rgb[i].blue.event_low) blueLowDetected = 1;
+			else blueLowDetected = 0;
+
+			if(body.rgb[i].blue.value > body.rgb[i].blue.event_high) blueHighDetected = 1;
+			else blueHighDetected = 0;
+
+			// Evaluation des alarmes à envoyer
+			if((blueLowDetected && !blue_event_low_disable) || (blueHighDetected && !blue_event_high_disable)){				// Mesure tension hors plage
+				if(RGB_blue_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
+					AlgoidResponse[ptrBuff].RGBresponse.id=i;
+					AlgoidResponse[ptrBuff].RGBresponse.blue.value=body.rgb[i].blue.value;
+                                        ptrBuff++;
+                                        RGBevent++;
+					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+					RGB_blue_WarningSended[i]=1;
+                                        
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);
+//                                        printf("CHANGEMENT BLEU RGB %d, VALUE:%d\n", i, body.rgb[i].blue.value);
+				}
+			}
+                        
+			// Envoie un évenement Fin de niveau bas (+50mV Hysterese)
+			else if (RGB_blue_WarningSended[i]==1 && body.rgb[i].blue.value > (body.rgb[i].blue.event_low + body.rgb[i].blue.event_hysteresis)){				// Mesure tension dans la plage
+					AlgoidResponse[ptrBuff].RGBresponse.id=i;											// n'envoie qu'une seule fois après
+					AlgoidResponse[ptrBuff].RGBresponse.blue.value=body.rgb[i].blue.value;											// une hysterese de 50mV
+                                        ptrBuff++;
+                                        RGBevent++;
+					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+					RGB_blue_WarningSended[i]=0;
+                                        // Si evenement pour stream activé, envoie une trame de type status
+                                        if(sysConfig.dataStream.onEvent==1)
+                                            makeStatusRequest(DATAFLOW);
+ //                                       printf("-CHANGEMENT BLEU RGB %d, VALUE:%d\n", i, body.rgb[i].blue.value);
 			}
 		}
 	}
+        
+        if(RGBevent>0){
+		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, RGBevent);
+                
+                // Si evenement pour stream activé, envoie une trame de type status
+                if(sysConfig.dataStream.onEvent==1)
+                    makeStatusRequest(DATAFLOW);
+        }
  
 }
 
