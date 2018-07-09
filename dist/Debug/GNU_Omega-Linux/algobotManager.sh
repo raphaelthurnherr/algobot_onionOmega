@@ -14,9 +14,6 @@ check(){
 
         status=0
 
-        echo "STARTING CHECK PROGRESS\n";
-        echo "-------------------------------\n";
-
 ## TRY TO DOWNLOAD MD5 FILE
         echo "Start download MD5 from server..."
         CMD=`wget -P update/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobot_onionomega.md5`
@@ -46,6 +43,7 @@ check(){
                 fi
         else
                 echo "Error, impossible to download file";
+		
         fi
 
 }

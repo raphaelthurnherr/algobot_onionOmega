@@ -56,6 +56,11 @@
 #define KEY_MESSAGE_VALUE_CFG_STREAM_STATE "{'MsgData'{'MsgValue'[*{'stream'{'state'"
 #define KEY_MESSAGE_VALUE_CFG_STREAM_TIME "{'MsgData'{'MsgValue'[*{'stream'{'time'"
 #define KEY_MESSAGE_VALUE_CFG_STREAM_ONEVENT "{'MsgData'{'MsgValue'[*{'stream'{'onEvent'"
+
+#define KEY_MESSAGE_VALUE_SYS_APP "{'MsgData'{'MsgValue'[*{'application'"
+#define KEY_MESSAGE_VALUE_SYS_FIRMWARE "{'MsgData'{'MsgValue'[*{'firmwareUpdate'"
+#define KEY_MESSAGE_VALUE_SYS_WEBAPP "{'MsgData'{'MsgValue'[*{'webAppUpdate'"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -123,6 +128,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 					if(!strcmp(myDataString, "status")) AlgoidMessageRX.msgParam = STATUS;
                                         if(!strcmp(myDataString, "rgb")) AlgoidMessageRX.msgParam = COLORS;
                                         if(!strcmp(myDataString, "config")) AlgoidMessageRX.msgParam = CONFIG;
+                                        if(!strcmp(myDataString, "system")) AlgoidMessageRX.msgParam = SYSTEM;
 
 				  jRead((char *)srcBuffer, KEY_MESSAGE_VALUE, &element );
 
@@ -263,6 +269,12 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                                   jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_STATE, AlgoidMessageRX.Config.stream.state, 15, &i );
                                                   AlgoidMessageRX.Config.stream.time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_TIME, &i);
                                                   jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_ONEVENT, AlgoidMessageRX.Config.stream.onEvent, 15, &i );
+				    	  }
+                                          
+                                          if(AlgoidMessageRX.msgParam == SYSTEM){
+                                                  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SYS_FIRMWARE, AlgoidMessageRX.System.firmwareUpdate, 15, &i );
+                                                  
+
 				    	  }
 				    }
 				  }

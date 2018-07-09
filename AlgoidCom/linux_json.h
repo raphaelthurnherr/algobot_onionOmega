@@ -39,6 +39,7 @@ typedef enum msgparam{
         BUTTON,
         COLORS,
         CONFIG,
+        SYSTEM,
 }t_msgparam;
 
 
@@ -117,6 +118,12 @@ struct mSystem{
         float battVoltage;
 };
 
+struct mSystemCmd{
+        char application[32];
+        char firmwareUpdate[32];
+        char webAppUpdate[32];
+};
+
 struct mColor{
         int value;
 	int event_low;
@@ -153,6 +160,7 @@ typedef struct JsonCommand{
         struct mLed LEDarray[20]; // LED (internal board pwm)
         struct mRGB RGBsens[20];
         struct mConfig Config;
+        struct mSystemCmd System;
 	// UNION ???
 
 }ALGOID;
@@ -173,7 +181,8 @@ typedef struct JsonResponse{
         struct mLed LEDresponse;
         struct mDin BTNresponse;
         struct mRGB RGBresponse; 
-        struct mConfig CONFIGresponse; 
+        struct mConfig CONFIGresponse;
+        struct mSystemCmd SYSCMDresponse;
 	// UNION ???
 }ALGOID_RESPONSE;
 

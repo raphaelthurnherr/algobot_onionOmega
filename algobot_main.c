@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.2.2b"
+#define FIRMWARE_VERSION "1.2.3"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -70,6 +70,8 @@ int getLedSetting(int name);
 int makeServoAction(void);
 
 int getServoSetting(int servoName);
+
+int runSystemCommand(void);
 
 char reportBuffer[256];
 
@@ -429,7 +431,18 @@ int processAlgoidCommand(void){
 
                                 AlgoidResponse[0].responseType=EVENT_ACTION_END;
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, CONFIG, AlgoidCommand.msgValueCnt);                         // Envoie un message ALGOID de fin de tâche pour l'action écrasé
-                                break;                                
+                                break;
+                                
+            case SYSTEM :       
+                                // Récupère les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par polling
+                                if(!strcmp(AlgoidCommand.System.firmwareUpdate, "check")){
+                                    runSystemCommand();
+                                    
+                                }
+                                    
+                
+                                
+                                break;
 		default : break;
 	}
 
@@ -1984,4 +1997,14 @@ void DistanceSafetyCheck(void){
 		// ACTION A EFFECTUER
 		//sendResponse(AlgoidCommand.msgID, EVENT, DINPUT, DINsafety);
 	}
+}
+
+int runSystemCommand(void){
+    int status;
+    
+    printf ("System check update... ");
+    status=system("sh ~/algobotManager.sh check");
+    printf ("result: %d\n", status);
+    
+    
 }
