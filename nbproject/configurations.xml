@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>algobotManager.sh.h</itemPath>
       <itemPath>asyncTools/asyncLED.h</itemPath>
       <itemPath>asyncTools/asyncMOTOR.h</itemPath>
       <itemPath>asyncTools/asyncTools.h</itemPath>
@@ -322,6 +323,8 @@
       </item>
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="algobotManager.sh.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="algobot_main.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="asyncTools/asnycLED.c" ex="false" tool="0" flavor2="0">
@@ -576,6 +579,8 @@
       <item path="AlgoidCom/udpPublish.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="algobotManager.sh.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="algobot_main.c" ex="false" tool="0" flavor2="0">
       </item>
