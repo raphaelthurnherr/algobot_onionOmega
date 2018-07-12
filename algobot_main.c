@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.2.3"
+#define FIRMWARE_VERSION "1.2.4"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -71,7 +71,8 @@ int makeServoAction(void);
 
 int getServoSetting(int servoName);
 
-int runSystemCommand(void);
+int runUpdateCommand(int type);
+void runRestartCommand(void);
 
 char reportBuffer[256];
 
@@ -316,6 +317,7 @@ int main(void) {
 // -------------------------------------------------------------------
 int processAlgoidCommand(void){
     int i;
+    int updateResult;
     
 	switch(AlgoidCommand.msgParam){
 		case MOTORS : 	
@@ -434,14 +436,57 @@ int processAlgoidCommand(void){
                                 break;
                                 
             case SYSTEM :       
-                                // Récupère les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par polling
+                                // RECHERCHE DES MISE A JOURS
                                 if(!strcmp(AlgoidCommand.System.firmwareUpdate, "check")){
-                                    runSystemCommand();
                                     
+                                    AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
+                                            
+                                    updateResult = runUpdateCommand(0);
+                                    
+                                    switch(updateResult){
+                                        case 10 :  strcpy(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "new update"); break;
+                                        case 11 :  strcpy(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "no update"); break;
+                                        default:   strcpy(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "error"); break;
+                                    }
+                                            
+                                    // Retourne en réponse le message vérifié
+                                    AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
+                                    sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);
                                 }
-                                    
-                
                                 
+                                // MISE A JOUR DE L'APPLICATION
+                                if(!strcmp(AlgoidCommand.System.firmwareUpdate, "update")){
+
+                                    AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
+                                    sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);
+                                    
+                                    AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
+ 
+                                    // Retourne en réponse le message vérifié
+                                    sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, SYSTEM, AlgoidCommand.msgValueCnt);
+                                    
+                                    updateResult = runUpdateCommand(1);
+                                  
+                                    // FIN DE L'APPLICATION DES CE MOMENT!!!!
+                                            
+
+                                }
+                                
+                                // Restart application
+                                if(!strcmp(AlgoidCommand.System.firmwareUpdate, "restart")){
+                                    
+                                    
+                                    AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
+                                    sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);
+                                    
+                                    AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
+                                            
+                                    runRestartCommand();
+
+                                    // FIN DE L'APPLICATION DES CE MOMENT!!!!
+                                            
+                                }
+
                                 break;
 		default : break;
 	}
@@ -1999,12 +2044,35 @@ void DistanceSafetyCheck(void){
 	}
 }
 
-int runSystemCommand(void){
-    int status;
+int runUpdateCommand(int type){
+    int status=0;
+    int updateState=0;
     
-    printf ("System check update... ");
-    status=system("sh ~/algobotManager.sh check");
-    printf ("result: %d\n", status);
+    printf ("---------- Launching bash script ------------\n");
     
+    if(type==0)
+        status=system("sh ~/algobotManager.sh check");
     
+    if(type==1){
+        sendMqttReport(AlgoidCommand.msgID, "WARNING ! APPLICATION IS UPDATING AND WILL RESTART ");// Envoie le message sur le canal MQTT "Report"   
+        status=system("sh ~/algobotManager.sh update");
+    }
+    
+    updateState= WEXITSTATUS(status);
+    
+    printf ("---------- End of bash script ------------\n");
+    printf ("Exit bash status: %d\n", updateState);
+
+    return updateState;
+}
+
+void runRestartCommand(void){
+    int status=0;
+ 
+     printf ("---------- Launching bash script ------------\n");
+
+        sendMqttReport(AlgoidCommand.msgID, "WARNING ! APPLICATION WILL RESTART ");// Envoie le message sur le canal MQTT "Report"   
+        status=system("sh ~/algobotManager.sh restart");
+    
+    printf ("---------- End of bash script ------------\n");
 }

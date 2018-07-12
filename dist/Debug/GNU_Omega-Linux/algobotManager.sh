@@ -10,6 +10,7 @@
 
 
 check(){
+	
         rm update/*
 
         status=0
@@ -20,114 +21,121 @@ check(){
 
         if [ $? -eq 0 ];
         then
-                echo "- Download MD5 :  OK";
+                echo "- Download MD5 file:  OK"
+                                               
+	   ## COMPARE THE 2 MD5 FILE FOR CHECK UPDATE                      
+		cmp  update/algobot_onionomega.md5 algobot/algobot_onionomega.md5 1>/dev/null 2>&1; resultat=$?
+                                                                                
+       	        if [ $resultat -eq 0 ];                                         
+               	then                                                            
+                       	echo "Firmware version is last, no update !"            
+                       	status=11                                           
+                elif [ $resultat -eq 1 ];                                       
+       	        then                                                            
+               	        echo "New firmware found !"                            
+			status=10 
+                else                                                            
+       	                echo "MD5 file is missing, please update application"
+			status=12
+               	fi                      
         else
-                echo "- Download MD5 : ERROR";
-                status=status+1
+                echo "- Download MD5 : ERROR"
+		status=1
         fi
-
-        if [ $status -eq 0 ];
-        then
-
-                ## COMPARE THE 2 MD5 FILE FOR CHECK UPDATE
-                cmp update/algobot_onionomega.md5 algobot/algobot_onionomega.md5 1>/dev/null 2>&1; resultat=$?
-
-                if [ $resultat -eq 0 ];
-                then
-                        echo "Firmware version is last, no update !"
-                elif [ $resultat -eq 1 ];
-                then
-                        echo "New firmware found !"
-                else
-                        echo "Unexisting MD5 file, please update application"
-                fi
-        else
-                echo "Error, impossible to download file";
-		
-        fi
-
+	return $status
 }
 
+
+install(){                                                                                                                                                                  
+                                                                                                                                                                            
+    echo "Starting firmware upgrade... ";                                                                                                                                   
+    killall algobot_onionomega;                                                                                                                                             
+    sleep 2;                                                                                                                                                                
+    rm algobot/*                                                                                                                                                            
+    cp update/* algobot/                                                                                                                                                    
+    chmod +x algobot/algobot_onionomega                                                                                                                                     
+    echo "Restarting application... ";                                                                                                                                        
+    ./algobot/algobot_onionomega                                                                                                                                            
+} 
+
+restart(){                                                                              
+    killall algobot_onionomega;                                                         
+    sleep 2;                                                                            
+    echo "Restarting application... ";                                                  
+    ./algobot/algobot_onionomega                                                        
+} 
+
+
+
+
 update(){                                                                                                                                                      
-        rm update/*                                                                                                                                            
-                                                                                                                                                               
-        status=0                                                                                                                                               
-                                                                                                                                                               
-                                                                                                                                                               
-## TRY TO DOWNLOAD BINARY                                                                                                                                      
-        echo "Start download binary firmware from server..."                                                                                                   
-        CMD=`wget -P update/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobot_onionomega`    
-                                                                                                                                                               
-        if [ $? -eq 0 ];                                                                                                                                       
-        then                                                                                                                                                   
-                echo "- Download binary :  OK";                                                                                                                
-        else                                                                                                                                                   
-                echo "- Download binary : ERROR";                                                                                                              
-                status=status+1                                                                                                                                
-        fi                                                                                                                                                     
-                                                                                                                                                               
-## TRY TO DOWNLOAD MD5 FILE                                                                                                                                    
-        echo "Start download MD5 from server..."                                                                                                               
-        CMD=`wget -P update/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobot_onionomega.md5`
-                                                                                                                                                               
-        if [ $? -eq 0 ];                                                                                                                                       
-        then                                                                                                                                                   
-                echo "- Download MD5 :  OK";                                                                                                                   
-        else                                                                                                                                                   
-                echo "- Download MD5 : ERROR";                                                                                                                 
-                status=status+1                                                                                                                                
-        fi                                                                                                                                                     
-                                                                                                                                                               
-        if [ $status -eq 0 ];                                                                                                                                  
-        then                                                                                                                                                   
-                echo "Files downloading with success";                                                                                                         
-                                                                                                                                                               
-                ## COMPARE THE 2 MD5 FILE FOR CHECK UPDATE                                                                                                     
-                cmp  update/algobot_onionomega.md5 algobot/algobot_onionomega.md5 1>/dev/null 2>&1; resultat=$?                                                
-                                                                                                                                                               
-                if [ $resultat -eq 0 ];                                                                                                                        
-                then                                                                                                                                           
-                        echo "Firmware version is last, no install necessary !"                                                                                
-                elif [ $resultat -eq 1 ];                                                                                                                      
-                then                                                                                                                                           
-                        echo "Firmware update downloaded, please install !"                                                                                    
-                else                                                                                                                                           
-                echo "No MD5 found, please add them or install manually"                                                                                       
-                fi                                                                                                                                             
-        else                                                                                                                                                   
-                echo "Update aborted, error during downloading files";                                                                                         
-        fi                                                                                                                                                     
+                                                                                                                                            
+## CHECK FOR UPDATE
+  	check
+	checkResult=$?
+
+	updateResult=0
+
+## TRY TO DOWNLOAD BINARY APPLICATION FILE AND UPDATE
+	if [ $checkResult -eq 10 ];
+	then
+
+        if [ -f "update/*" ];
+        then
+                rm update/*
+        fi
+
+	## TRY TO DOWNLOAD BINARY                                                                                                                                                    
+        	echo "Start download binary firmware from server..."                                                                                                                 
+	        CMD=`wget -P update/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobot_onionomega`
+		if [ $? -eq 0 ];
+		then			
+			echo "- Download binary file: OK"
+
+			install
+			updateResult=0
+		else
+			echo "- Download binary file: ERROR"
+			updateResult=21
+		fi
+	else
+	## FIRMWARE IS UP TO DATE, NO ACTION
+		if [ $checkResult -eq 11 ];
+		then
+			updateResult=$checkResult
+
+		            rm update/*                                                                                    
+		else
+			updateResult=1
+		fi
+	fi
+
+	return $updateResult
 }         
-install(){                                                                                                                                                     
+
                                                                                                                                                                
-    echo "Starting firmware upgrade... ";                                                                                                                      
-    killall algobot_onionomega;                                                                                                                                
-    sleep 2;                                                                                                                                                   
-    rm algobot/*                                                                                                                                               
-    cp update/* algobot/                                                                                                                                       
-    chmod +x algobot/algobot_onionomega                                                                                                                        
-    echo "Starting application... ";                                                                                                                           
-    ./algobot/algobot_onionomega                                                                                                                               
-}                                                                                                                                                              
                                                                                                                                                                
 # Execution des parametres recus                                                                                                                               
-                                                                                                                                                               
-clear;                                                                                                                                                         
-                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
 for param in "$@"                                                                                                                                              
 do                                                                                                                                                             
         if [ "$param" = "check" ];                                                                                                                             
-        then                                                                                                                                                   
-                check                                                                                                                                          
+        then                   
+		check                                                                                                                                
+                actionResult=$?                                                                                                                                 
         fi                                                                                                                                                     
                                                                                                                                                                
         if [ "$param" = "update" ];                                                                                                                            
         then                                                                                                                                                   
-                update                                                                                                                                         
+                update        
+		actionResult=$?                                                                                                                                 
         fi                                                                                                                                                     
                                                                                                                                                                
-        if [ "$param" = "install" ];                                                                                                                           
+        if [ "$param" = "restart" ]                                                                                                                  
         then                                                                                                                                                   
-                install                                                                                                                                        
+                restart                                                                                                                                 
         fi                                                                                                                                                     
 done
+
+exit $actionResult 
+

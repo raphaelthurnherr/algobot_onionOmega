@@ -294,6 +294,7 @@ void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char 
                 case COLORS : strcpy(ackParam, "rgb"); break;
 		case ERR_PARAM : strcpy(ackParam, "error"); break;
                 case CONFIG : strcpy(ackParam, "config"); break;
+                case SYSTEM : strcpy(ackParam, "system"); break;
 		default : strcpy(ackParam, "unknown"); break;
 	}
 
