@@ -7,9 +7,19 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+<<<<<<< HEAD
             <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/runRemote.sh</file>
             <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/algobot_main.c</file>
             <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/dist/Debug/GNU_Omega-Linux/algobotManager.sh</file>
+=======
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/AlgoidCom/linux_json.h</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/hwControl/hwManager.c</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/algobot_main.c</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/asyncTools/asnycLED.c</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/hwControl/boardHWctrl.c</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/AlgoidCom/linux_JSON.c</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/runRemote.sh</file>
+>>>>>>> 434bfe785303ba40a297c8a1541d84b3f105b27e
         </group>
     </open-files>
 </project-private>

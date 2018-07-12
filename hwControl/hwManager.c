@@ -131,7 +131,7 @@ void *hwTask (void * arg){
                                     else sensor.din[DIN_3]=0;
                                     break;
 			case 20	: sensor.pwm[SONAR_0] = EFM8BB_readSonarDistance()/10; break;       // Conversion de distance mm en cm
-			case 25	: sensor.ain[BATT_0] = EFM8BB_readBatteryVoltage() ;break;
+			case 25	: sensor.ain[BATT_0] = EFM8BB_readBatteryVoltage(); break;
                         
                         case 30	: sensor.btn[BTN_0] = MCP2308_ReadGPIO(BTN_0) ;
                                   sensor.btn[BTN_1] = MCP2308_ReadGPIO(BTN_1) ; break;
