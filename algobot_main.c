@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.2.4"
+#define FIRMWARE_VERSION "1.2.4b"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -438,20 +438,24 @@ int processAlgoidCommand(void){
             case SYSTEM :       
                                 // RECHERCHE DES MISE A JOURS
                                 if(!strcmp(AlgoidCommand.System.firmwareUpdate, "check")){
-                                    
                                     AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
                                             
                                     updateResult = runUpdateCommand(0);
                                     
+                                    char message[100];
+                                    
                                     switch(updateResult){
-                                        case 10 :  strcpy(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "new update"); break;
+                                        case 10 :  strcpy(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "update available"); break;
                                         case 11 :  strcpy(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "no update"); break;
-                                        default:   strcpy(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "error"); break;
+                                        default:   
+                                                   sprintf(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "error %d", updateResult); break;
                                     }
                                             
                                     // Retourne en réponse le message vérifié
                                     AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
                                     sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);
+                                    // Reset la commande system de type firmware
+                                    strcpy(AlgoidCommand.System.firmwareUpdate,"");
                                 }
                                 
                                 // MISE A JOUR DE L'APPLICATION
@@ -468,14 +472,10 @@ int processAlgoidCommand(void){
                                     updateResult = runUpdateCommand(1);
                                   
                                     // FIN DE L'APPLICATION DES CE MOMENT!!!!
-                                            
-
                                 }
                                 
                                 // Restart application
-                                if(!strcmp(AlgoidCommand.System.firmwareUpdate, "restart")){
-                                    
-                                    
+                                if(!strcmp(AlgoidCommand.System.application, "restart")){
                                     AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
                                     sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);
                                     
@@ -486,7 +486,7 @@ int processAlgoidCommand(void){
                                     // FIN DE L'APPLICATION DES CE MOMENT!!!!
                                             
                                 }
-
+                                
                                 break;
 		default : break;
 	}
@@ -2051,17 +2051,21 @@ int runUpdateCommand(int type){
     printf ("---------- Launching bash script ------------\n");
     
     if(type==0)
-        status=system("sh ~/algobotManager.sh check");
+        status=system("sh /root/algobotManager.sh check");
     
     if(type==1){
         sendMqttReport(AlgoidCommand.msgID, "WARNING ! APPLICATION IS UPDATING AND WILL RESTART ");// Envoie le message sur le canal MQTT "Report"   
-        status=system("sh ~/algobotManager.sh update");
+        status=system("sh /root/algobotManager.sh update");
     }
     
     updateState= WEXITSTATUS(status);
-    
+  
     printf ("---------- End of bash script ------------\n");
     printf ("Exit bash status: %d\n", updateState);
+    
+    char message[100];
+    sprintf(&message[0], "Exit bash status: %d\n", updateState);	 // Formatage du message avec le Nom du client buggy
+    sendMqttReport(AlgoidCommand.msgID, message);                        // Envoie le message sur le canal MQTT "Report"   
 
     return updateState;
 }
@@ -2072,7 +2076,7 @@ void runRestartCommand(void){
      printf ("---------- Launching bash script ------------\n");
 
         sendMqttReport(AlgoidCommand.msgID, "WARNING ! APPLICATION WILL RESTART ");// Envoie le message sur le canal MQTT "Report"   
-        status=system("sh ~/algobotManager.sh restart");
+        status=system("sh /root/algobotManager.sh restart");
     
     printf ("---------- End of bash script ------------\n");
 }

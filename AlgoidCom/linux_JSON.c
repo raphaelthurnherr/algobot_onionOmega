@@ -58,7 +58,7 @@
 #define KEY_MESSAGE_VALUE_CFG_STREAM_ONEVENT "{'MsgData'{'MsgValue'[*{'stream'{'onEvent'"
 
 #define KEY_MESSAGE_VALUE_SYS_APP "{'MsgData'{'MsgValue'[*{'application'"
-#define KEY_MESSAGE_VALUE_SYS_FIRMWARE "{'MsgData'{'MsgValue'[*{'firmwareUpdate'"
+#define KEY_MESSAGE_VALUE_SYS_FIRMWARE "{'MsgData'{'MsgValue'[*{'firmware'"
 #define KEY_MESSAGE_VALUE_SYS_WEBAPP "{'MsgData'{'MsgValue'[*{'webAppUpdate'"
 
 #include <stdio.h>
@@ -273,8 +273,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                           
                                           if(AlgoidMessageRX.msgParam == SYSTEM){
                                                   jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SYS_FIRMWARE, AlgoidMessageRX.System.firmwareUpdate, 15, &i );
-                                                  
-
+                                                  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SYS_APP, AlgoidMessageRX.System.application, 15, &i );
 				    	  }
 				    }
 				  }
