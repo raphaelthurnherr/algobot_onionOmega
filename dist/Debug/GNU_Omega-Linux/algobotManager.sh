@@ -47,7 +47,7 @@ check(){
 }
 
 
-install(){                                                                                                                                                                  
+install_update(){                                                                                                                                                                  
                                                                                                                                                                             
     echo "Starting firmware upgrade... ";                                                                                                                                   
     killall algobot_onionomega;                                                                                                                                             
@@ -91,7 +91,8 @@ update(){
 		then			
 			echo "- Download binary file: OK"
 
-			install
+			install_update
+			restart
 			updateResult=0
 		else
 			echo "- Download binary file: ERROR"
