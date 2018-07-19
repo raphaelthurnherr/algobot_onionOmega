@@ -169,7 +169,6 @@ base_install(){
          echo "WS gateway successfully installed"                                                                                          
          ws-tcp-bridge --method=ws2tcp --lport=9001 --rhost=127.0.0.1:1883&
 	 ws-tcp-bridge --method=tcp2ws --lport=1883 --rhost=ws://127.0.0.1:9001&
-	 restart&         
        else                                                                                                                              
          echo "Error during WS gateway installation"                                                                                       
        fi 
@@ -181,6 +180,24 @@ base_install(){
      echo "Impossible to update package, please check internet connection !"
      result=0
     fi
+    
+	echo "Downloading Algobot launcher file..."
+	CMD=`wget -P /root/ -q https://github.com/raphaelthurnherr/algobot_onionOmega/blob/master/dist/Debug/GNU_Omega-Linux/algobotLauncher.sh`
+	if [ $? -eq 0 ];
+	then			
+		echo "- Download launcher file: OK"
+		echo "Configuring rc.local file"
+		sed -i'5 a # CALL THE ALGOBOT LAUNCHER APPLICATION' /etc/rc.local
+		sed -i'6 a sh /root/algobotLauncher.sh >> /root/autostartLog.txt 2>&1' /etc/rc.local
+		
+		$result=$?
+	else
+		echo "- Download launcher file: ERROR"
+		$result=$?
+	fi
+    
+    
+    restart
     return $result    
 }                                                                                                                                                               
 
