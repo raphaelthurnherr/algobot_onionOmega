@@ -55,8 +55,6 @@ install(){
     rm /root/algobot/*                                                                                                                                                            
     cp /root/update/* /root/algobot/                                                                                                                                                    
     chmod +x /root/algobot/algobot_onionomega                                                                                                                                     
-    echo "Restarting application... ";                                                                                                                                        
-    exec /root/algobot/algobot_onionomega                                                                                                                                            
 } 
 
 restart(){                                                                              
