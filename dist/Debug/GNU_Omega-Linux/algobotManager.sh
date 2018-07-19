@@ -29,14 +29,14 @@ check(){
                                                                                 
        	        if [ $resultat -eq 0 ];                                         
                	then                                                            
-                       	echo "Firmware version is last, no update !"            
+                       	echo "Algobot firmware version is last, no update !"            
                        	status=11                                           
                 elif [ $resultat -eq 1 ];                                       
        	        then                                                            
                	        echo "New firmware found !"                            
 			status=10 
                 else                                                            
-       	                echo "MD5 file is missing, please update application"
+       	                echo "Algobot MD5 file is missing, please update application"
 			status=12
                	fi                      
         else
@@ -115,24 +115,12 @@ update(){
 install_brocker(){
  opkg install mosquitto
  result=$?
- if [ $result -eq 0 ];
- then
-  echo "Mosquitto installation OK"
- else
-  echo "Mosquitto installation ERROR"
- fi 
  return $result
 }
 
 install_npm_ws(){                                                                                                                      
  opkg install npm                                                                                                                 
- result=$?                                                                                                                              
- if [ $result -eq 0 ];                                                                                                                  
- then                                                                                                                                   
-  echo "NPM installation OK"                                                                                                      
- else                                                                                                                                   
-  echo "NPM installation ERROR"                                                                                                   
- fi                                                                                                                                     
+ result=$?                                                                                                                                                                                                                                                    
  return $result                                                                                                                         
 }
 

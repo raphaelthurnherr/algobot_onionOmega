@@ -3,8 +3,8 @@
 # En règle générale, les "#" servent à mettre en commentaire le texte qui suit comme ici
 
 
-#md5sum /home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/dist/Debug/GNU_Omega-Linux/algobot_onionomega | cut -c -32 > dist/Debug/GNU_Omega-Linux/algobot_onionomega.md5
-md5sum /home/raph/NetBeansProjects/algobot_onionOmega/dist/Debug/GNU_Omega-Linux/algobot_onionomega | cut -c -32 > dist/Debug/GNU_Omega-Linux/algobot_onionomega.md5
+md5sum /home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/dist/Debug/GNU_Omega-Linux/algobot_onionomega | cut -c -32 > dist/Debug/GNU_Omega-Linux/algobot_onionomega.md5
+#md5sum /home/raph/NetBeansProjects/algobot_onionOmega/dist/Debug/GNU_Omega-Linux/algobot_onionomega | cut -c -32 > dist/Debug/GNU_Omega-Linux/algobot_onionomega.md5
 echo "Fichier MD5 cr�e: "`cat dist/Debug/GNU_Omega-Linux/algobot_onionomega.md5`
 
 echo "Transfere des fichiers binaire..."

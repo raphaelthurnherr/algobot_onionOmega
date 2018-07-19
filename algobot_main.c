@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.2.4b"
+#define FIRMWARE_VERSION "1.2.4c"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -437,7 +437,7 @@ int processAlgoidCommand(void){
                                 
             case SYSTEM :       
                                 // RECHERCHE DES MISE A JOURS
-                                if(!strcmp(AlgoidCommand.System.firmwareUpdate, "check")){
+                                if(!strcmp(AlgoidCommand.System.application, "check")){
                                     AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
                                             
                                     updateResult = runUpdateCommand(0);
@@ -455,11 +455,11 @@ int processAlgoidCommand(void){
                                     AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
                                     sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);
                                     // Reset la commande system de type firmware
-                                    strcpy(AlgoidCommand.System.firmwareUpdate,"");
+                                    strcpy(AlgoidCommand.System.application,"");
                                 }
                                 
                                 // MISE A JOUR DE L'APPLICATION
-                                if(!strcmp(AlgoidCommand.System.firmwareUpdate, "update")){
+                                if(!strcmp(AlgoidCommand.System.application, "update")){
 
                                     AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
                                     sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);

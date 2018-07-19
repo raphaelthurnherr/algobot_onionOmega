@@ -603,7 +603,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
                                                                                     case RESP_STD_MESSAGE   :    
                                                                                                                 jwObj_object( "system" );                                                                                 
-                                                                                                                        jwObj_string("firmwareUpdate", AlgoidResponse[i].SYSCMDresponse.firmwareUpdate);       
+                                                                                                                        jwObj_string("application", AlgoidResponse[i].SYSCMDresponse.application);       
                                                                                                                 jwEnd(); 
                                                                                                                 ; break;
                                                                                     default : jwObj_string("error", "unknown"); break;
