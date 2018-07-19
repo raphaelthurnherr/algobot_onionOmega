@@ -8,7 +8,7 @@
 # Short-Description: start Algobot daemon
 ### END INIT INFO
 
-## ALGOBOT MANAGER VERSION 19.07.2018
+# ALGOBOT MANAGER VERSION 19.07.2018
 
 check(){
 	
@@ -182,11 +182,11 @@ base_install(){
     fi
     
 	echo "Downloading Algobot launcher file..."
-	CMD=`wget -P /root/ -q https://github.com/raphaelthurnherr/algobot_onionOmega/blob/master/dist/Debug/GNU_Omega-Linux/algobotLauncher.sh`
+	CMD=`wget -P /root/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobotLauncher.sh`
 	if [ $? -eq 0 ];
 	then			
 		echo "- Download launcher file: OK"
-		echo "Configuring rc.local file"
+		echo "- Configuring rc.local file"
 		sed -i '5 a # CALL THE ALGOBOT LAUNCHER APPLICATION' /etc/rc.local
 		sed -i '6 a sh /root/algobotLauncher.sh >> /root/autostartLog.txt 2>&1' /etc/rc.local
 		
