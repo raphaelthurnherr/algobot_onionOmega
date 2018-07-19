@@ -187,8 +187,8 @@ base_install(){
 	then			
 		echo "- Download launcher file: OK"
 		echo "- Configuring rc.local file"
-		sed -i '5 a # CALL THE ALGOBOT LAUNCHER APPLICATION' /etc/rc.local
-		sed -i '6 a sh /root/algobotLauncher.sh >> /root/autostartLog.txt 2>&1' /etc/rc.local
+		sed -i '3 a # CALL THE ALGOBOT LAUNCHER APPLICATION' /etc/rc.local
+		sed -i '4 a sh /root/algobotLauncher.sh >> /root/autostartLog.txt 2>&1' /etc/rc.local
 		
 		$result=$?
 	else
