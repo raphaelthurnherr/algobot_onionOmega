@@ -601,11 +601,9 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     case EVENT_ACTION_END :   jwObj_string("action", "end"); break;
                                                                                     case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
                                                                                     case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
-                                                                                    case RESP_STD_MESSAGE   :    
-                                                                                                                jwObj_object( "system" );                                                                                 
-                                                                                                                        jwObj_string("application", AlgoidResponse[i].SYSCMDresponse.application);       
-                                                                                                                jwEnd(); 
-                                                                                                                ; break;
+                                                                                    case RESP_STD_MESSAGE   :                                                                                    
+                                                                                                                jwObj_string("application", AlgoidResponse[i].SYSCMDresponse.application);
+                                                                                                              ; break;
                                                                                     default : jwObj_string("error", "unknown"); break;
                                                                                 }		// add object key:value pairs
                                                                                        

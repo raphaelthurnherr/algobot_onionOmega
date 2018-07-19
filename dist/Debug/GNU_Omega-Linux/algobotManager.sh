@@ -61,7 +61,7 @@ restart(){
     killall algobot_onionomega;                                                         
     sleep 2;                                                                            
     echo "Restarting application... ";                                                  
-    exec /root/algobot/algobot_onionomega                                                        
+    ./root/algobot/algobot_onionomega
 } 
 
 

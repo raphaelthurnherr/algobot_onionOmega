@@ -445,13 +445,13 @@ int processAlgoidCommand(void){
                                     char message[100];
                                     
                                     switch(updateResult){
-                                        case 10 :  strcpy(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "update available"); break;
-                                        case 11 :  strcpy(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "no update"); break;
+                                        case 1 :  strcpy(AlgoidResponse[0].SYSCMDresponse.application, "connection error"); break;
+                                        case 10 :  strcpy(AlgoidResponse[0].SYSCMDresponse.application, "update available"); break;
+                                        case 11 :  strcpy(AlgoidResponse[0].SYSCMDresponse.application, "no update"); break;
                                         default:   
                                                    sprintf(AlgoidResponse[0].SYSCMDresponse.firmwareUpdate, "error %d", updateResult); break;
                                     }
-                                            
-                                    // Retourne en réponse le message vérifié
+
                                     AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
                                     sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);
                                     // Reset la commande system de type firmware
@@ -464,6 +464,7 @@ int processAlgoidCommand(void){
                                     AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
                                     sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);
                                     
+                                    strcpy(AlgoidResponse[0].SYSCMDresponse.application, "update");
                                     AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
  
                                     // Retourne en réponse le message vérifié
@@ -476,11 +477,14 @@ int processAlgoidCommand(void){
                                 
                                 // Restart application
                                 if(!strcmp(AlgoidCommand.System.application, "restart")){
+                                    
+                                    strcpy(AlgoidResponse[0].SYSCMDresponse.application, "restart");
                                     AlgoidResponse[0].responseType = RESP_STD_MESSAGE;
                                     sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, SYSTEM, AlgoidCommand.msgValueCnt);
                                     
                                     AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
-                                            
+                                    
+                                    usleep(1000);
                                     runRestartCommand();
 
                                     // FIN DE L'APPLICATION DES CE MOMENT!!!!
