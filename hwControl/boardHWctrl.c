@@ -352,7 +352,6 @@ int EFM8BB_readSonarDistance(void){
 //		SonarDistance_mm+=(i2cReadByte(21)<<8);
                 i2c_readByte(0, EFM8BB, SON0+1, &mmMSB);
                 SonarDistance_mm=mmLSB + (mmMSB<<8);
-		//printf("MSB: %2x %2x", );
                 return SonarDistance_mm;
 	}else return -1;
 }

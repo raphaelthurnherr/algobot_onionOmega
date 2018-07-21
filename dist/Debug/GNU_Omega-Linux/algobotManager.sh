@@ -61,7 +61,7 @@ restart(){
     killall algobot_onionomega;                                                         
     sleep 2;                                                                            
     echo "Restarting application... ";                                                  
-    ./root/algobot/algobot_onionomega
+    exec /root/algobot/algobot_onionomega
 } 
 
 
@@ -239,5 +239,6 @@ do
         fi
 done
 
+echo "End of installation algobot and dependecies"
 exit $actionResult 
 

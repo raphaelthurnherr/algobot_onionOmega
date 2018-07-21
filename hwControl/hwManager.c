@@ -130,8 +130,11 @@ void *hwTask (void * arg){
                                     if(dinState & 0x08) sensor.din[DIN_3] = 1;
                                     else sensor.din[DIN_3]=0;
                                     break;
-			case 20	: sensor.pwm[SONAR_0] = EFM8BB_readSonarDistance()/10; break;       // Conversion de distance mm en cm
-			case 25	: sensor.ain[BATT_0] = EFM8BB_readBatteryVoltage(); break;
+			case 20	: sensor.pwm[SONAR_0] = EFM8BB_readSonarDistance()/10;        // Conversion de distance mm en cm
+                                    printf("Dist cm: %d - ",sensor.pwm[SONAR_0]); break;
+                                    
+			case 25	: sensor.ain[BATT_0] = EFM8BB_readBatteryVoltage(); 
+                                  printf("Battery: %d\n",sensor.ain[BATT_0]); break;
                         
                         case 30	: sensor.btn[BTN_0] = MCP2308_ReadGPIO(BTN_0) ;
                                   sensor.btn[BTN_1] = MCP2308_ReadGPIO(BTN_1) ; break;
@@ -142,9 +145,9 @@ void *hwTask (void * arg){
                                   sensor.RGBC[RGBC_SENS_0].clear = BH1745_getRGBvalue(RGBC_SENS_0,CLEAR) ; break;
  
                         case 36	: sensor.RGBC[RGBC_SENS_1].red = BH1745_getRGBvalue(RGBC_SENS_1, RED) ;
-                        sensor.RGBC[RGBC_SENS_1].green = BH1745_getRGBvalue(RGBC_SENS_1, GREEN) ;
-                        sensor.RGBC[RGBC_SENS_1].blue = BH1745_getRGBvalue(RGBC_SENS_1, BLUE) ;
-                        sensor.RGBC[RGBC_SENS_1].clear = BH1745_getRGBvalue(RGBC_SENS_1, CLEAR) ; break;
+                                    sensor.RGBC[RGBC_SENS_1].green = BH1745_getRGBvalue(RGBC_SENS_1, GREEN) ;
+                                    sensor.RGBC[RGBC_SENS_1].blue = BH1745_getRGBvalue(RGBC_SENS_1, BLUE) ;
+                                    sensor.RGBC[RGBC_SENS_1].clear = BH1745_getRGBvalue(RGBC_SENS_1, CLEAR) ; break;
                         
 			default:
                             if(i2c_command_queuing[0][CALLBACK]!=0)processCommandQueue(); break;

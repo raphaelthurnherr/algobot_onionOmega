@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.2.4c"
+#define FIRMWARE_VERSION "1.2.4d"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -196,8 +196,8 @@ int main(void) {
         // ------------ Initialisation de la configuration systeme
         
         // Initialisation configuration de flux de données periodique
-        sysConfig.dataStream.state=OFF;
-        sysConfig.dataStream.time_ms=250;
+        sysConfig.dataStream.state=ON;
+        sysConfig.dataStream.time_ms=1000;
                 
 	while(1){
             
@@ -1599,7 +1599,7 @@ void distanceEventCheck(void){
                                         // Si evenement pour stream activé, envoie une trame de type status
                                         if(sysConfig.dataStream.onEvent==1)
                                             makeStatusRequest(DATAFLOW); 
-                                        printf("CHANGEMENT SONAR%d, VALUE:%d\n", i, body.distance[i].value);
+//                                        printf("CHANGEMENT SONAR%d, VALUE:%d\n", i, body.distance[i].value);
 			}
 		}
 	}
