@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.2.4d"
+#define FIRMWARE_VERSION "1.2.5"
 
 #define DEFAULT_EVENT_STATE 1   
 

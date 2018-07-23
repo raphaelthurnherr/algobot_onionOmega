@@ -345,12 +345,11 @@ int EFM8BB_readSonarDistance(void){
 //	err=i2cSelectSlave(EFM8BB);						
 
 	SonarDistance_mm=0;							// RAZ de la variable distance
-
-	if(!err){
-//		SonarDistance_mm=i2cReadByte(20);
-                i2c_readByte(0, EFM8BB, SON0, &mmLSB);
-//		SonarDistance_mm+=(i2cReadByte(21)<<8);
-                i2c_readByte(0, EFM8BB, SON0+1, &mmMSB);
+        
+        err=i2c_readByte(0, EFM8BB, SON0, &mmLSB);
+        err+=i2c_readByte(0, EFM8BB, SON0+1, &mmMSB);
+        
+	if(!err){              
                 SonarDistance_mm=mmLSB + (mmMSB<<8);
                 return SonarDistance_mm;
 	}else return -1;
@@ -371,12 +370,11 @@ int EFM8BB_readBatteryVoltage(void){
 
 	batteryVoltage_mV=0;							// RAZ de la variable
 
+        err=i2c_readByte(0, EFM8BB, VOLT0, &mVLSB);
+        err+=i2c_readByte(0, EFM8BB, VOLT0+1, &mVMSB);
 	if(!err){
-                i2c_readByte(0, EFM8BB, VOLT0, &mVLSB);
-                i2c_readByte(0, EFM8BB, VOLT0+1, &mVMSB);
+
                 batteryVoltage_mV=mVLSB + (mVMSB<<8);
-                
-//                printf("VOLTAGE: %d mV\n", batteryVoltage_mV);
 		return batteryVoltage_mV;
 	}else return -1;
 }
@@ -394,9 +392,8 @@ int EFM8BB_readFrequency(unsigned char wheelNb){
 	else regAddr = ENC_FREQ1;
 
 	freq=0;							// RAZ de la variable
-
-	if(!err){
-                i2c_readByte(0, EFM8BB, regAddr, &freq);
+        err=i2c_readByte(0, EFM8BB, regAddr, &freq);
+	if(!err){    
 		return freq;
 	}else return -1;
 }
@@ -421,7 +418,7 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb){
 
 	pulseCount=0;							// RAZ de la variable
 
-        err+=i2c_readByte(0, EFM8BB, regAddr, &pcLSB);
+        err=i2c_readByte(0, EFM8BB, regAddr, &pcLSB);
         err+=i2c_readByte(0, EFM8BB, regAddr+1, &pcMSB);
         
         pulseCount=pcLSB + (pcMSB<<8);
@@ -448,10 +445,8 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb){
 	}
 
 	pulseCount=0;							// RAZ de la variable
-
+        err=i2c_readByte(0, EFM8BB, regAddr, &pulseCount);
 	if(!err){
-		//pulseCount=(i2cReadByte(regAddr));
-                i2c_readByte(0, EFM8BB, regAddr, &pulseCount);
 		return pulseCount;
 	}else return -1;
 }
@@ -532,7 +527,7 @@ int BH1745_getRGBvalue(unsigned char sensorNb, int color){
         }
         
         err = i2c_readByte(0, SensorAdr, RGBregAdr, &pcLSB);
-        err = i2c_readByte(0, SensorAdr, RGBregAdr+1, &pcMSB);
+        err+= i2c_readByte(0, SensorAdr, RGBregAdr+1, &pcMSB);
                 
 	if(!err){
             value = pcLSB + (pcMSB<<8);
