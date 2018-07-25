@@ -116,6 +116,9 @@ struct mSystem{
         char mcuVersion[32];
         char HWrevision[32];
         float battVoltage;
+        int wan_online;
+        int tx_message;
+        int rx_message;   
 };
 
 struct mSystemCmd{

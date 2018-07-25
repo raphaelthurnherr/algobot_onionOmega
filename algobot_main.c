@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.2.5"
+#define FIRMWARE_VERSION "1.3.0"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -111,7 +111,8 @@ int main(void) {
 // Création de la tâche pour la gestion hardware
 	if(InitHwManager()) printf ("#[CORE] Creation tâche hardware : ERREUR\n");
 		else {
-                    //getHWInfo(systemInfo.firmwareVersion, systemInfo.HWrevision);
+                    resetHardware();            // Reset les peripheriques hardware
+                    
                     printf ("#[CORE] Demarrage tache hardware: OK\n");
                 }
 
@@ -1083,6 +1084,10 @@ int makeStatusRequest(int msgType){
         // Preparation du message de reponse pour le status systeme
         strcpy(AlgoidResponse[ptrData].SYSresponse.name, ClientID);
         AlgoidResponse[ptrData].SYSresponse.startUpTime=sysInfo.startUpTime;
+        AlgoidResponse[ptrData].SYSresponse.wan_online=sysInfo.wan_online;
+        AlgoidResponse[ptrData].SYSresponse.rx_message=msg_stats.messageRX;
+        AlgoidResponse[ptrData].SYSresponse.tx_message=msg_stats.messageTX;
+        
         
         char fv[10];
         sprintf(fv, "%d", getMcuFirmware());
@@ -1098,12 +1103,18 @@ int makeStatusRequest(int msgType){
 	for(i=0;i<NBDIN;i++){
 		AlgoidResponse[ptrData].DINresponse.id=i;
 		AlgoidResponse[ptrData].value=body.proximity[i].state;
+                
+                if(body.proximity[i].event_enable) strcpy(AlgoidResponse[ptrData].DINresponse.event_state, "on");
+                else strcpy(AlgoidResponse[ptrData].DINresponse.event_state, "off");                
 		ptrData++;
 	}
 
         for(i=0;i<NBBTN;i++){
                 AlgoidResponse[ptrData].BTNresponse.id=i;
                 AlgoidResponse[ptrData].value=body.button[i].state;
+                
+                if(body.button[i].event_enable) strcpy(AlgoidResponse[ptrData].BTNresponse.event_state, "on");
+                else strcpy(AlgoidResponse[ptrData].BTNresponse.event_state, "off");
                 ptrData++;
 	}
         
@@ -1117,6 +1128,9 @@ int makeStatusRequest(int msgType){
         for(i=0;i<NBSONAR;i++){
                 AlgoidResponse[ptrData].DISTresponse.id=i;
                 AlgoidResponse[ptrData].value=body.distance[i].value;
+                
+                if(body.distance[i].event_enable) strcpy(AlgoidResponse[ptrData].DISTresponse.event_state, "on");
+                else strcpy(AlgoidResponse[ptrData].DISTresponse.event_state, "off");
                 ptrData++;
 	}
         
@@ -1133,6 +1147,10 @@ int makeStatusRequest(int msgType){
                 AlgoidResponse[ptrData].RGBresponse.green.value=body.rgb[i].green.value;
                 AlgoidResponse[ptrData].RGBresponse.blue.value=body.rgb[i].blue.value;
                 AlgoidResponse[ptrData].RGBresponse.clear.value=body.rgb[i].clear.value;
+                
+                if(body.rgb[i].event_enable) strcpy(AlgoidResponse[ptrData].RGBresponse.event_state, "on");
+                else strcpy(AlgoidResponse[ptrData].RGBresponse.event_state, "off");
+                
 		ptrData++;
 	}
 

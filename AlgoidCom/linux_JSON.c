@@ -319,295 +319,307 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
 
 						switch(orgType){
 							case MOTORS :                   
-                                                                                        switch(AlgoidResponse[i].responseType){
-                                                                                            case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
-                                                                                            case EVENT_ACTION_END : jwObj_string("action", "end"); break;
-                                                                                            case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
-                                                                                            case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
-                                                                                            case RESP_STD_MESSAGE   :    if(AlgoidResponse[i].MOTresponse.motor>=0)
-                                                                                                            jwObj_int( "motor", AlgoidResponse[i].MOTresponse.motor);
-                                                                                                        else
-                                                                                                            jwObj_string("motor", "unknown");
-                                                                                                        jwObj_int( "cm", AlgoidResponse[i].MOTresponse.cm);				// add object key:value pairs
-                                                                                                        jwObj_int( "time", AlgoidResponse[i].MOTresponse.time);				// add object key:value pairs
-                                                                                                        jwObj_int("velocity", round((AlgoidResponse[i].MOTresponse.velocity)));
-                                                                                                        ; break;
-                                                                                            default : jwObj_string("error", "unknown"); break;
-                                                                                        }		// add object key:value pairs
-										
-										   break;
+                                                                            switch(AlgoidResponse[i].responseType){
+                                                                                case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
+                                                                                case EVENT_ACTION_END : jwObj_string("action", "end"); break;
+                                                                                case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
+                                                                                case RESP_STD_MESSAGE   :   if(AlgoidResponse[i].MOTresponse.motor>=0)
+                                                                                                                jwObj_int( "motor", AlgoidResponse[i].MOTresponse.motor);
+                                                                                                            else
+                                                                                                                jwObj_string("motor", "unknown");
+                                                                                                            jwObj_int( "cm", AlgoidResponse[i].MOTresponse.cm);				// add object key:value pairs
+                                                                                                            jwObj_int( "time", AlgoidResponse[i].MOTresponse.time);				// add object key:value pairs
+                                                                                                            jwObj_int("velocity", round((AlgoidResponse[i].MOTresponse.velocity)));
+                                                                                                            ; break;
+                                                                                default : jwObj_string("error", "unknown"); break;
+                                                                            }
+
+                                                                            break;
 
 							case DISTANCE :                 
-                                                                                jwObj_int( "sonar",AlgoidResponse[i].DISTresponse.id);
+                                                                            jwObj_int( "sonar",AlgoidResponse[i].DISTresponse.id);
 
-                                                                                // add object key:value pairs
-                                                                                if(AlgoidResponse[i].value >= 0){
-                                                                                        jwObj_int("cm", round((AlgoidResponse[i].value)));					// add object key:value pairs
-                                                                                        //jwObj_int("angle", AlgoidResponse[i].DISTresponse.angle);				// add object key:value pairs
-                                                                                        jwObj_string("event", AlgoidResponse[i].DISTresponse.event_state);				// add object key:value pairs
-                                                                                        jwObj_int("event_lower", AlgoidResponse[i].DISTresponse.event_low);				// add object key:value pairs
-                                                                                        jwObj_int("event_higher", AlgoidResponse[i].DISTresponse.event_high);				// add object key:value pairs
-                                                                                        jwObj_string("safety_stop", AlgoidResponse[i].DISTresponse.safetyStop_state);				// add object key:value pairs
-                                                                                        jwObj_int("safety_value", AlgoidResponse[i].DISTresponse.safetyStop_value);				// add object key:value pairs
-                                                                                } else
-                                                                                        jwObj_string("cm", "error");
-                                                                                        
-                                                                                break;
+                                                                            // add object key:value pairs
+                                                                            if(AlgoidResponse[i].value >= 0){
+                                                                                    jwObj_int("cm", round((AlgoidResponse[i].value)));					// add object key:value pairs
+                                                                                    //jwObj_int("angle", AlgoidResponse[i].DISTresponse.angle);				// add object key:value pairs
+                                                                                    jwObj_string("event", AlgoidResponse[i].DISTresponse.event_state);				// add object key:value pairs
+                                                                                    jwObj_int("event_lower", AlgoidResponse[i].DISTresponse.event_low);				// add object key:value pairs
+                                                                                    jwObj_int("event_higher", AlgoidResponse[i].DISTresponse.event_high);				// add object key:value pairs
+                                                                                    jwObj_string("safety_stop", AlgoidResponse[i].DISTresponse.safetyStop_state);				// add object key:value pairs
+                                                                                    jwObj_int("safety_value", AlgoidResponse[i].DISTresponse.safetyStop_value);				// add object key:value pairs
+                                                                            } else
+                                                                                    jwObj_string("cm", "error");
+
+                                                                            break;
 
 							case COLORS :                 
-                                                                                jwObj_int( "rgb",AlgoidResponse[i].RGBresponse.id);
+                                                                            jwObj_int( "rgb",AlgoidResponse[i].RGBresponse.id);
+                                                                            jwObj_string("event", AlgoidResponse[i].RGBresponse.event_state);
 
-                                                                                jwObj_string("event", AlgoidResponse[i].RGBresponse.event_state);				// add object key:value pairs
-                                                                                
-//                                                                               // jwObj_array( "color" );
-                                                                                    jwObj_object("color");
-                                                                                        jwObj_int("red", AlgoidResponse[i].RGBresponse.red.value);
-                                                                                        jwObj_int("green", AlgoidResponse[i].RGBresponse.green.value);
-                                                                                        jwObj_int("blue", AlgoidResponse[i].RGBresponse.blue.value);
-                                                                                        jwObj_int("clear", AlgoidResponse[i].RGBresponse.clear.value);
-                                                                                    jwEnd();
-                                                                                //jwEnd();
-                                                                                
-                                                                                jwObj_object( "red" );                                                                                 
-                                                                                        jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.red.event_low);
-                                                                                        jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.red.event_high);
+
+                                                                                jwObj_object("color");
+                                                                                    jwObj_int("red", AlgoidResponse[i].RGBresponse.red.value);
+                                                                                    jwObj_int("green", AlgoidResponse[i].RGBresponse.green.value);
+                                                                                    jwObj_int("blue", AlgoidResponse[i].RGBresponse.blue.value);
+                                                                                    jwObj_int("clear", AlgoidResponse[i].RGBresponse.clear.value);
                                                                                 jwEnd();
-                                                                                
-                                                                                jwObj_object( "green" );                                                                                 
-                                                                                        jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.green.event_low);
-                                                                                        jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.green.event_high);           
-                                                                                jwEnd(); 
-                                                                                
-                                                                                jwObj_object( "blue" );                                                                                 
-                                                                                        jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.blue.event_low);
-                                                                                        jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.blue.event_high);
-                                                                                jwEnd();
-                                                                                
-                                                                                jwObj_object( "clear" );                                                                                 
-                                                                                        jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.clear.event_low);
-                                                                                        jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.clear.event_high);
-                                                                                jwEnd(); 
- 
-                                                                                break;                                                                                
+
+                                                                            jwObj_object( "red" );                                                                                 
+                                                                                    jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.red.event_low);
+                                                                                    jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.red.event_high);
+                                                                            jwEnd();
+
+                                                                            jwObj_object( "green" );                                                                                 
+                                                                                    jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.green.event_low);
+                                                                                    jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.green.event_high);           
+                                                                            jwEnd(); 
+
+                                                                            jwObj_object( "blue" );                                                                                 
+                                                                                    jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.blue.event_low);
+                                                                                    jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.blue.event_high);
+                                                                            jwEnd();
+
+                                                                            jwObj_object( "clear" );                                                                                 
+                                                                                    jwObj_int("event_lower", AlgoidResponse[i].RGBresponse.clear.event_low);
+                                                                                    jwObj_int("event_higher", AlgoidResponse[i].RGBresponse.clear.event_high);
+                                                                            jwEnd(); 
+
+                                                                            break;                                                                                
 
 							case BATTERY :                  
-                                                                                        jwObj_int( "battery",AlgoidResponse[i].BATTesponse.id);
+                                                                            jwObj_int( "battery",AlgoidResponse[i].BATTesponse.id);
 
-                                                                                        // add object key:value pairs
-                                                                                        if(AlgoidResponse[i].value >= 0){
-                                                                                                jwObj_int("mV", AlgoidResponse[i].value);				// add object key:value pairs
-                                                                                                jwObj_string("event", AlgoidResponse[i].BATTesponse.event_state);				// add object key:value pairs
-                                                                                                jwObj_int("event_lower", AlgoidResponse[i].BATTesponse.event_low);				// add object key:value pairs
-                                                                                                jwObj_int("event_higher", AlgoidResponse[i].BATTesponse.event_high);				// add object key:value pairs
-                                                                                                jwObj_string("safety_stop", AlgoidResponse[i].BATTesponse.safetyStop_state);				// add object key:value pairs
-                                                                                                jwObj_int("safety_value", AlgoidResponse[i].BATTesponse.safetyStop_value);				// add object key:value pairs
-                                                                                        } else{
-                                                                                                jwObj_string("mV", "error");
-                                                                                        }
-                                                                                        
-											break;
+                                                                            // add object key:value pairs
+                                                                            if(AlgoidResponse[i].value >= 0){
+                                                                                    jwObj_int("mV", AlgoidResponse[i].value);				// add object key:value pairs
+                                                                                    jwObj_string("event", AlgoidResponse[i].BATTesponse.event_state);				// add object key:value pairs
+                                                                                    jwObj_int("event_lower", AlgoidResponse[i].BATTesponse.event_low);				// add object key:value pairs
+                                                                                    jwObj_int("event_higher", AlgoidResponse[i].BATTesponse.event_high);				// add object key:value pairs
+                                                                                    jwObj_string("safety_stop", AlgoidResponse[i].BATTesponse.safetyStop_state);				// add object key:value pairs
+                                                                                    jwObj_int("safety_value", AlgoidResponse[i].BATTesponse.safetyStop_value);				// add object key:value pairs
+                                                                            } else{
+                                                                                    jwObj_string("mV", "error");
+                                                                            }
 
-							case DINPUT :                  jwObj_int("din",AlgoidResponse[i].DINresponse.id);	
-                                                                                       if(AlgoidResponse[i].value >= 0){
-                                                                                        
-                                                                                            			// add object key:value pairs
-                                                                                            if(AlgoidResponse[i].value >= 0){
-                                                                                                    jwObj_int( "state", AlgoidResponse[i].value);				// add object key:value pairs
-                                                                                                    jwObj_string("event", AlgoidResponse[i].DINresponse.event_state);				// add object key:value pairs
-                                                                                                    jwObj_string("safety_stop", AlgoidResponse[i].DINresponse.safetyStop_state);				// add object key:value pairs
-                                                                                                    jwObj_int("safety_value", AlgoidResponse[i].DINresponse.safetyStop_value);				// add object key:value pairs
-                                                                                            } else
-                                                                                                    jwObj_string("state", "error");
-                                                                                        }
-                                                                                       else{
-                                                                                            jwObj_string("state", "error");
-                                                                                       }
-										    break;
+                                                                            break;
+
+							case DINPUT :           
+                                                                            jwObj_int("din",AlgoidResponse[i].DINresponse.id);	
+                                                                            if(AlgoidResponse[i].value >= 0){
+
+                                                                                                     // add object key:value pairs
+                                                                                 if(AlgoidResponse[i].value >= 0){
+                                                                                         jwObj_int( "state", AlgoidResponse[i].value);				// add object key:value pairs
+                                                                                         jwObj_string("event", AlgoidResponse[i].DINresponse.event_state);			// Etat des evenements DIN
+                                                                                         jwObj_string("safety_stop", AlgoidResponse[i].DINresponse.safetyStop_state);				// add object key:value pairs
+                                                                                         jwObj_int("safety_value", AlgoidResponse[i].DINresponse.safetyStop_value);				// add object key:value pairs
+                                                                                 } else
+                                                                                         jwObj_string("state", "error");
+                                                                             }
+                                                                            else{
+                                                                                 jwObj_string("state", "error");
+                                                                            }
+                                                                            break;
                                                                                     
-							case BUTTON :                  jwObj_int("btn",AlgoidResponse[i].BTNresponse.id);	
-                                                                                       if(AlgoidResponse[i].value >= 0){
-                                                                                        
-                                                                                            			// add object key:value pairs
-                                                                                            if(AlgoidResponse[i].value >= 0){
-                                                                                                    jwObj_int( "state", AlgoidResponse[i].value);				// add object key:value pairs
-                                                                                                    jwObj_string("event", AlgoidResponse[i].BTNresponse.event_state);				// add object key:value pairs
-                                                                                                    jwObj_string("safety_stop", AlgoidResponse[i].BTNresponse.safetyStop_state);				// add object key:value pairs
-                                                                                                    jwObj_int("safety_value", AlgoidResponse[i].BTNresponse.safetyStop_value);				// add object key:value pairs
-                                                                                            } else
-                                                                                                    jwObj_string("state", "error");
-                                                                                        }
-                                                                                       else{
+							case BUTTON :                  
+                                                                            jwObj_int("btn",AlgoidResponse[i].BTNresponse.id);	
+                                                                               if(AlgoidResponse[i].value >= 0){
+
+                                                                                                        // add object key:value pairs
+                                                                                    if(AlgoidResponse[i].value >= 0){
+                                                                                            jwObj_int( "state", AlgoidResponse[i].value);				// add object key:value pairs
+                                                                                            jwObj_string("event", AlgoidResponse[i].BTNresponse.event_state);				// add object key:value pairs
+                                                                                    } else
                                                                                             jwObj_string("state", "error");
-                                                                                       }
-										    break;                                                                                    
+                                                                                }
+                                                                               else{
+                                                                                    jwObj_string("state", "error");
+                                                                               }
+                                                                            break;                                                                                    
 
                                                         case STATUS :               
-                                                                                    // ETAT DU SYSTEM
-                                                                                    if(i==0){
-                                                                                        jwObj_string("name", AlgoidResponse[i].SYSresponse.name);
-                                                                                        jwObj_double("upTime",AlgoidResponse[i].SYSresponse.startUpTime);
-                                                                                        jwObj_string("firmwareVersion",AlgoidResponse[i].SYSresponse.firmwareVersion);	
-                                                                                        jwObj_string("mcuVersion",AlgoidResponse[i].SYSresponse.mcuVersion);
-                                                                                        jwObj_string("boardRev",AlgoidResponse[i].SYSresponse.HWrevision);
-                                                                                        jwObj_double("battery_mv",AlgoidResponse[i].SYSresponse.battVoltage);		// add object key:value pairs
-                                                                                    }
+                                                                            // ETAT DU SYSTEM
+                                                                            if(i==0){
+                                                                                char wanState[10];
 
-                                                                                    // ETAT DES DIN
-                                                                                    if(i>=1 && i<1+NBDIN){
+                                                                                jwObj_string("name", AlgoidResponse[i].SYSresponse.name);
+                                                                                jwObj_double("upTime",AlgoidResponse[i].SYSresponse.startUpTime);
+                                                                                jwObj_string("firmwareVersion",AlgoidResponse[i].SYSresponse.firmwareVersion);	
+                                                                                jwObj_string("mcuVersion",AlgoidResponse[i].SYSresponse.mcuVersion);
+                                                                                jwObj_string("boardRev",AlgoidResponse[i].SYSresponse.HWrevision);
+                                                                                jwObj_double("battery_mv",AlgoidResponse[i].SYSresponse.battVoltage);		// add object key:value pairs
+                                                                                if(AlgoidResponse[i].SYSresponse.wan_online)
+                                                                                    strcpy(wanState, "online");
+                                                                                else
+                                                                                    strcpy(wanState, "offline");
+                                                                                jwObj_string("internet",wanState);                                              // WAN State
+                                                                                jwObj_double("messageTX",AlgoidResponse[i].SYSresponse.tx_message);		// System message received
+                                                                                jwObj_double("messageRX",AlgoidResponse[i].SYSresponse.rx_message);		// System message received
+                                                                            }
+
+                                                                            // ETAT DES DIN
+                                                                            if(i>=1 && i<1+NBDIN){
 //                                                                                        jwObj_int("din",AlgoidResponse[i].DINresponse.id);		// add object key:value pairs
 //                                                                                        jwObj_int( "state", AlgoidResponse[i].value);
-                                                                                        jwObj_array( "din" );
-                                                                                            
-                                                                                            for(j=0;j<NBDIN;j++){
-                                                                                                jwArr_object();
-                                                                                                    jwObj_int("state",AlgoidResponse[i].value);
-                                                                                                jwEnd();           
-                                                                                                i++;
-                                                                                            }
-                                                                                        jwEnd();       
+                                                                                jwObj_array( "din" );
+
+                                                                                    for(j=0;j<NBDIN;j++){
+                                                                                        jwArr_object();
+                                                                                            jwObj_int("state",AlgoidResponse[i].value);
+                                                                                            jwObj_string("event", AlgoidResponse[i].DINresponse.event_state);			// Etat des evenements DIN
+                                                                                        jwEnd();           
+                                                                                        i++;
                                                                                     }
+                                                                                jwEnd();       
+                                                                            }
+
+                                                                            // ETAT DES BOUTON     
+                                                                            if(i>=1+NBDIN && i<1+NBDIN+NBBTN){
+                                                                            //    jwObj_int("btn",AlgoidResponse[i].BTNresponse.id);		// add object key:value pairs
+                                                                            //    jwObj_int( "state", AlgoidResponse[i].value);
+                                                                                jwObj_array( "btn" );
+                                                                                    for(j=0;j<NBBTN;j++){
+                                                                                        jwArr_object();
+                                                                                            jwObj_int("state",AlgoidResponse[i].value);
+                                                                                            jwObj_string("event", AlgoidResponse[i].BTNresponse.event_state);				// add object key:value pairs                                                                                            
+                                                                                        jwEnd();           
+                                                                                        i++;
+                                                                                    }
+                                                                                jwEnd();     
+                                                                            }
+
+
+                                                                            // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                            if(i>=1+NBDIN+NBBTN && i<1+NBDIN+NBBTN+NBMOTOR){
+                                                                            //        jwObj_int("motor",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
+                                                                            //        jwObj_int("cm", round((AlgoidResponse[i].MOTresponse.cm)));		// add object key:value pairs
+                                                                            //        jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.velocity)));
+                                                                                jwObj_array( "motor" );
+                                                                                    for(j=0;j<NBMOTOR;j++){
+                                                                                        jwArr_object();
+                                                                                            jwObj_int("cm",round((AlgoidResponse[i].MOTresponse.cm)));
+                                                                                            jwObj_int("speed",round((AlgoidResponse[i].MOTresponse.velocity)));
+                                                                                        jwEnd();           
+                                                                                        i++;
+                                                                                    }
+                                                                                jwEnd(); 
+                                                                            }
+
+                                                                                                                                                                // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR){
+                                                                            //    jwObj_int("sonar",AlgoidResponse[i].DISTresponse.id);		// add object key:value pairs
+                                                                            //    jwObj_int("cm", round((AlgoidResponse[i].value)));
+                                                                                jwObj_array( "sonar" );
+                                                                                    for(j=0;j<NBSONAR;j++){
+                                                                                        jwArr_object();
+                                                                                            jwObj_int("cm", round((AlgoidResponse[i].value)));
+                                                                                            jwObj_string("event", AlgoidResponse[i].DISTresponse.event_state);                                                                                            
+                                                                                        jwEnd();           
+                                                                                        i++;
+                                                                                    }
+                                                                                jwEnd(); 
+                                                                            }
+
+
+                                                                            // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM){
+                                                                                jwObj_array( "pwm" );
+                                                                                    for(j=0;j<NBPWM;j++){
+                                                                                        jwArr_object();
+                                                                                            jwObj_int("state",AlgoidResponse[i].value);
+                                                                                            jwObj_int("power",AlgoidResponse[i].PWMresponse.powerPercent);
+                                                                                        jwEnd();           
+                                                                                        i++;
+                                                                                    }
+                                                                                jwEnd();                                                                                             
+                                                                            }
+
+                                                                            // ETAT DES CAPTEURS RGB                                                                                                                                                     // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM+NBRGBC){
+                                                                                jwObj_array( "rgb" );
+                                                                                    for(j=0;j<NBRGBC;j++){
+                                                                                        jwArr_object();
+                                                                                            jwObj_string("event", AlgoidResponse[i].RGBresponse.event_state);                                                                                        
+                                                                                            jwObj_int("red",AlgoidResponse[i].RGBresponse.red.value);
+                                                                                            jwObj_int("green",AlgoidResponse[i].RGBresponse.green.value);
+                                                                                            jwObj_int("blue",AlgoidResponse[i].RGBresponse.blue.value);
+                                                                                            jwObj_int("clear",AlgoidResponse[i].RGBresponse.clear.value);
+                                                                                        jwEnd();           
+                                                                                        i++;
+                                                                                    }
+                                                                                jwEnd();                                                                                             
+                                                                            }
+                                                                            break;
+                                                                                    
+                                                        case pPWM :             
+                                                                            switch(AlgoidResponse[i].responseType){
+                                                                                case EVENT_ACTION_ERROR :   jwObj_string("action", "error");break;
+                                                                                case EVENT_ACTION_END  :   jwObj_string("action", "end"); break;
+                                                                                case EVENT_ACTION_BEGIN  :   jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_ABORT  :   jwObj_string("action", "abort"); break;
+                                                                                case RESP_STD_MESSAGE  :   if(AlgoidResponse[i].PWMresponse.id>=0)
+                                                                                                jwObj_int( "pwm", AlgoidResponse[i].PWMresponse.id);
+                                                                                            else
+                                                                                                jwObj_string("pwm", "unknown");
+                                                                                            jwObj_string( "state", AlgoidResponse[i].PWMresponse.state);				// add object key:value pairs
+                                                                                            jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);				// add object key:value pairs
+                                                                                            jwObj_int("time", AlgoidResponse[i].PWMresponse.time);
+                                                                                            break;
+                                                                                default :   jwObj_string("error", "unknown");break;
+                                                                            }
+                                                                            break;
                                                                                    
-                                                                                    // ETAT DES BOUTON     
-                                                                                    if(i>=1+NBDIN && i<1+NBDIN+NBBTN){
-                                                                                    //    jwObj_int("btn",AlgoidResponse[i].BTNresponse.id);		// add object key:value pairs
-                                                                                    //    jwObj_int( "state", AlgoidResponse[i].value);
-                                                                                        jwObj_array( "btn" );
-                                                                                            for(j=0;j<NBBTN;j++){
-                                                                                                jwArr_object();
-                                                                                                    jwObj_int("state",AlgoidResponse[i].value);
-                                                                                                jwEnd();           
-                                                                                                i++;
-                                                                                            }
-                                                                                        jwEnd();     
-                                                                                    }
-                                                                                    
-                                                                                    
-                                                                                    // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBBTN && i<1+NBDIN+NBBTN+NBMOTOR){
-                                                                                    //        jwObj_int("motor",AlgoidResponse[i].PWMresponse.id);		// add object key:value pairs
-                                                                                    //        jwObj_int("cm", round((AlgoidResponse[i].MOTresponse.cm)));		// add object key:value pairs
-                                                                                    //        jwObj_int("speed", round((AlgoidResponse[i].MOTresponse.velocity)));
-                                                                                        jwObj_array( "motor" );
-                                                                                            for(j=0;j<NBMOTOR;j++){
-                                                                                                jwArr_object();
-                                                                                                    jwObj_int("cm",round((AlgoidResponse[i].MOTresponse.cm)));
-                                                                                                    jwObj_int("speed",round((AlgoidResponse[i].MOTresponse.velocity)));
-                                                                                                jwEnd();           
-                                                                                                i++;
-                                                                                            }
-                                                                                        jwEnd(); 
-                                                                                    }
-                                                                                    
-                                                                                                                                                                        // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR){
-                                                                                    //    jwObj_int("sonar",AlgoidResponse[i].DISTresponse.id);		// add object key:value pairs
-                                                                                    //    jwObj_int("cm", round((AlgoidResponse[i].value)));
-                                                                                        jwObj_array( "sonar" );
-                                                                                            for(j=0;j<NBSONAR;j++){
-                                                                                                jwArr_object();
-                                                                                                    jwObj_int("cm", round((AlgoidResponse[i].value)));
-                                                                                                jwEnd();           
-                                                                                                i++;
-                                                                                            }
-                                                                                        jwEnd(); 
-                                                                                    }
-                                                                                    
-                                                                                      
-                                                                                    // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM){
-                                                                                        jwObj_array( "pwm" );
-                                                                                            for(j=0;j<NBPWM;j++){
-                                                                                                jwArr_object();
-                                                                                                    jwObj_int("state",AlgoidResponse[i].value);
-                                                                                                    jwObj_int("power",AlgoidResponse[i].PWMresponse.powerPercent);
-                                                                                                jwEnd();           
-                                                                                                i++;
-                                                                                            }
-                                                                                        jwEnd();                                                                                             
-                                                                                    }
-                                                                                    
-                                                                                    // ETAT DES CAPTEURS RGB                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                                    if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM+NBRGBC){
-                                                                                        jwObj_array( "rgb" );
-                                                                                            for(j=0;j<NBRGBC;j++){
-                                                                                                jwArr_object();
-                                                                                                    jwObj_int("red",AlgoidResponse[i].RGBresponse.red.value);
-                                                                                                    jwObj_int("green",AlgoidResponse[i].RGBresponse.green.value);
-                                                                                                    jwObj_int("blue",AlgoidResponse[i].RGBresponse.blue.value);
-                                                                                                    jwObj_int("clear",AlgoidResponse[i].RGBresponse.clear.value);
-                                                                                                jwEnd();           
-                                                                                                i++;
-                                                                                            }
-                                                                                        jwEnd();                                                                                             
-                                                                                    }
-                                                                                    break;
-                                                                                    
-                                                        case pPWM :             switch(AlgoidResponse[i].responseType){
-                                                                                    case EVENT_ACTION_ERROR :   jwObj_string("action", "error");break;
-                                                                                    case EVENT_ACTION_END  :   jwObj_string("action", "end"); break;
-                                                                                    case EVENT_ACTION_BEGIN  :   jwObj_string("action", "begin"); break;
-                                                                                    case EVENT_ACTION_ABORT  :   jwObj_string("action", "abort"); break;
-                                                                                    case RESP_STD_MESSAGE  :   if(AlgoidResponse[i].PWMresponse.id>=0)
-                                                                                                    jwObj_int( "pwm", AlgoidResponse[i].PWMresponse.id);
-                                                                                                else
-                                                                                                    jwObj_string("pwm", "unknown");
-                                                                                                jwObj_string( "state", AlgoidResponse[i].PWMresponse.state);				// add object key:value pairs
-                                                                                                jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);				// add object key:value pairs
-                                                                                                jwObj_int("time", AlgoidResponse[i].PWMresponse.time);
-                                                                                                break;
-                                                                                    default :   jwObj_string("error", "unknown");break;
-                                                                                }
-                                                                                break;
-                                                                                   
-                                                        case pLED :             switch(AlgoidResponse[i].responseType){
-                                                                                    case EVENT_ACTION_ERROR :    jwObj_string("action", "error");break;
-                                                                                    case EVENT_ACTION_END  :     jwObj_string("action", "end"); break;
-                                                                                    case EVENT_ACTION_BEGIN  :   jwObj_string("action", "begin"); break;
-                                                                                    case EVENT_ACTION_ABORT  :   jwObj_string("action", "abort"); break;
-                                                                                    case RESP_STD_MESSAGE  :    if(AlgoidResponse[i].LEDresponse.id>=0)
-                                                                                                                    jwObj_int( "led", AlgoidResponse[i].LEDresponse.id);
-                                                                                                                else
-                                                                                                                    jwObj_string("led", "unknown");
-                                                                                                                jwObj_string( "state", AlgoidResponse[i].LEDresponse.state);				// add object key:value pairs
-                                                                                                                jwObj_int( "power", AlgoidResponse[i].LEDresponse.powerPercent);				// add object key:value pairs
-                                                                                                                jwObj_int("time", AlgoidResponse[i].LEDresponse.time);
-                                                                                                                jwObj_int("count", AlgoidResponse[i].LEDresponse.blinkCount);
-                                                                                                break;
-                                                                                    default :   jwObj_string("error", "unknown");break;
-                                                                                }
-                                                                                break;
+                                                        case pLED :             
+                                                                            switch(AlgoidResponse[i].responseType){
+                                                                                case EVENT_ACTION_ERROR :    jwObj_string("action", "error");break;
+                                                                                case EVENT_ACTION_END  :     jwObj_string("action", "end"); break;
+                                                                                case EVENT_ACTION_BEGIN  :   jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_ABORT  :   jwObj_string("action", "abort"); break;
+                                                                                case RESP_STD_MESSAGE  :    if(AlgoidResponse[i].LEDresponse.id>=0)
+                                                                                                                jwObj_int( "led", AlgoidResponse[i].LEDresponse.id);
+                                                                                                            else
+                                                                                                                jwObj_string("led", "unknown");
+                                                                                                            jwObj_string( "state", AlgoidResponse[i].LEDresponse.state);				// add object key:value pairs
+                                                                                                            jwObj_int( "power", AlgoidResponse[i].LEDresponse.powerPercent);				// add object key:value pairs
+                                                                                                            jwObj_int("time", AlgoidResponse[i].LEDresponse.time);
+                                                                                                            jwObj_int("count", AlgoidResponse[i].LEDresponse.blinkCount);
+                                                                                            break;
+                                                                                default :   jwObj_string("error", "unknown");break;
+                                                                            }
+                                                                            break;
                                                                                 
 							case CONFIG :           
-                                                                                switch(AlgoidResponse[i].responseType){
-                                                                                    case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
-                                                                                    case EVENT_ACTION_END :   jwObj_string("action", "end"); break;
-                                                                                    case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
-                                                                                    case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
-                                                                                    case RESP_STD_MESSAGE   :    
-                                                                                                                jwObj_object( "stream" );                                                                                 
-                                                                                                                        jwObj_string("state", AlgoidResponse[i].CONFIGresponse.stream.state);
-                                                                                                                        jwObj_int("time", AlgoidResponse[i].CONFIGresponse.stream.time);
-                                                                                                                        jwObj_string("onEvent", AlgoidResponse[i].CONFIGresponse.stream.onEvent);         
-                                                                                                                jwEnd(); 
-                                                                                                                ; break;
-                                                                                    default : jwObj_string("error", "unknown"); break;
-                                                                                }		// add object key:value pairs
-                                                                                       
-                                                                                break;
+                                                                            switch(AlgoidResponse[i].responseType){
+                                                                                case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
+                                                                                case EVENT_ACTION_END :   jwObj_string("action", "end"); break;
+                                                                                case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
+                                                                                case RESP_STD_MESSAGE   :    
+                                                                                                            jwObj_object( "stream" );                                                                                 
+                                                                                                                    jwObj_string("state", AlgoidResponse[i].CONFIGresponse.stream.state);
+                                                                                                                    jwObj_int("time", AlgoidResponse[i].CONFIGresponse.stream.time);
+                                                                                                                    jwObj_string("onEvent", AlgoidResponse[i].CONFIGresponse.stream.onEvent);         
+                                                                                                            jwEnd(); 
+                                                                                                            ; break;
+                                                                                default : jwObj_string("error", "unknown"); break;
+                                                                            }		// add object key:value pairs  
+                                                                            break;
                                                                                 
 							case SYSTEM :           
-                                                                                switch(AlgoidResponse[i].responseType){
-                                                                                    case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
-                                                                                    case EVENT_ACTION_END :   jwObj_string("action", "end"); break;
-                                                                                    case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
-                                                                                    case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
-                                                                                    case RESP_STD_MESSAGE   :                                                                                    
-                                                                                                                jwObj_string("application", AlgoidResponse[i].SYSCMDresponse.application);
-                                                                                                              ; break;
-                                                                                    default : jwObj_string("error", "unknown"); break;
-                                                                                }		// add object key:value pairs
-                                                                                       
-                                                                                break;                                                                                
+                                                                            switch(AlgoidResponse[i].responseType){
+                                                                                case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
+                                                                                case EVENT_ACTION_END :   jwObj_string("action", "end"); break;
+                                                                                case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
+                                                                                case RESP_STD_MESSAGE   :                                                                                    
+                                                                                                            jwObj_string("application", AlgoidResponse[i].SYSCMDresponse.application);
+                                                                                                          ; break;
+                                                                                default : jwObj_string("error", "unknown"); break;
+                                                                            }		// add object key:value pairs
+
+                                                                            break;                                                                                
                                                                                    
 							default:                break;
 

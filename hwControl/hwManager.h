@@ -17,6 +17,8 @@
 int InitHwManager(void);						// Ouverture du thread Timer
 int CloseHwManager(void);						// Fermeture du thread Timer
 
+int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd); // Ajout la commande I2C dans la file
+
 int getMotorFrequency(unsigned char motorNb);	// Retourne la fréquence actuelle mesuree sur l'encodeur
 int getMotorPulses(unsigned char motorNb);		// Retourne le nombre d'impulsion d'encodeur moteur depuis le démarrage
 char getDigitalInput(unsigned char inputNb);	// Retourne l'état de l'entrée numérique spécifiée
@@ -32,8 +34,11 @@ extern void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acce
 extern unsigned char getMotorPower(unsigned char motorNr);			// Get the actual power of selected motor
 extern void setServoPosition(unsigned char smName, unsigned char angle);
 extern void setLedPower(unsigned char ledID, unsigned char power);
+extern void setPwmPower(unsigned char ID, unsigned char power);
+
+extern int resetHardware(void);                         // Reset les peripherique hardware (Moteur, LED, PWM, etc...)
+
 //extern char getOrganNumber(int organName);		// Retourne le numéro du moteur 0..xx selon le nom d'organe spécifié
 
-int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd);		//
 extern int getHWInfo(char* MCUversion, char* HWtype); // Get the hardware/software version
 #endif /* HWMANAGER_H_ */

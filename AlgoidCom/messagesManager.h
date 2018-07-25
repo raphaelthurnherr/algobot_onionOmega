@@ -24,4 +24,11 @@ int pullMsgStack(unsigned char ptrStack);
 int CloseMessager(void);
 void sendMqttReport(int msgId, char * msg);
 void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char msgParam, unsigned char valCnt);
+
+typedef struct msg_statistics{
+        int messageTX;
+        int messageRX;
+}STATISTICS;
+
+extern STATISTICS msg_stats;
 #endif /* MESSAGESMANAGER_H_ */

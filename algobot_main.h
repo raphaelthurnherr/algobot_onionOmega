@@ -117,6 +117,7 @@ typedef struct tSystem{
         char mcuVersion[32];
         char HWrevision[32];
         float battVoltage;
+        int wan_online;
 }t_system;
 
 typedef struct tConfig{

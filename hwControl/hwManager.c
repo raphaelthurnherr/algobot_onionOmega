@@ -80,10 +80,12 @@ void setPwmPower(unsigned char ID, unsigned char power);
 
 void processCommandQueue(void);
 void execCommand(void (*ptrFunc)(char, int), char adr, int cmd);
-int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd);		//
+int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd);
 
-int getHWversion(void);                                                 // Get the hardware
-int getMcuFirmware(void);                                              // Get the hardware
+int getHWversion(void);                                                 // Get the hardware board version
+int getMcuFirmware(void);                                              // Get the hardware microcontroller version
+
+int resetHardware(void);
 // ------------------------------------------
 // Programme principale TIMER
 // ------------------------------------------
@@ -180,7 +182,8 @@ int InitHwManager(void){
 	// CREATION DU THREAD DE TIMER
 	  if (pthread_create (&th_hwManager, NULL, hwTask, NULL)!= 0) {
 		return (1);
-	  }else return (0);
+	  }else
+              return (0);
 }
 
 // ------------------------------------------------------------------------------------
@@ -535,4 +538,34 @@ unsigned char getOrganI2Cregister(char organType, unsigned char organName){
 	}
 
 	return organAdr;
+}
+
+// -------------------------------------------------------------------
+// RESET HARDFWARE
+// Applique un etat initial aux moteurs, LEDS, PWM, etc...
+// -------------------------------------------------------------------
+
+int resetHardware(void){
+    int i;
+    
+    // Etat initial des moteur
+    for(i=0;i<NBMOTOR;i++){
+        setMotorSpeed(i, 0);
+        setMotorAccelDecel(i, 25, 100);
+        setMotorDirection(i, BUGGY_FORWARD);
+    }
+
+    // Etat initial des servomoteur   
+    for(i=0;i<NBSERVO;i++)
+        setServoPosition(i, 0);
+
+    // Etat initial des LED       
+    for(i=0;i<NBLED;i++)
+        setLedPower(i, 0);
+    
+    // Etat initial des sorties PWM LED
+    for(i=0;i<NBPWM;i++)
+        setPwmPower(i,0);
+    
+    return 0;
 }
