@@ -12,13 +12,15 @@ start()
 {
      # Mettez ici le d..marrage de votre programme
         mosquitto&
-        sleep 3;
+        sleep 1;
         ws-tcp-bridge --method=ws2tcp --lport=9001 --rhost=127.0.0.1:1883&
         sleep 1;
         ws-tcp-bridge --method=tcp2ws --lport=1883 --rhost=ws://127.0.0.1:9001&
         #sleep 1;
         ./root/algobot/algobot_onionomega&
- 
+		sleep 10;
+ 		./root/algobotmanager&
+		
         echo "ALGOBOT LAUNCHER -> Algobot application started !"
 }
  
