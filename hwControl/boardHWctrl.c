@@ -1,7 +1,9 @@
+
+#ifndef I2CSIMU
+
 #include "boardHWctrl.h"
 #include <onion-i2c.h>
 #include "../buggy_descriptor.h"
-
 
 unsigned char configPWMdevice(void);                            // Configuration of the PCA9685 for 50Hz operation
 unsigned char configGPIOdevice(void);                           // Configuration IO mode of the MCP28003
@@ -291,37 +293,37 @@ unsigned char configGPIOdevice(void){
 //================================================================================
 // CONFIGRGBDEVICE
 // Configuration initiale pour le capteur RGB BH1745NUC
-//	- Registre de contrôle
+//	- Registre de contrï¿½le
 
 //================================================================================
 unsigned char configRGBdevice(void){
     
     // --- CONFIGURATION DU CAPTEUR 1
     
-    // Configuration du registre de contrôle du capteur 1
+    // Configuration du registre de contrï¿½le du capteur 1
     // b7:Initial reset, b6, INT inactive
     i2c_write(0, BH1745_0, 0x40, 0xC0);   
-    // Configuration du registre de contrôle mode1 (Measurement time=640mS)
+    // Configuration du registre de contrï¿½le mode1 (Measurement time=640mS)
     i2c_write(0, BH1745_0, 0x41, 0x02);   
-    // Configuration du registre de contrôle mode2 (Mesure RGBC active, Gain=1)
+    // Configuration du registre de contrï¿½le mode2 (Mesure RGBC active, Gain=1)
     i2c_write(0, BH1745_0, 0x42, 0x10);   
-    // Configuration du registre d'interruption (Interruption désactivées, pin désactivée
+    // Configuration du registre d'interruption (Interruption dï¿½sactivï¿½es, pin dï¿½sactivï¿½e
     i2c_write(0, BH1745_0, 0x60, 0x00);
-    // Configuration du registre de persistance (Interruption après chaque mesure)
+    // Configuration du registre de persistance (Interruption aprï¿½s chaque mesure)
     i2c_write(0, BH1745_0, 0x61, 0x00);  
     
     // --- CONFIGURATION DU CAPTEUR 2
     
-    // Configuration du registre de contrôle du capteur 1
+    // Configuration du registre de contrï¿½le du capteur 1
     // b7:Initial reset, b6, INT inactive
     i2c_write(0, BH1745_1, 0x40, 0xC0);   
-    // Configuration du registre de contrôle mode1 (Measurement time=640mS)
+    // Configuration du registre de contrï¿½le mode1 (Measurement time=640mS)
     i2c_write(0, BH1745_1, 0x41, 0x02);   
-    // Configuration du registre de contrôle mode2 (Mesure RGBC active, Gain=1)
+    // Configuration du registre de contrï¿½le mode2 (Mesure RGBC active, Gain=1)
     i2c_write(0, BH1745_1, 0x42, 0x10);   
-    // Configuration du registre d'interruption (Interruption désactivées, pin désactivée
+    // Configuration du registre d'interruption (Interruption dï¿½sactivï¿½es, pin dï¿½sactivï¿½e
     i2c_write(0, BH1745_1, 0x60, 0x00);
-    // Configuration du registre de persistance (Interruption après chaque mesure)
+    // Configuration du registre de persistance (Interruption aprï¿½s chaque mesure)
     i2c_write(0, BH1745_1, 0x61, 0x00);      
 }
 
@@ -454,7 +456,7 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb){
 // -------------------------------------------------------------------
 // GETDIGITALINPUT
 // Mesure de l'etat des entrees digitale
-// Paramètre "InputNr" plus utilisé...
+// Paramï¿½tre "InputNr" plus utilisï¿½...
 // -------------------------------------------------------------------
 char EFM8BB_readDigitalInput(unsigned char InputNr){
 	unsigned char err;
@@ -535,3 +537,5 @@ int BH1745_getRGBvalue(unsigned char sensorNb, int color){
 	}else
             return -1;
 }
+
+#endif

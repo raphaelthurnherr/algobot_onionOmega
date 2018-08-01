@@ -65,6 +65,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 #include "../buggy_descriptor.h"
 #include "linux_json.h"
@@ -295,7 +296,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
 	unsigned int buflen= MAX_MQTT_BUFF;
 	unsigned char i,j;
         
-// Formatage de la réponse en JSON
+// Formatage de la rÃ©ponse en JSON
 	jwOpen( buffer, buflen, JW_OBJECT, JW_PRETTY );		// start root object
 		jwObj_string( "MsgTo", to );				// add object key:value pairs
 		jwObj_string( "MsgFrom", from );				// add object key:value pairs

@@ -5,3 +5,4 @@
 #
 # Debug configuration
 # Release configuration
+# Debug-GNU-LINUX configuration

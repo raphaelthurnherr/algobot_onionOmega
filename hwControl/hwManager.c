@@ -13,7 +13,13 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "hwManager.h"
+
+#ifdef I2CSIMU
+#include "boardHWsimu.h"
+#else
 #include "boardHWctrl.h"
+#endif
+
 #include "../buggy_descriptor.h"
 
 // Thread Messager
@@ -58,21 +64,21 @@ unsigned char motorDCaccelValue[2]={25,25};			// Valeur d'acceleration des moteu
 unsigned char motorDCdecelValue[2]={25,25};			// Valeur d'acceleration des moteurs
 
 
-int getMotorFrequency(unsigned char motorNb);	// Retourne la fréquence actuelle mesuree sur l'encodeur
-int getMotorPulses(unsigned char motorName);		// Retourne le nombre d'impulsion d'encodeur moteur depuis le démarrage
-char getDigitalInput(unsigned char inputNumber);	// Retourne l'état de l'entrée numérique spécifiée
-char getButtonInput(unsigned char buttonNumber);        // Retourne l'état du bouton
+int getMotorFrequency(unsigned char motorNb);	// Retourne la frï¿½quence actuelle mesuree sur l'encodeur
+int getMotorPulses(unsigned char motorName);		// Retourne le nombre d'impulsion d'encodeur moteur depuis le dï¿½marrage
+char getDigitalInput(unsigned char inputNumber);	// Retourne l'ï¿½tat de l'entrï¿½e numï¿½rique spï¿½cifiï¿½e
+char getButtonInput(unsigned char buttonNumber);        // Retourne l'ï¿½tat du bouton
 int getSonarDistance(void);						// Retourne la distance en cm
 int getBatteryVoltage(void);					// Retourne la tension battery en mV
-int getColorValue(unsigned char sensorID, unsigned char color);      // Retourne la valeur de la couleur définie sur le capteur défini
-//char getOrganNumber(int organName);		// Retourne le numéro du moteur 0..xx selon le nom d'organe spécifié
+int getColorValue(unsigned char sensorID, unsigned char color);      // Retourne la valeur de la couleur dï¿½finie sur le capteur dï¿½fini
+//char getOrganNumber(int organName);		// Retourne le numï¿½ro du moteur 0..xx selon le nom d'organe spï¿½cifiï¿½
 unsigned char getOrganI2Cregister(char organType, unsigned char organName); // Retourne l'adresse du registre correspondant au nom de l'organe
 
 extern int setMotorSpeed(int motorName, int ratio);
-void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent);		// Défini l'accéleration/deceleration d'un moteur
+void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent);		// Dï¿½fini l'accï¿½leration/deceleration d'un moteur
 int setMotorDirection(int motorName, int direction);
 void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
-unsigned char getMotorPower(unsigned char motorNr);											// Retourne la velocité actuelle d'un moteur
+unsigned char getMotorPower(unsigned char motorNr);											// Retourne la velocitï¿½ actuelle d'un moteur
 
 void setServoPosition(unsigned char smName, unsigned char angle);
 void setLedPower(unsigned char ledID, unsigned char power);
@@ -111,9 +117,9 @@ void *hwTask (void * arg){
         BoardInfo.HWrevision=EFM8BB_getBoardType();
         
         
-        
+
 	while(1){
-		// Sequencage des messages sur bus I2C à interval régulier
+		// Sequencage des messages sur bus I2C ï¿½ interval rï¿½gulier
 		switch(timeCount_ms){
 			case 5	: sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_LEFT);
 					  sensor.counter[MOTOR_ENCODER_LEFT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_LEFT); 
@@ -123,7 +129,7 @@ void *hwTask (void * arg){
 					  sensor.counter[MOTOR_ENCODER_RIGHT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_RIGHT);
                                           //printf("Pulses right: %d\n\n",sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
                                           break;
-			case 15	:   dinState = EFM8BB_readDigitalInput(0);              // Paramètre transmis non utilisé par la fonction...
+			case 15	:   dinState = EFM8BB_readDigitalInput(0);              // Paramï¿½tre transmis non utilisï¿½ par la fonction...
                                     if(dinState & 0x01) sensor.din[DIN_0] = 1;
                                     else sensor.din[DIN_0]=0;
                         
@@ -176,7 +182,7 @@ void *hwTask (void * arg){
 
 // ------------------------------------------------------------------------------------
 // TIMERMANAGER: Initialisation du gestionnaire de timer
-// - Démarre le thread
+// - Dï¿½marre le thread
 // ------------------------------------------------------------------------------------
 int InitHwManager(void){
 	// CREATION DU THREAD DE TIMER
@@ -201,8 +207,8 @@ int CloseHwManager(void){
 }
 
 // ------------------------------------------------------------------------------------
-// GETPULSEMOTOR: lecture de l'encodeur optique du moteur spécifié
-// Entrée: Numéro de l'encodeur
+// GETPULSEMOTOR: lecture de l'encodeur optique du moteur spï¿½cifiï¿½
+// Entrï¿½e: Numï¿½ro de l'encodeur
 // Sortie:
 // ------------------------------------------------------------------------------------
 int getMotorPulses(unsigned char motorName){
@@ -325,22 +331,22 @@ int getMcuFirmware(void){
 
 // ------------------------------------------------------------------------------------
 // CHECKMOTORPOWER:
-// Fonction appelée periodiquement pour la gestion de l'acceleration
-// Décelération du moteur.
+// Fonction appelï¿½e periodiquement pour la gestion de l'acceleration
+// Dï¿½celï¿½ration du moteur.
 // Elle va augmenter ou diminuer la velocite du moteur jusqu'a atteindre la consigne
 // ------------------------------------------------------------------------------------
 void checkDCmotorPower(void){
 	unsigned char i;
 	//unsigned char PowerToSet;
 
-	// Contrôle successivement la puissance sur chaque moteur et effectue une rampe d'accélération ou décéleration
+	// Contrï¿½le successivement la puissance sur chaque moteur et effectue une rampe d'accï¿½lï¿½ration ou dï¿½cï¿½leration
 	for(i=0;i<2;i++){
 		//printf("Motor Nb: %d Adr: %2x ActualPower: %d   TargetPower: %d  \n",i, motorDCadr[i], motorDCactualPower[i], motorDCtargetPower[i]);
 		if(motorDCactualPower[i] < motorDCtargetPower[i]){
 			//PowerToSet=motorDCactualPower[i] + ((motorDCtargetPower[i]-motorDCactualPower[i])/100)*motorDCaccelValue[i];
 			//printf("Power to set: %d %",PowerToSet);
 
-			if(motorDCactualPower[i]+motorDCaccelValue[i]<=motorDCtargetPower[i])		// Contrôle que puissance après acceleration ne dépasse pas la consigne
+			if(motorDCactualPower[i]+motorDCaccelValue[i]<=motorDCtargetPower[i])		// Contrï¿½le que puissance aprï¿½s acceleration ne dï¿½passe pas la consigne
 				motorDCactualPower[i]+=motorDCaccelValue[i];						// Augmente la puissance moteur
 			else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
 
@@ -349,7 +355,7 @@ void checkDCmotorPower(void){
 		}
 
 		if(motorDCactualPower[i]>motorDCtargetPower[i]){
-			if(motorDCactualPower[i]-motorDCdecelValue[i]>=motorDCtargetPower[i])		// Contrôle que puissance après acceleration ne dépasse pas la consigne
+			if(motorDCactualPower[i]-motorDCdecelValue[i]>=motorDCtargetPower[i])		// Contrï¿½le que puissance aprï¿½s acceleration ne dï¿½passe pas la consigne
 				motorDCactualPower[i]-=motorDCdecelValue[i];						// Diminue la puissance moteur
 			else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
 
@@ -366,7 +372,7 @@ void checkDCmotorPower(void){
 
 // -------------------------------------------------------------------
 // GETMOTORPOWER
-// Retourne l'état actuelle de la puissance du moteur selectionné
+// Retourne l'ï¿½tat actuelle de la puissance du moteur selectionnï¿½
 // -------------------------------------------------------------------
 
 unsigned char getMotorPower(unsigned char motorNr){
@@ -376,23 +382,23 @@ unsigned char getMotorPower(unsigned char motorNr){
 
 // -------------------------------------------------------------------
 // setMotorAccelDecel
-// Défini les valeurs d'acceleration et decelaration du moteur
-// Valeur donnée en % de ce qu'il reste pour atteindre la consigne
+// Dï¿½fini les valeurs d'acceleration et decelaration du moteur
+// Valeur donnï¿½e en % de ce qu'il reste pour atteindre la consigne
 // -------------------------------------------------------------------
 void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent){
 
 	//unsigned char motorSlot;
 	//motorSlot = getOrganNumber(motorNo);
 
-	// Récupération de la valeur absolue de l'acceleration
+	// Rï¿½cupï¿½ration de la valeur absolue de l'acceleration
 	if(accelPercent<0) accelPercent*=-1;
-	// Défini un maximum de 100% d'acceleration
+	// Dï¿½fini un maximum de 100% d'acceleration
 	if(accelPercent>100)
 		accelPercent=100;
 
-	// Récupération de la valeur absolue de la deceleration
+	// Rï¿½cupï¿½ration de la valeur absolue de la deceleration
 	if(decelPercent<0) decelPercent*=-1;
-	// Défini un maximum de 100% de deceleration
+	// Dï¿½fini un maximum de 100% de deceleration
 	if(decelPercent>100)
 		decelPercent=100;
 
@@ -406,15 +412,15 @@ void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPerc
 
 // ---------------------------------------------------------------------------
 // SETMOTORSPEED
-// Applique la consigne de vélocité pour un moteur donné
-// Cette consigne n'est pas appliquée directement sur les moteur mais sera progressivement
-// approchée par le gestionnaire d'acceleration.
+// Applique la consigne de vï¿½locitï¿½ pour un moteur donnï¿½
+// Cette consigne n'est pas appliquï¿½e directement sur les moteur mais sera progressivement
+// approchï¿½e par le gestionnaire d'acceleration.
 // ---------------------------------------------------------------------------
 int setMotorSpeed(int motorName, int ratio){
 	//char motorSlot;
 	//motorSlot = getOrganNumber(motorName);
 
-	// Vérification ratio max et min comprise entre 0..100%
+	// Vï¿½rification ratio max et min comprise entre 0..100%
 	if(ratio > 100)
 		ratio = 100;
 	if (ratio<0)
@@ -472,10 +478,10 @@ void setPwmPower(unsigned char ID, unsigned char power){
 
 // ------------------------------------------------------------------------------------
 // ONTIMEOUT: Fcontion appelee en fin de timer
-// appelle une fonction callback prédéfinie par *ptrFunc
+// appelle une fonction callback prï¿½dï¿½finie par *ptrFunc
 // ------------------------------------------------------------------------------------
 void execCommand(void (*ptrFunc)(char, int), char adr, int cmd){
-	(*ptrFunc)(adr, cmd);		// Appelle de la fonction call back prédéfinie par *ptrFonc avec les paramètre recus
+	(*ptrFunc)(adr, cmd);		// Appelle de la fonction call back prï¿½dï¿½finie par *ptrFonc avec les paramï¿½tre recus
 }
 
 

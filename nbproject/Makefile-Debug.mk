@@ -66,6 +66,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/asyncTools/asyncPWM.o \
 	${OBJECTDIR}/asyncTools/asyncTools.o \
 	${OBJECTDIR}/hwControl/boardHWctrl.o \
+	${OBJECTDIR}/hwControl/boardHWsimu.o \
 	${OBJECTDIR}/hwControl/hwManager.o \
 	${OBJECTDIR}/hwControl/libs/i2c/onion-i2c.o \
 	${OBJECTDIR}/hwControl/libs/onion-debug/onion-debug.o \
@@ -74,7 +75,7 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-pthread
+CFLAGS=-pthread -lm
 
 # CC Compiler Flags
 CCFLAGS=
@@ -95,7 +96,7 @@ LDLIBSOPTIONS=
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega ${OBJECTFILES} ${LDLIBSOPTIONS} -pthread
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega ${OBJECTFILES} ${LDLIBSOPTIONS} -pthread -lm
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_json/jRead.o: AlgoidCom/libs/lib_json/jRead.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_json
@@ -251,6 +252,11 @@ ${OBJECTDIR}/hwControl/boardHWctrl.o: hwControl/boardHWctrl.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl
 	${RM} "$@.d"
 	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/boardHWctrl.o hwControl/boardHWctrl.c
+
+${OBJECTDIR}/hwControl/boardHWsimu.o: hwControl/boardHWsimu.c
+	${MKDIR} -p ${OBJECTDIR}/hwControl
+	${RM} "$@.d"
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/boardHWsimu.o hwControl/boardHWsimu.c
 
 ${OBJECTDIR}/hwControl/hwManager.o: hwControl/hwManager.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl
