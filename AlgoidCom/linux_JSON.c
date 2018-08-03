@@ -56,6 +56,7 @@
 #define KEY_MESSAGE_VALUE_CFG_STREAM_STATE "{'MsgData'{'MsgValue'[*{'stream'{'state'"
 #define KEY_MESSAGE_VALUE_CFG_STREAM_TIME "{'MsgData'{'MsgValue'[*{'stream'{'time'"
 #define KEY_MESSAGE_VALUE_CFG_STREAM_ONEVENT "{'MsgData'{'MsgValue'[*{'stream'{'onEvent'"
+#define KEY_MESSAGE_VALUE_CFG_APPRESET "{'MsgData'{'MsgValue'[*{'config'{'reset'"
 
 #define KEY_MESSAGE_VALUE_SYS_APP "{'MsgData'{'MsgValue'[*{'application'"
 #define KEY_MESSAGE_VALUE_SYS_FIRMWARE "{'MsgData'{'MsgValue'[*{'firmware'"
@@ -270,6 +271,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                                   jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_STATE, AlgoidMessageRX.Config.stream.state, 15, &i );
                                                   AlgoidMessageRX.Config.stream.time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_TIME, &i);
                                                   jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_ONEVENT, AlgoidMessageRX.Config.stream.onEvent, 15, &i );
+                                                  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_APPRESET, AlgoidMessageRX.Config.config.reset, 15, &i );
 				    	  }
                                           
                                           if(AlgoidMessageRX.msgParam == SYSTEM){
@@ -394,7 +396,8 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
 
                                                                             // add object key:value pairs
                                                                             if(AlgoidResponse[i].value >= 0){
-                                                                                    jwObj_int("mV", AlgoidResponse[i].value);				// add object key:value pairs
+                                                                                    jwObj_int("mV", AlgoidResponse[i].value);
+                                                                                    jwObj_int("capacity", AlgoidResponse[i].BATTesponse.capacity);// add object key:value pairs
                                                                                     jwObj_string("event", AlgoidResponse[i].BATTesponse.event_state);				// add object key:value pairs
                                                                                     jwObj_int("event_lower", AlgoidResponse[i].BATTesponse.event_low);				// add object key:value pairs
                                                                                     jwObj_int("event_higher", AlgoidResponse[i].BATTesponse.event_high);				// add object key:value pairs
@@ -450,7 +453,8 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                 jwObj_string("firmwareVersion",AlgoidResponse[i].SYSresponse.firmwareVersion);	
                                                                                 jwObj_string("mcuVersion",AlgoidResponse[i].SYSresponse.mcuVersion);
                                                                                 jwObj_string("boardRev",AlgoidResponse[i].SYSresponse.HWrevision);
-                                                                                jwObj_double("battery_mv",AlgoidResponse[i].SYSresponse.battVoltage);		// add object key:value pairs
+                                                                                jwObj_double("battery_mv",AlgoidResponse[i].SYSresponse.battVoltage);
+                                                                                jwObj_double("battery_capacity",AlgoidResponse[i].SYSresponse.battPercent);                                                                                // add object key:value pairs
                                                                                 if(AlgoidResponse[i].SYSresponse.wan_online)
                                                                                     strcpy(wanState, "online");
                                                                                 else
@@ -522,10 +526,9 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     }
                                                                                 jwEnd(); 
                                                                             }
-
-
-                                                                            // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM){
+                                                                            
+                                                                            // ETAT DES LED                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED){
                                                                                 jwObj_array( "pwm" );
                                                                                     for(j=0;j<NBPWM;j++){
                                                                                         jwArr_object();
@@ -535,10 +538,24 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                         i++;
                                                                                     }
                                                                                 jwEnd();                                                                                             
+                                                                            }                                                                            
+
+
+                                                                            // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED+NBPWM){
+                                                                                jwObj_array( "led" );
+                                                                                    for(j=0;j<NBLED;j++){
+                                                                                        jwArr_object();
+                                                                                            jwObj_int("state",AlgoidResponse[i].value);
+                                                                                            jwObj_int("power",AlgoidResponse[i].LEDresponse.powerPercent);
+                                                                                        jwEnd();           
+                                                                                        i++;
+                                                                                    }
+                                                                                jwEnd();                                                                                             
                                                                             }
 
                                                                             // ETAT DES CAPTEURS RGB                                                                                                                                                     // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBPWM+NBRGBC){
+                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED+NBPWM && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED+NBPWM+NBRGBC){
                                                                                 jwObj_array( "rgb" );
                                                                                     for(j=0;j<NBRGBC;j++){
                                                                                         jwArr_object();
@@ -602,10 +619,13 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                                                     jwObj_string("state", AlgoidResponse[i].CONFIGresponse.stream.state);
                                                                                                                     jwObj_int("time", AlgoidResponse[i].CONFIGresponse.stream.time);
                                                                                                                     jwObj_string("onEvent", AlgoidResponse[i].CONFIGresponse.stream.onEvent);         
-                                                                                                            jwEnd(); 
+                                                                                                            jwEnd();
+                                                                                                            jwObj_object( "application" );                                                                                 
+                                                                                                                    jwObj_string("reset", AlgoidResponse[i].CONFIGresponse.config.reset);       
+                                                                                                            jwEnd();                                                                                                             
                                                                                                             ; break;
                                                                                 default : jwObj_string("error", "unknown"); break;
-                                                                            }		// add object key:value pairs  
+                                                                            }
                                                                             break;
                                                                                 
 							case SYSTEM :           

@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.3.1"
+#define FIRMWARE_VERSION "1.3.2"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -74,6 +74,8 @@ int getServoSetting(int servoName);
 int runUpdateCommand(int type);
 void runRestartCommand(void);
 
+void resetConfig(void);
+
 char reportBuffer[256];
 
 t_sensor body;
@@ -129,78 +131,18 @@ int main(void) {
 // --------------------------------------------------------------------
 
 	// ----------- DEBUT DE LA BOUCLE PRINCIPALE ----------
-
-	// Init body membre
-	for(i=0;i<NBAIN;i++){
-		body.battery[i].safetyStop_value=0;
-		body.battery[i].event_enable=DEFAULT_EVENT_STATE;
-		body.battery[i].event_high=65535;
-		body.battery[i].event_low=0;
-		body.battery[i].safetyStop_state=0;
-		body.battery[i].safetyStop_value=0;
-	}
-
-	for(i=0;i<NBDIN;i++){
-		body.proximity[i].em_stop=0;
-		body.proximity[i].event_enable=DEFAULT_EVENT_STATE;
-		body.proximity[i].safetyStop_state=0;
-		body.proximity[i].safetyStop_value=0;
-	}
+ 
+        // Reset configuration to default
+        resetConfig();
         
-        for(i=0;i<NBBTN;i++){
-		body.button[i].em_stop=0;
-		body.button[i].event_enable=DEFAULT_EVENT_STATE;
-		body.button[i].safetyStop_state=0;
-		body.button[i].safetyStop_value=0;
-	}
-        
-        for(i=0;i<NBMOTOR;i++){
-		body.motor[i].accel=0;
-                body.motor[i].cm=0;
-                body.motor[i].decel=0;
-                body.motor[i].distance=0;
-                body.motor[i].speed=0;
-                body.motor[i].time=0;
-	}
-        
-        for(i=0;i<NBSONAR;i++){
-		body.distance[i].event_enable=DEFAULT_EVENT_STATE;
-                body.distance[i].event_high=100;
-                body.distance[i].event_low=15;
-                body.distance[i].event_hysteresis=0;
-                body.distance[i].value=-1;
-	}
-      
-        
-        for(i=0;i<NBRGBC;i++){
-                body.rgb[i].event_enable=DEFAULT_EVENT_STATE;
-                
-		body.rgb[i].red.value=-1;
-		body.rgb[i].red.event_low=0;
-		body.rgb[i].red.event_high=65535;
-                
-                body.rgb[i].green.value=-1;
-		body.rgb[i].green.event_low=0;
-		body.rgb[i].green.event_high=65535;
-                
-                body.rgb[i].blue.value=-1;
-		body.rgb[i].blue.event_low=0;
-		body.rgb[i].blue.event_high=65535;
-                
-                body.rgb[i].clear.value=-1;
-		body.rgb[i].clear.event_low=0;
-		body.rgb[i].clear.event_high=65535;
-	}
-
-        sysInfo.startUpTime=0;
-        
-        // ------------ Initialisation de la configuration systeme
-        
-        // Initialisation configuration de flux de donn�es periodique
-        sysConfig.dataStream.state=ON;
-        sysConfig.dataStream.time_ms=1000;
-                
 	while(1){
+        
+        // Check if reset was triggered by user
+        if(sysConfig.config.reset>0){
+            resetConfig();
+            resetHardware();
+            systemDataStreamCounter=0;
+        }
             
         // Controle periodique de l'envoie du flux de donnees des capteurs (status)
         if(sysConfig.dataStream.state==ON){
@@ -282,6 +224,7 @@ int main(void) {
 															// est hors de la plage sp�cifi�e par l'utilisateur
 
 			body.battery[0].value = getBatteryVoltage();
+                        body.battery[0].capacity=(body.battery[0].value-3500)/((4210-3500)/100);
                         batteryEventCheck();
                         
 
@@ -390,6 +333,7 @@ int processAlgoidCommand(void){
             case CONFIG  : 	
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
                                     
+                                // CONFIG COMMAND FOR DATASTREAM
                                     // R�cup�re les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par polling
                                     if(!strcmp(AlgoidCommand.Config.stream.state, "on"))
                                         sysConfig.dataStream.state=1; 			// Activation de l'envoie du datastream
@@ -408,8 +352,13 @@ int processAlgoidCommand(void){
                                     if(AlgoidCommand.Config.stream.time>0)
                                         sysConfig.dataStream.time_ms=AlgoidCommand.Config.stream.time;
 
+                                    
+                                    if(!strcmp(AlgoidCommand.Config.config.reset, "true"))
+                                        sysConfig.config.reset=1; 			// Activation de l'envoie du datastream
+
                                     //printf("StatusStream state: %d time:%d Event: %d\n", sysConfig.dataStream.state, sysConfig.dataStream.time_ms, sysConfig.dataStream.onEvent);
   
+                                    
                                     
                                     // Pr�paration des valeurs du message de r�ponse
                                     AlgoidResponse[i].CONFIGresponse.stream.time=sysConfig.dataStream.time_ms;
@@ -420,6 +369,11 @@ int processAlgoidCommand(void){
                                     if(sysConfig.dataStream.state==0) 
                                         strcpy(AlgoidResponse[i].CONFIGresponse.stream.state, "off");
                                     else strcpy(AlgoidResponse[i].CONFIGresponse.stream.state, "on");
+                                    
+                                    if(sysConfig.config.reset==1) 
+                                        strcpy(AlgoidResponse[i].CONFIGresponse.config.reset, "true");
+                                    else strcpy(AlgoidResponse[i].CONFIGresponse.config.reset, "---");
+                                    
                                     AlgoidResponse[i].responseType = RESP_STD_MESSAGE; 
                                 }
                                 
@@ -1078,7 +1032,7 @@ int makeStatusRequest(int msgType){
 	unsigned char ptrData=0;
 
 	AlgoidCommand.msgValueCnt=0;
-	AlgoidCommand.msgValueCnt = NBDIN + NBBTN + NBMOTOR + NBSONAR + NBPWM + NBRGBC +1 ; // Nombre de VALEUR � transmettre + 1 pour le SystemStatus
+	AlgoidCommand.msgValueCnt = NBDIN + NBBTN + NBMOTOR + NBSONAR + NBLED + NBPWM + NBRGBC +1 ; // Nombre de VALEUR � transmettre + 1 pour le SystemStatus
      
         // Preparation du message de reponse pour le status systeme
         strcpy(AlgoidResponse[ptrData].SYSresponse.name, ClientID);
@@ -1097,6 +1051,7 @@ int makeStatusRequest(int msgType){
         strcpy(AlgoidResponse[ptrData].SYSresponse.mcuVersion,fv);
         strcpy(AlgoidResponse[ptrData].SYSresponse.HWrevision,hv);
         AlgoidResponse[ptrData].SYSresponse.battVoltage=body.battery[0].value;
+        AlgoidResponse[ptrData].SYSresponse.battPercent=body.battery[0].capacity;
         ptrData++;
         
 	for(i=0;i<NBDIN;i++){
@@ -1132,6 +1087,14 @@ int makeStatusRequest(int msgType){
                 else strcpy(AlgoidResponse[ptrData].DISTresponse.event_state, "off");
                 ptrData++;
 	}
+        
+        for(i=0;i<NBLED;i++){
+		AlgoidResponse[ptrData].LEDresponse.id=i;
+		AlgoidResponse[ptrData].value=body.led[i].state;
+                AlgoidResponse[ptrData].LEDresponse.powerPercent=body.led[i].power;
+		ptrData++;
+	}
+        
         
         for(i=0;i<NBPWM;i++){
 		AlgoidResponse[ptrData].PWMresponse.id=i;
@@ -2100,4 +2063,82 @@ void runRestartCommand(void){
         status=system("sh /root/algobotManager.sh restart");
     
     printf ("---------- End of bash script ------------\n");
+}
+
+void resetConfig(void){
+    int i;
+    
+    	// Init body membre
+	for(i=0;i<NBAIN;i++){
+		body.battery[i].safetyStop_value=0;
+		body.battery[i].event_enable=DEFAULT_EVENT_STATE;
+		body.battery[i].event_high=65535;
+		body.battery[i].event_low=0;
+		body.battery[i].safetyStop_state=0;
+		body.battery[i].safetyStop_value=0;
+	}
+
+	for(i=0;i<NBDIN;i++){
+		body.proximity[i].em_stop=0;
+		body.proximity[i].event_enable=DEFAULT_EVENT_STATE;
+		body.proximity[i].safetyStop_state=0;
+		body.proximity[i].safetyStop_value=0;
+	}
+        
+        for(i=0;i<NBBTN;i++){
+		body.button[i].em_stop=0;
+		body.button[i].event_enable=DEFAULT_EVENT_STATE;
+		body.button[i].safetyStop_state=0;
+		body.button[i].safetyStop_value=0;
+	}
+        
+        for(i=0;i<NBMOTOR;i++){
+		body.motor[i].accel=0;
+                body.motor[i].cm=0;
+                body.motor[i].decel=0;
+                body.motor[i].distance=0;
+                body.motor[i].speed=0;
+                body.motor[i].time=0;
+	}
+        
+        for(i=0;i<NBSONAR;i++){
+		body.distance[i].event_enable=DEFAULT_EVENT_STATE;
+                body.distance[i].event_high=100;
+                body.distance[i].event_low=15;
+                body.distance[i].event_hysteresis=0;
+                body.distance[i].value=-1;
+	}
+      
+        
+        for(i=0;i<NBRGBC;i++){
+                body.rgb[i].event_enable=DEFAULT_EVENT_STATE;
+                
+		body.rgb[i].red.value=-1;
+		body.rgb[i].red.event_low=0;
+		body.rgb[i].red.event_high=65535;
+                
+                body.rgb[i].green.value=-1;
+		body.rgb[i].green.event_low=0;
+		body.rgb[i].green.event_high=65535;
+                
+                body.rgb[i].blue.value=-1;
+		body.rgb[i].blue.event_low=0;
+		body.rgb[i].blue.event_high=65535;
+                
+                body.rgb[i].clear.value=-1;
+		body.rgb[i].clear.event_low=0;
+		body.rgb[i].clear.event_high=65535;
+	}
+
+        sysInfo.startUpTime=0;
+        
+        // ------------ Initialisation de la configuration systeme
+        
+        // Initialisation configuration de flux de donn�es periodique
+        sysConfig.dataStream.state=ON;
+        sysConfig.dataStream.time_ms=1000;
+        sysConfig.config.reset=0;
+        
+        printf("WARNING ! Configuration reset to default value\n");
+        sendMqttReport(AlgoidCommand.msgID, "WARNING ! Configuration reset to default value");// Envoie le message sur le canal MQTT "Report"  
 }

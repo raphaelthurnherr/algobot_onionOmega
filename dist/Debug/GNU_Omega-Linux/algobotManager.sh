@@ -60,8 +60,9 @@ install_update(){
 restart(){                                                                              
     killall algobot_onionomega;                                                         
     sleep 2;                                                                            
-    echo "Restarting application... ";                                                  
-    exec /root/algobot/algobot_onionomega
+    echo "Restarting application... ";
+    cd /root/algobot/
+    ./algobot_onionomega
 } 
 
 

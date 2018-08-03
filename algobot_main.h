@@ -45,6 +45,7 @@ struct m_dist{
 
 struct m_voltage{
 	int value;
+        int capacity;
 	int event_enable;
 	int event_low;
 	int event_high;
@@ -79,6 +80,10 @@ struct m_dataStream{
 	int state;
         int onEvent;
 	int time_ms;
+};
+
+struct m_AppConf{
+	int reset;
 };
 
 struct m_color{
@@ -122,6 +127,7 @@ typedef struct tSystem{
 
 typedef struct tConfig{
 	struct m_dataStream dataStream;   
+        struct m_AppConf config;  
 }t_sysConfig;
 
 extern t_sensor body;

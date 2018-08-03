@@ -65,8 +65,13 @@ struct mStream{
 	int time;
 };
 
+struct mAppConf{
+	char reset[25];
+};
+
 struct mConfig{
 	struct mStream stream;
+        struct mAppConf config;
 };
 
 struct mDistance{
@@ -86,6 +91,7 @@ struct mBattery{
 	int event_high;
 	char safetyStop_state[25];
 	int safetyStop_value;
+        int capacity;
 };
 
 struct mPwm{
@@ -116,6 +122,7 @@ struct mSystem{
         char mcuVersion[32];
         char HWrevision[32];
         float battVoltage;
+        int battPercent;
         int wan_online;
         int tx_message;
         int rx_message;   
@@ -168,7 +175,7 @@ typedef struct JsonCommand{
 
 }ALGOID;
 
-// Structure de réponse à un message algoid
+// Structure de rï¿½ponse ï¿½ un message algoid
 typedef struct JsonResponse{
 	int value;
 	int responseType;
@@ -189,7 +196,7 @@ typedef struct JsonResponse{
 	// UNION ???
 }ALGOID_RESPONSE;
 
-ALGOID AlgoidCommand;    // Utilisé par main.c
+ALGOID AlgoidCommand;    // Utilisï¿½ par main.c
 ALGOID AlgoidMessageRX;
 ALGOID AlgoidMsgRXStack[10];
 
