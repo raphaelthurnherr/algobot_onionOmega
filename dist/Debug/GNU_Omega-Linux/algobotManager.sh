@@ -10,57 +10,109 @@
 
 # ALGOBOT MANAGER VERSION 19.07.2018
 
-check(){
+checkApp(){
 	
         rm /root/update/*
 
         status=0
 
 ## TRY TO DOWNLOAD MD5 FILE
-        echo "Start download MD5 from server..."
+        echo "Start download application MD5 from server..."
         CMD=`wget -P /root/update/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobot_onionomega.md5`
 
         if [ $? -eq 0 ];
         then
-                echo "- Download MD5 file:  OK"
+                echo "- Download MD5 application file:  OK"
                                                
 	   ## COMPARE THE 2 MD5 FILE FOR CHECK UPDATE                      
 		cmp  /root/update/algobot_onionomega.md5 /root/algobot/algobot_onionomega.md5 1>/dev/null 2>&1; resultat=$?
                                                                                 
        	        if [ $resultat -eq 0 ];                                         
                	then                                                            
-                       	echo "Algobot firmware version is last, no update !"            
+                       	echo "Algobot application firmware version is last, no update !"            
                        	status=11                                           
                 elif [ $resultat -eq 1 ];                                       
        	        then                                                            
-               	        echo "New firmware found !"                            
+               	        echo "New application firmware found !"                            
 			status=10 
                 else                                                            
-       	                echo "Algobot MD5 file is missing, please update application"
+       	                echo "Algobot application MD5 file is missing, please update application"
 			status=12
                	fi                      
         else
-                echo "- Download MD5 : ERROR"
+                echo "- Download application MD5 : ERROR"
+		status=1
+        fi
+	return $status
+}
+
+checkManager(){
+	
+        rm /root/update/*
+
+        status=0
+
+## TRY TO DOWNLOAD MD5 FILE
+        echo "Start download manager application MD5 from server..."
+        CMD=`wget -P /root/update/ -q https://github.com/raphaelthurnherr/algobot_manager/blob/master/dist/Debug/GNU_Omega-Linux/algobotmanager.md5`
+
+        if [ $? -eq 0 ];
+        then
+                echo "- Download MD5 manager file:  OK"
+                                               
+	   ## COMPARE THE 2 MD5 FILE FOR CHECK UPDATE                      
+		cmp  /root/update/algobotmanager.md5 /root/algobotmanager.md5 1>/dev/null 2>&1; resultat=$?
+                                                                                
+       	        if [ $resultat -eq 0 ];                                         
+               	then                                                            
+                       	echo "Algobot manager firmware version is last, no update !"            
+                       	status=11                                           
+                elif [ $resultat -eq 1 ];                                       
+       	        then                                                            
+               	        echo "New manager firmware found !"                            
+			status=10 
+                else                                                            
+       	                echo "Algobot manager MD5 file is missing, please update application"
+			status=12
+               	fi                      
+        else
+                echo "- Download manager MD5 : ERROR"
 		status=1
         fi
 	return $status
 }
 
 
-install_update(){                                                                                                                                                                  
+install_update_app(){                                                                                                                                                                  
                                                                                                                                                                             
-    echo "Starting firmware upgrade... ";                                                                                                                                   
+    echo "Starting application firmware upgrade... ";                                                                                                                                   
     killall algobot_onionomega;                                                                                                                                             
-    sleep 2;                                                                                                                                                                
-    rm /root/algobot/*                                                                                                                                                            
-    cp /root/update/* /root/algobot/                                                                                                                                                    
+    sleep 1;                                                                                                                                                                
+    rm /root/algobot/*                                                                                                                                                           
+    cp /root/update/algobot_onion* /root/algobot/                                                                                                                                                    
     chmod +x /root/algobot/algobot_onionomega                                                                                                                                     
 } 
 
+install_update_manager(){                                                                                                                                                                  
+                                                                                                                                                                            
+    echo "Starting manager firmware upgrade... ";                                                                                                                                   
+    killall algobotmanager;                                                                                                                                             
+    sleep 1;                                                                                                                                                                
+    rm /root/algobotmanager*                                                                                                                                                       
+    cp /root/update/algobotmanager* /root/                                                                                                                                                    
+    chmod +x /root/algobotmanager                                                                                                                                   
+} 
+
+
 restart(){                                                                              
-    killall algobot_onionomega;                                                         
+    killall algobot_onionomega;
+    killall algobotmanager;
     sleep 2;                                                                            
-    echo "Restarting application... ";
+    echo "Restarting application and manager... ";
+
+    cd /root/
+    ./algobotmanager
+    
     cd /root/algobot/
     ./algobot_onionomega
 } 
@@ -68,10 +120,10 @@ restart(){
 
 
 
-update(){                                                                                                                                                      
+updateApp(){                                                                                                                                                      
                                                                                                                                             
 ## CHECK FOR UPDATE
-  	check
+  	checkApp
 	checkResult=$?
 
 	updateResult=0
@@ -90,13 +142,13 @@ update(){
 	        CMD=`wget -P /root/update/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobot_onionomega`
 		if [ $? -eq 0 ];
 		then			
-			echo "- Download binary file: OK"
+			echo "- Download binary application file: OK"
 
-			install_update
+			install_update_app
 			restart
 			updateResult=0
 		else
-			echo "- Download binary file: ERROR"
+			echo "- Download binary application file: ERROR"
 			updateResult=21
 		fi
 	else
@@ -113,6 +165,53 @@ update(){
 
 	return $updateResult
 }         
+
+updateMan(){                                                                                                                                                      
+                                                                                                                                            
+## CHECK FOR UPDATE
+  	checkManager
+	checkResult=$?
+
+	updateResult=0
+
+## TRY TO DOWNLOAD BINARY APPLICATION FILE AND UPDATE
+	if [ $checkResult -eq 10 ];
+	then
+
+        if [ -f "/root/update/*" ];
+        then
+                rm /root/update/*
+        fi
+
+	## TRY TO DOWNLOAD BINARY                                                                                                                                                    
+        	echo "Start download binary manager firmware from server..."                                                                                                                 
+	        CMD=`wget -P /root/update/ -q https://github.com/raphaelthurnherr/algobot_manager/blob/master/dist/Debug/GNU_Omega-Linux/algobotmanager`
+		if [ $? -eq 0 ];
+		then			
+			echo "- Download binary manager file: OK"
+
+			install_update_manager
+			restart
+			updateResult=0
+		else
+			echo "- Download binary manager file: ERROR"
+			updateResult=21
+		fi
+	else
+	## FIRMWARE IS UP TO DATE, NO ACTION
+		if [ $checkResult -eq 11 ];
+		then
+			updateResult=$checkResult
+
+		            rm /root/update/*                                                                                    
+		else
+			updateResult=1
+		fi
+	fi
+
+	return $updateResult
+}         
+
 
 install_brocker(){
  opkg install mosquitto
@@ -169,18 +268,20 @@ base_install(){
      result=0
     fi
     
-	echo "Downloading Algobot launcher file..."
-	CMD=`wget -P /root/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobotLauncher.sh`
+	echo "Configuring RC launcher file..."
+	#CMD=`wget -P /root/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobotLauncher.sh`
 	if [ $? -eq 0 ];
 	then			
-		echo "- Download launcher file: OK"
 		echo "- Configuring rc.local file"
 		sed -i '3 a # CALL THE ALGOBOT LAUNCHER APPLICATION' /etc/rc.local
-		sed -i '4 a sh /root/algobotLauncher.sh >> /root/autostartLog.txt 2>&1' /etc/rc.local
+                sed -i '4 a ws-tcp-bridge --method=ws2tcp --lport=9001 --rhost=127.0.0.1:1883' /etc/rc.local
+                sed -i '5 a ws-tcp-bridge --method=tcp2ws --lport=1883 --rhost=ws://127.0.0.1:9001' /etc/rc.local
+                sed -i '6 a sh /root/algobotManager.sh restart >> /root/autostartLog.txt 2>&1' /etc/rc.local
+
 		
 		$result=$?
 	else
-		echo "- Download launcher file: ERROR"
+		echo "- Configuring launcher file: ERROR"
 		$result=$?
 	fi
     
@@ -211,6 +312,11 @@ else
  mkdir /root/update                                                                                                     
 fi 
 
+ if [ -f /root/algobotmanager.md5 ]; then
+  echo "MD5 file is present"
+ else 
+  touch /root/algobotmanager.md5
+ fi
                                                                                                                                                                
 # Execution des parametres recus                                                                                                                               
                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
@@ -218,16 +324,28 @@ for param in "$@"
 do                                                                                                                                                             
         if [ "$param" = "check" ];                                                                                                                             
         then                   
-		check                                                                                                                                
+		checkApp                                                                                                                                
                 actionResult=$?                                                                                                                                 
-        fi                                                                                                                                                     
+        fi
+        
+        if [ "$param" = "checkman" ];                                                                                                                             
+        then                   
+		checkManager                                                                                                                                
+                actionResult=$?                                                                                                                                 
+        fi 
                                                                                                                                                                
         if [ "$param" = "update" ];                                                                                                                            
         then                                                                                                                                                   
-                update        
+                updateApp        
 		actionResult=$?                                                                                                                                 
         fi                                                                                                                                                     
-                                                                                                                                                               
+          
+        if [ "$param" = "updateman" ];                                                                                                                            
+        then                                                                                                                                                   
+                updateMan        
+		actionResult=$?                                                                                                                                 
+        fi
+        
         if [ "$param" = "restart" ]                                                                                                                  
         then                                                                                                                                                   
                 restart                                                                                                                                 
