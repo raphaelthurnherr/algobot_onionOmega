@@ -111,10 +111,10 @@ restart(){
     echo "Restarting application and manager... ";
 
     cd /root/
-    ./algobotmanager
+    ./algobotmanager&
     
     cd /root/algobot/
-    ./algobot_onionomega
+    ./algobot_onionomega&
 } 
 
 
@@ -185,7 +185,7 @@ updateMan(){
 
 	## TRY TO DOWNLOAD BINARY                                                                                                                                                    
         	echo "Start download binary manager firmware from server..."                                                                                                                 
-	        CMD=`wget -P /root/update/ -q https://github.com/raphaelthurnherr/algobot_manager/blob/master/dist/Debug/GNU_Omega-Linux/algobotmanager`
+	        CMD=`wget -P /root/update/ -q https://github.com/raphaelthurnherr/algobot_manager/raw/master/dist/Debug/GNU_Omega-Linux/algobotmanager`
 		if [ $? -eq 0 ];
 		then			
 			echo "- Download binary manager file: OK"
@@ -237,7 +237,6 @@ base_install(){
       if [ $? -eq 0 ];
       then
        echo "Mosquitto successfully installed"
-       update
        result=$?
       else
        echo "Error during Mosquitto installation"
@@ -274,8 +273,8 @@ base_install(){
 	then			
 		echo "- Configuring rc.local file"
 		sed -i '3 a # CALL THE ALGOBOT LAUNCHER APPLICATION' /etc/rc.local
-                sed -i '4 a ws-tcp-bridge --method=ws2tcp --lport=9001 --rhost=127.0.0.1:1883' /etc/rc.local
-                sed -i '5 a ws-tcp-bridge --method=tcp2ws --lport=1883 --rhost=ws://127.0.0.1:9001' /etc/rc.local
+                sed -i '4 a ws-tcp-bridge --method=ws2tcp --lport=9001 --rhost=127.0.0.1:1883&' /etc/rc.local
+                sed -i '5 a ws-tcp-bridge --method=tcp2ws --lport=1883 --rhost=ws://127.0.0.1:9001&' /etc/rc.local
                 sed -i '6 a sh /root/algobotManager.sh restart >> /root/autostartLog.txt 2>&1' /etc/rc.local
 
 		
@@ -286,9 +285,27 @@ base_install(){
 	fi
     
     
-    restart
+    echo "- Adding algobot files to root..."
+    # Update the manager bash file    
+    rm /root/algobotManager.sh  
+    cp /tmp/mounts/SD-P1/algobotManager.sh /root/
+
+    # Update the manager application
+    rm /root/algobotmanager
+    rm /root/algobotmanager.md5
+    cp /tmp/mounts/SD-P1/bin/algobotmanager /root/
+    cp /tmp/mounts/SD-P1/bin/algobotmanager.md5 /root/
+
+    # Update the algobot application
+    rm /root/algobot/algobot_onionomega.md5
+    rm /root/algobot/algobot_onionomega
+    cp /tmp/mounts/SD-P1/bin/algobot/algobot_onionomega /root/algobot
+    cp /tmp/mounts/SD-P1/bin/algobot/algobot_onionomega.md5 /root/algobot
+
     return $result    
 }                                                                                                                                                               
+
+
 
 # Test de l'existance des repertoires update et algobot
 
