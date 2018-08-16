@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.3.2"
+#define FIRMWARE_VERSION "1.4.0"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -22,6 +22,7 @@
 #include "hwManager.h"
 #include "asyncTools.h"
 #include "asyncPWM.h"
+#include "asyncSERVO.h"
 #include "asyncLED.h"
 
 unsigned char ptrSpeedCalc;
@@ -57,6 +58,7 @@ int runMotorAction(void);
 int getWDvalue(int wheelName);
 
 int runPwmAction(void);
+
 //int setAsyncPwmAction(int actionNumber, int ledName, int time, int count);
 //int endPwmAction(int actionNumber, int wheelNumber);
 
@@ -65,11 +67,6 @@ int getPwmSetting(int name);
 int runLedAction(void);
 
 int getLedSetting(int name);
-
-
-int makeServoAction(void);
-
-int getServoSetting(int servoName);
 
 int runUpdateCommand(int type);
 void runRestartCommand(void);
@@ -290,9 +287,10 @@ int processAlgoidCommand(void){
                                 
                                 runMotorAction(); break;			// Action avec en param�tre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
                                 
-                case pPWM  : 	
+                case pPWM  : 	AlgoidCommand.PWMarray[i].isServoMode=0;
+                
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
-                                    // Controle que le moteur existe...
+                                    // Controle que le PWM existe...
                                     if(AlgoidCommand.PWMarray[i].id >= 0 && AlgoidCommand.PWMarray[i].id <NBPWM)
                                         AlgoidResponse[i].PWMresponse.id=AlgoidCommand.PWMarray[i].id;
                                     else
@@ -309,6 +307,27 @@ int processAlgoidCommand(void){
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, AlgoidCommand.msgValueCnt);     
                     
                                 runPwmAction();break;
+
+                case pSERVO  : 	AlgoidCommand.PWMarray[i].isServoMode=1;
+                
+                                for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+                                    // Controle que le PWM existe...
+                                    if(AlgoidCommand.PWMarray[i].id >= 0 && AlgoidCommand.PWMarray[i].id <NBPWM)
+                                        AlgoidResponse[i].PWMresponse.id=AlgoidCommand.PWMarray[i].id;
+                                    else
+                                        AlgoidResponse[i].PWMresponse.id=-1;
+                                            
+                                    // R�cup�ration des param�tes 
+                                    strcpy(AlgoidResponse[i].PWMresponse.state, AlgoidCommand.PWMarray[i].state);
+
+                                    AlgoidResponse[i].PWMresponse.powerPercent=AlgoidCommand.PWMarray[i].powerPercent;
+                                    AlgoidResponse[i].responseType = RESP_STD_MESSAGE;
+                                }
+                                // Retourne en r�ponse le message v�rifi�
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pSERVO, AlgoidCommand.msgValueCnt);     
+                    
+                                runPwmAction();break;
+                                
 		case pLED  : 	
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
                                     // Controle que le moteur existe...
@@ -568,78 +587,7 @@ int runMotorAction(void){
 }
 
 // -------------------------------------------------------------------
-// makeServoAction
-//
-// -------------------------------------------------------------------
-int makeServoAction(void){
-	int ptrData;
-	int myTaskId;
-	int endOfTask;
-        int i;
-
-	unsigned char actionCount=0;
-	unsigned char action=0;
-
-	// Recherche s'il y a des param�tres pour chaque roue
-	// Des param�tres recu pour une roue cr�e une action � effectuer
-        for(i=0;i<NBSERVO;i++){
-            if(getServoSetting(i)>=0)
-                actionCount++;
-        }
-
-        if(actionCount>0){
-            
-            // Ouverture d'une t�che pour les toutes les actions du message algoid � effectuer
-            // Recois un num�ro de tache en retour
-            myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			//
-
-            // D�marrage des actions
-            if(myTaskId>0){
-                    printf("Creation de tache SERVO: #%d avec %d actions\n", myTaskId, actionCount);
-
-                    // Sauvegarde du nom de l'emetteur et du ID du message pour la r�ponse
-                    // en fin d'�venement
-                    saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
-
-                    for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
-                            if(AlgoidCommand.PWMout[ptrData].id>=0){
-                                    setServoPosition(AlgoidCommand.PWMout[ptrData].id, AlgoidCommand.PWMout[ptrData].angle);
-
-                                    endOfTask=removeBuggyTask(myTaskId);
-                                    if(endOfTask>0){
-                                            sprintf(reportBuffer, "FIN DES ACTIONS \"SERVO\" pour la tache #%d\n", endOfTask);
-
-                                            // R�cup�re l'expediteur original du message ayant provoqu�
-                                            // l'�venement
-                                            char msgTo[32];
-                                            int ptr=getSenderFromMsgId(endOfTask);
-                                            strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-                                            // Lib�re la memorisation de l'expediteur
-                                            removeSenderOfMsgId(endOfTask);
-
-                                            sendResponse(endOfTask, msgTo, EVENT, pPWM, 0);				// Envoie un message ALGOID de fin de t�che pour l'action �cras�
-                                            printf(reportBuffer);									// Affichage du message dans le shell
-                                            sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-                                    }
-
-                                    action++;
-                            }
-                    }
-            }
-        }
-        else{   
-            sprintf(reportBuffer, "ERREUR: ID SERVO INEXISTANT pour le message #%d\n", AlgoidCommand.msgID);
-            AlgoidResponse[0].SERVOresponse.id=-1;
-            sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pSERVO, 1);  // Envoie un message ALGOID de fin de t�che pour l'action �cras�
-            printf(reportBuffer);                                                           // Affichage du message dans le shell
-            sendMqttReport(AlgoidCommand.msgID, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
-        }
-	return 0;
-}
-
-
-// -------------------------------------------------------------------
-// makeLEDAction
+// runLEDAction
 //
 // -------------------------------------------------------------------
 int runLedAction(void){
@@ -755,9 +703,8 @@ int runLedAction(void){
 	return 0;
 }
 
-
 // -------------------------------------------------------------------
-// makePWMAction
+// runPWMAction
 //
 // -------------------------------------------------------------------
 int runPwmAction(void){
@@ -789,18 +736,24 @@ int runPwmAction(void){
                     body.pwm[i].state=LED_OFF;
                 if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"on"))
                     body.pwm[i].state=LED_ON;
-                if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"blink"))
-                    body.pwm[i].state=LED_BLINK;
                 
-                // R�cup�ration des consignes dans le message (si disponible)
-                if(AlgoidCommand.PWMarray[ptrData].powerPercent > 0)
+
+                // Blink mode not available in SERVO MODE
+                if(!AlgoidCommand.PWMarray[ptrData].isServoMode){
+                    if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"blink"))
+                        body.pwm[i].state=LED_BLINK;
+                    if(AlgoidCommand.PWMarray[ptrData].time > 0)
+                        body.pwm[i].blinkTime=AlgoidCommand.PWMarray[ptrData].time;
+                    if(AlgoidCommand.PWMarray[ptrData].blinkCount > 0)
+                        body.pwm[i].blinkCount=AlgoidCommand.PWMarray[ptrData].blinkCount*2;
+                }
+                else{
+                    
+                }
+                
+                // Recuperation des consignes dans le message (si disponible)
+                if(AlgoidCommand.PWMarray[ptrData].powerPercent >= 0)
                     body.pwm[i].power=AlgoidCommand.PWMarray[ptrData].powerPercent;
-                
-                if(AlgoidCommand.PWMarray[ptrData].time > 0)
-                    body.pwm[i].blinkTime=AlgoidCommand.PWMarray[ptrData].time;
-                
-                if(AlgoidCommand.PWMarray[ptrData].blinkCount > 0)
-                    body.pwm[i].blinkCount=AlgoidCommand.PWMarray[ptrData].blinkCount*2;
             }
         }
 
@@ -825,42 +778,56 @@ int runPwmAction(void){
                                     power=AlgoidCommand.PWMarray[ptrData].powerPercent;
                                     Count=AlgoidCommand.PWMarray[ptrData].blinkCount;
                                     time=AlgoidCommand.PWMarray[ptrData].time;
-                                    // Mode blink
-                                    if(body.pwm[ID].state==LED_BLINK){
-                                        
-                                        // Verifie la presence de parametres de type "time" et "count", sinon applique des
-                                        // valeurs par defaut
-                                        if(time<=0){
-                                            time=500;
-                                            sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\"  pour l'action PWM %d\n", ID);
-                                            printf(reportBuffer);                                                             // Affichage du message dans le shell
-                                            sendMqttReport(AlgoidCommand.msgID, reportBuffer);	
-                                        }
-                                        
-                                        if(Count<=0){
-                                            sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"count\"  pour l'action PWM %d\n", ID);
-                                            printf(reportBuffer);                                                             // Affichage du message dans le shell
-                                            sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
-                                        }
-            
-                                        // Creation d'un timer effectu� sans erreur, ni ecrasement d'une ancienne action
-                                         setAsyncPwmAction(myTaskId, ID, INFINITE, time, Count);
-;                                    }
+                                    
+                                    // Check if is a servomotor PWM (500uS .. 2.5mS)
+                                    if(!AlgoidCommand.PWMarray[ptrData].isServoMode){
+                                        // Mode blink
+                                        if(body.pwm[ID].state==LED_BLINK){
+                                            // Verifie la presence de parametres de type "time" et "count", sinon applique des
+                                            // valeurs par defaut
+                                            if(time<=0){
+                                                time=500;
+                                                sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\"  pour l'action PWM %d\n", ID);
+                                                printf(reportBuffer);                                                             // Affichage du message dans le shell
+                                                sendMqttReport(AlgoidCommand.msgID, reportBuffer);	
+                                            }
 
-                                    // Mode on ou off
-                                    else{
+                                            if(Count<=0){
+                                                sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"count\"  pour l'action PWM %d\n", ID);
+                                                printf(reportBuffer);                                                             // Affichage du message dans le shell
+                                                sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
+                                            }
+
+                                            // Creation d'un timer effectu� sans erreur, ni ecrasement d'une ancienne action
+                                             setAsyncPwmAction(myTaskId, ID, INFINITE, time, Count);
+                                        }
+                                        else{
                                             if(body.pwm[ID].state==OFF)
                                                 setAsyncPwmAction(myTaskId, ID, OFF, NULL, NULL);
 
                                             if(body.pwm[ID].state==ON)
                                                 setAsyncPwmAction(myTaskId, ID, ON, NULL, NULL);
+                                            }
                                     }
+                                    else
+                                        
+                                    {
+                                            if(body.pwm[ID].state==OFF)
+                                                setAsyncServoAction(myTaskId, ID, OFF, NULL);
 
+                                            if(body.pwm[ID].state==ON)
+                                                setAsyncServoAction(myTaskId, ID, ON, NULL);
+                                    }
+                                    
                                     action++;
                             }
                     }
                     AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
-                    sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pPWM, 1);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
+                    
+                    if(!AlgoidCommand.PWMarray[ptrData].isServoMode)
+                        sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pPWM, 1);               // Send EVENT message for action begin
+                    else
+                        sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pSERVO, 1);             // Send EVENT message for action begin
             }            
         }
         else{   
@@ -872,7 +839,6 @@ int runPwmAction(void){
         }
 	return 0;
 }
-
 
 // -------------------------------------------------------------------
 // GETWDVALUE
@@ -892,25 +858,6 @@ int getWDvalue(int wheelName){
 		}
 		return searchPtr;
 }
-
-// -------------------------------------------------------------------
-// GETSERVOSETTING
-// Recherche dans le message algoid, les param�tres
-// pour une servomoteur sp�cifi�
-// Retourne un pointeur sur le champs de param�tre correspondant au servomoteur sp�cifi�
-// -------------------------------------------------------------------
-int getServoSetting(int servoName){
-	int i;
-	int searchPtr = -1;
-
-	// Recherche dans les donn�e recues la valeur correspondante au param�tre "wheelName"
-	for(i=0;i<AlgoidCommand.msgValueCnt;i++){
-		if(servoName == AlgoidCommand.PWMout[i].id)
-		searchPtr=i;
-	}
-	return searchPtr;
-}
-
 
 // -------------------------------------------------------------------
 // GETPWMSETTING

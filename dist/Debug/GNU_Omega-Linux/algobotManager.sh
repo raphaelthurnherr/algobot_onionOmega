@@ -269,26 +269,25 @@ base_install(){
     
 	echo "Configuring RC launcher file..."
 	#CMD=`wget -P /root/ -q https://raw.githubusercontent.com/raphaelthurnherr/algobot_onionOmega/master/dist/Debug/GNU_Omega-Linux/algobotLauncher.sh`
-	if [ $? -eq 0 ];
-	then			
+	#if [ $? -eq 0 ];
+	#then			
 		echo "- Configuring rc.local file"
 		sed -i '3 a # CALL THE ALGOBOT LAUNCHER APPLICATION' /etc/rc.local
                 sed -i '4 a ws-tcp-bridge --method=ws2tcp --lport=9001 --rhost=127.0.0.1:1883&' /etc/rc.local
                 sed -i '5 a ws-tcp-bridge --method=tcp2ws --lport=1883 --rhost=ws://127.0.0.1:9001&' /etc/rc.local
                 sed -i '6 a sh /root/algobotManager.sh restart >> /root/autostartLog.txt 2>&1' /etc/rc.local
-
-		
+                
 		$result=$?
-	else
-		echo "- Configuring launcher file: ERROR"
-		$result=$?
-	fi
+	#else
+	#	echo "- Configuring launcher file: ERROR"
+	#	$result=$?
+	#fi
     
     
     echo "- Adding algobot files to root..."
     # Update the manager bash file    
     rm /root/algobotManager.sh  
-    cp /tmp/mounts/SD-P1/algobotManager.sh /root/
+    cp /tmp/mounts/SD-P1/bin/algobotManager.sh /root/
 
     # Update the manager application
     rm /root/algobotmanager
@@ -302,6 +301,19 @@ base_install(){
     cp /tmp/mounts/SD-P1/bin/algobot/algobot_onionomega /root/algobot
     cp /tmp/mounts/SD-P1/bin/algobot/algobot_onionomega.md5 /root/algobot
 
+    echo "- Configuring Web App"
+    
+    rm /www/index.html
+    cp /tmp/mounts/SD-P1/www_onion/index.html /www
+    
+    rm /www/setup-wizard/index.html
+    cp /tmp/mounts/SD-P1/www_onion/setup-wizard/index.html /www/setup-wizard
+    
+    ln -s /tmp/mounts/SD-P1/www /www/algobot
+        
+    # Starting application files
+    restart
+    
     return $result    
 }                                                                                                                                                               
 

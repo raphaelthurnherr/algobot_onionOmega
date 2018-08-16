@@ -74,6 +74,7 @@ struct m_led{
 	int power;
         int blinkCount;
         int blinkTime;
+        char isServoMode;
 };
 
 struct m_dataStream{

@@ -106,12 +106,13 @@ struct mLed{
 	int powerPercent;
         int time;
         int blinkCount;
+        char isServoMode;
 };
 
 
 struct mServo{
 	int id;
-	int angle;
+	int posPercent;
 	int state;
 };
 
@@ -160,12 +161,10 @@ typedef struct JsonCommand{
 
 	// UNION ???
 	struct m2wd DCmotor[20];
-        struct mServo SERVOmotor[20];
 	struct mDin DINsens[20];
         struct mDin BTNsens[20];
 	struct mDistance DISTsens[20];
 	struct mBattery BATTsens[20];
-	struct mPwm PWMout[20]; // ---> SERVO
 	struct mLed PWMarray[20];
         struct mLed LEDarray[20]; // LED (internal board pwm)
         struct mRGB RGBsens[20];

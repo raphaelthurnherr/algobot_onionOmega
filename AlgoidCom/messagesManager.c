@@ -70,17 +70,17 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
 // BOUCLE PRINCIPALE
 	while(1)
 	{
-	    // Verification de l'arrivée d'un message MQTT
+	    // Verification de l'arrivï¿½e d'un message MQTT
 	    if(mqttDataReady){
 	    // RECEPTION DES DONNES UTILES
                 if(GetAlgoidMsg(AlgoidMessageRX, MqttDataBuffer)>0){
-                        // Contrôle du destinataire
+                        // Contrï¿½le du destinataire
                         if(!strcmp(AlgoidMessageRX.msgTo, ClientID) || !strcmp(AlgoidMessageRX.msgTo, BroadcastID)){
                                 // Enregistrement du message dans la pile
                                 lastMessage=pushMsgStack();
                                 if(lastMessage>=0){
                                     
-                                        // Mise a jour du compteur de message système
+                                        // Mise a jour du compteur de message systï¿½me
                                         msg_stats.messageRX++;
                                     
                                         // Retourne un ack a l'expediteur
@@ -146,7 +146,7 @@ int pullMsgStack(unsigned char ptrStack){
 		if(AlgoidMsgRXStack[ptrStack].msgType!=-1){
 			AlgoidCommand=AlgoidMsgRXStack[ptrStack];
 
-			// Contrôle le ID, FROM, TO du message et creation générique si inexistant
+			// Contrï¿½le le ID, FROM, TO du message et creation gï¿½nï¿½rique si inexistant
 			if(AlgoidCommand.msgID <= 0){
 				AlgoidCommand.msgID = rand() & 0xFFFFFF;
 			}
@@ -156,7 +156,7 @@ int pullMsgStack(unsigned char ptrStack){
 				strcpy(AlgoidCommand.msgFrom,"unknown");
 			}
 
-			// Déplace les elements de la pile
+			// Dï¿½place les elements de la pile
 			for(i=ptrStack;i<9;i++){
 				AlgoidMsgRXStack[ptrStack]=AlgoidMsgRXStack[ptrStack+1];
 				ptrStack++;
@@ -252,7 +252,7 @@ int mqttMsgArrived(void *context, char *topicName, int topicLen, MQTTClient_mess
     	MqttDataBuffer[i]=payloadptr[i];
     }
 
-    // Termine la chaine de caractère
+    // Termine la chaine de caractï¿½re
     MqttDataBuffer[messageCharCount]=0;
 
 	mqttDataReady=1;
@@ -273,26 +273,27 @@ void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char 
 	char ackType[15], ackParam[15];
 	char topic[50];
 
-        // Mise a jour du compteur de message système
+        // Mise a jour du compteur de message systï¿½me
         msg_stats.messageTX++;
         
-	// Génération du texte de reponse TYPE pour message MQTT et selection du topic de destination
+	// Gï¿½nï¿½ration du texte de reponse TYPE pour message MQTT et selection du topic de destination
 	switch(msgType){
-		case COMMAND : strcpy(ackType, "command"); strcpy(topic, TOPIC_COMMAND); break;			// Commande vers l'hôte ****** NON UTILISE **********
-		case REQUEST : strcpy(ackType, "request"); strcpy(topic, TOPIC_COMMAND); break;			// Requête vers l'hôte ****** NON UTILISE **********
-		case ACK : strcpy(ackType, "ack");  strcpy(topic, TOPIC_ACK); break;				// Ack vers l'hôte
-		case RESPONSE : strcpy(ackType, "response"); strcpy(topic, TOPIC_RESPONSE); break;		// Reponse vers l'hôte
-		case EVENT : strcpy(ackType, "event"); strcpy(topic, TOPIC_EVENT); break;				// Reponse vers l'hôtebreak;
+		case COMMAND : strcpy(ackType, "command"); strcpy(topic, TOPIC_COMMAND); break;			// Commande vers l'hï¿½te ****** NON UTILISE **********
+		case REQUEST : strcpy(ackType, "request"); strcpy(topic, TOPIC_COMMAND); break;			// Requï¿½te vers l'hï¿½te ****** NON UTILISE **********
+		case ACK : strcpy(ackType, "ack");  strcpy(topic, TOPIC_ACK); break;				// Ack vers l'hï¿½te
+		case RESPONSE : strcpy(ackType, "response"); strcpy(topic, TOPIC_RESPONSE); break;		// Reponse vers l'hï¿½te
+		case EVENT : strcpy(ackType, "event"); strcpy(topic, TOPIC_EVENT); break;				// Reponse vers l'hï¿½tebreak;
                 case DATAFLOW : strcpy(ackType, "event"); strcpy(topic, TOPIC_DATAFLOW); break;
 		case ERR_TYPE : strcpy(ackType, "error"); break;
 		default : strcpy(ackType, "unknown"); break;
 	}
 
-// Génération du texte de reponse TYPE pour message MQTT
+// Gï¿½nï¿½ration du texte de reponse TYPE pour message MQTT
 	switch(msgParam){
 		case STOP : strcpy(ackParam, "stop"); break;
 		case MOTORS : strcpy(ackParam, "motor"); break;
 		case pPWM : strcpy(ackParam, "pwm"); break;
+                case pSERVO : strcpy(ackParam, "servo"); break;
 		case MOVE : strcpy(ackParam, "move"); break;
 		case DINPUT : strcpy(ackParam, "din"); break;
                 case BUTTON : strcpy(ackParam, "button"); break;

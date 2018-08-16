@@ -16,7 +16,7 @@ rsync -a /home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionO
 #rsync -a /home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/dist/Debug/GNU_Omega-Linux/algobot_onionomega.md5  root@192.168.3.1:~/algobot
 
 #echo "Transfere du script de mise � jour"
-rsync -a /home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/dist/Debug/GNU_Omega-Linux/algobotManager.sh  root@192.168.3.1:~
+#rsync -a /home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/dist/Debug/GNU_Omega-Linux/algobotManager.sh  root@192.168.3.1:~
         
 echo "Lancement de l'application via SSH...\n"
 #sshpass -p onioneer ssh root@192.168.3.1 "~/algobot/./algobot_onionomega"

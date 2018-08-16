@@ -80,7 +80,7 @@ int setMotorDirection(int motorName, int direction);
 void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
 unsigned char getMotorPower(unsigned char motorNr);											// Retourne la velocit� actuelle d'un moteur
 
-void setServoPosition(unsigned char smName, unsigned char angle);
+void setServoPosition(unsigned char smName, char position);
 void setLedPower(unsigned char ledID, unsigned char power);
 void setPwmPower(unsigned char ID, unsigned char power);
 
@@ -456,14 +456,6 @@ int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd){
 	return freeIndex;
 }
 
-
-void setServoPosition(unsigned char smName, unsigned char angle){
-	char smAddr;
-
-	smAddr=getOrganI2Cregister(PWM, smName);
-	set_i2c_command_queue(&PCA9685_setServoPos, smAddr, angle);
-}
-
 void setLedPower(unsigned char ledID, unsigned char power){
 	unsigned char ledAdress;
 	ledAdress=getOrganI2Cregister(LED, ledID);
@@ -474,6 +466,12 @@ void setPwmPower(unsigned char ID, unsigned char power){
 	unsigned char pwmAdress;
 	pwmAdress=getOrganI2Cregister(PWM, ID);
 	set_i2c_command_queue(&PCA9685_setLedPower, pwmAdress, power);
+}
+
+void setServoPosition(unsigned char ID, char position){
+	unsigned char pwmAdress;
+	pwmAdress=getOrganI2Cregister(PWM, ID);
+	set_i2c_command_queue(&PCA9685_setServoPos, pwmAdress, position);
 }
 
 // ------------------------------------------------------------------------------------

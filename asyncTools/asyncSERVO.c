@@ -17,41 +17,40 @@
 
 char reportBuffer[256];
 
-int setAsyncPwmAction(int actionNumber, int pwmName, int mode, int time, int count);
-int checkBlinkPwmCount(int actionNumber, int pwmName);
-int endPwmAction(int actionNumber, int pwmNumber);
+int setAsyncServoAction(int actionNumber, int pwmName, int mode, int time);
+int checkBlinkServoCount(int actionNumber, int pwmName);
+int endServoAction(int actionNumber, int pwmNumber);
 
 // -------------------------------------------------------------------
-// SETASYNCPWMACTION
+// SETASYNCSERVOACTION
 // Effectue l'action de clignotement
 // - D�marrage du timer avec definition de fonction call-back, et no d'action
 // - D�marrage du clignotement
 // - vitesse de clignotement en mS
 // -------------------------------------------------------------------
 
-int setAsyncPwmAction(int actionNumber, int pwmName, int mode, int time, int count){
+int setAsyncServoAction(int actionNumber, int pwmName, int mode, int time){
 	int setTimerResult;
 	int endOfTask;
 
 	// D�marre un timer d'action sur le PWM et sp�cifie la fonction call back � appeler en time-out
 	// Valeur en retour >0 signifie que l'action "en retour" � �t� �cras�e
-        if(mode==INFINITE){
-            setTimerResult=setTimer(time, &checkBlinkPwmCount, actionNumber, pwmName, PWM);
-        }
-        else{
-            if(mode==ON)
-                setPwmPower(pwmName, body.pwm[pwmName].power); 
-            else
-                if(mode==OFF)
-                    setPwmPower(pwmName, 0);
-            // Utilise un delais de 5ms sinon message "Begin" arrive apres
-            setTimerResult=setTimer(5, &checkBlinkPwmCount, actionNumber, pwmName, PWM);     // Consid�re un blink infini  
-        }
+
+        if(mode==ON)
+            setServoPosition(pwmName, body.pwm[pwmName].power); 
+        else
+            if(mode==OFF)
+            setServoPosition(pwmName, -1);
+        
+        // Utilise un delais de 5ms sinon message "Begin" arrive apres
+        setTimerResult=setTimer(5, &checkBlinkServoCount, actionNumber, pwmName, PWM);     // Consid�re un blink infini  
         
 	if(setTimerResult!=0){                                          // Timer pret, action effectu�e
 		if(setTimerResult>1){					// Le timer � �t� �cras� par la nouvelle action en retour car sur le meme peripherique
 			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne t�che qui � �t� �cras�e par la nouvelle action
                         if(endOfTask){
+                           
+
                                 sprintf(reportBuffer, "Annulation des actions PWM pour la tache #%d\n", setTimerResult);
 
                                 // Recupere l'expediteur original du message ayant provoque
@@ -63,7 +62,7 @@ int setAsyncPwmAction(int actionNumber, int pwmName, int mode, int time, int cou
                                 removeSenderOfMsgId(endOfTask);
                                 
                                 AlgoidResponse[0].responseType=EVENT_ACTION_ABORT;
-                                sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, pPWM, 1);		// Envoie un message ALGOID de fin de t�che pour l'action �cras�
+                                sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, pSERVO, 1);		// Envoie un message ALGOID de fin de t�che pour l'action �cras�
                                 printf(reportBuffer);                                                   // Affichage du message dans le shell
                                 sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
                         }
@@ -74,18 +73,18 @@ int setAsyncPwmAction(int actionNumber, int pwmName, int mode, int time, int cou
                 return 0;
 	}
 	else {
-            printf("Error, Impossible to set timer pwm\n");
+            printf("Error, Impossible to set timer Servo\n");
             return -1;
         }
 }
 
 // ----------------------------------------------------------------------
-// CHECKBLINKPWMCOUNT
-// CONTROLE LE NOMBRE DE CLIGNOTEMENT SUR LA SORTIE PWM
+// CHECKBLINKSERVOCOUNT
+// CONTROLE LE NOMBRE DE CLIGNOTEMENT SUR LA SORTIE SERVO
 // Fonction appel�e apr�s le timout d�fini par l'utilisateur.
 // -----------------------------------------------------------------------
 
-int checkBlinkPwmCount(int actionNumber, int pwmName){
+int checkBlinkServoCount(int actionNumber, int pwmName){
 	static int blinkCount=0;     // Variable de comptage du nombre de clignotements       
         static int PWMtoggleState[NBPWM];
 
@@ -94,11 +93,11 @@ int checkBlinkPwmCount(int actionNumber, int pwmName){
             
             // Consigned de clignotement atteinte ?
             if(blinkCount >= body.pwm[pwmName].blinkCount){
-                endPwmAction(actionNumber, pwmName);
+                endServoAction(actionNumber, pwmName);
                 blinkCount=0;                                   // Reset le compteur
             }
             else{
-                    setTimer(body.pwm[pwmName].blinkTime, &checkBlinkPwmCount, actionNumber, pwmName, PWM);      
+                    setTimer(body.pwm[pwmName].blinkTime, &checkBlinkServoCount, actionNumber, pwmName, PWM);      
             }
 
             blinkCount++;
@@ -115,7 +114,7 @@ int checkBlinkPwmCount(int actionNumber, int pwmName){
         }
         else{
             // Termine l'action unique (on/off)
-            endPwmAction(actionNumber, pwmName);
+            endServoAction(actionNumber, pwmName);
         }
     
 	return 0;
@@ -126,7 +125,7 @@ int checkBlinkPwmCount(int actionNumber, int pwmName){
 // Fin de l'action de clignotement
 // Fonction appel�e apr�s le timout d�fini par l'utilisateur, Stop le clignotement
 // -------------------------------------------------------------------
-int endPwmAction(int actionNumber, int pwmNumber){
+int endServoAction(int actionNumber, int pwmNumber){
 	int endOfTask;
 
 	// Retire l'action de la table et v�rification si toute les actions sont effectu�es

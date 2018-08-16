@@ -87,7 +87,7 @@ extern unsigned char motorDCadr[2];                                             
 extern void MCP2308_DCmotorState(unsigned char state);
 extern void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction);
 extern void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
-extern void PCA9685_setServoPos(unsigned char smAddr, unsigned char position);
+extern void PCA9685_setServoPos(unsigned char smAddr, char position);
 extern void PCA9685_setLedPower(unsigned char smAddr, unsigned char power);
 //extern void setDCmotorPower(unsigned char motorAdr, unsigned char power);
 

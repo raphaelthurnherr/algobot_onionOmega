@@ -28,6 +28,7 @@
 #define KEY_MESSAGE_VALUE_POWER "{'MsgData'{'MsgValue'[*{'power'"
 #define KEY_MESSAGE_VALUE_STATE "{'MsgData'{'MsgValue'[*{'state'"
 #define KEY_MESSAGE_VALUE_COUNT "{'MsgData'{'MsgValue'[*{'count'"
+#define KEY_MESSAGE_VALUE_POSPERCENT "{'MsgData'{'MsgValue'[*{'position'"
 
 
 #define KEY_MESSAGE_VALUE_EVENT_STATE "{'MsgData'{'MsgValue'[*{'event'"
@@ -119,10 +120,10 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 
 				AlgoidMessageRX.msgParam=ERR_PARAM;
 					if(!strcmp(myDataString, "stop")) AlgoidMessageRX.msgParam = STOP;
-					if(!strcmp(myDataString, "move")) AlgoidMessageRX.msgParam = MOVE;
 					if(!strcmp(myDataString, "motor")) AlgoidMessageRX.msgParam = MOTORS;
 					if(!strcmp(myDataString, "pwm")) AlgoidMessageRX.msgParam = pPWM;
 					if(!strcmp(myDataString, "led")) AlgoidMessageRX.msgParam = pLED;
+                                        if(!strcmp(myDataString, "servo")) AlgoidMessageRX.msgParam = pSERVO;
                                         if(!strcmp(myDataString, "button")) AlgoidMessageRX.msgParam = BUTTON;
 					if(!strcmp(myDataString, "distance")) AlgoidMessageRX.msgParam = DISTANCE;
 					if(!strcmp(myDataString, "battery")) AlgoidMessageRX.msgParam = BATTERY;
@@ -197,16 +198,6 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				    		  AlgoidMessageRX.RGBsens[i].blue.event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_BLUE_HIGHER, &i);
                                                   AlgoidMessageRX.RGBsens[i].clear.event_low= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_CLEAR_LOWER, &i);
 				    		  AlgoidMessageRX.RGBsens[i].clear.event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_CLEAR_HIGHER, &i);
-/*                                                  printf("RED EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].red.event_low);
-                                                  printf("RED EVENT HIGH: %d\n", AlgoidMessageRX.RGBsens[i].red.event_high);
-                                                  printf("GREEN EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].green.event_low);
-                                                  printf("GREEN EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].green.event_high);
-                                                  printf("BLUE EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].blue.event_low);
-                                                  printf("BLUE EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].blue.event_high);
-                                                  printf("CLEAR EVENT LOW: %d\n", AlgoidMessageRX.RGBsens[i].clear.event_low);
-*/                                                  
-//				    		  printf("\n-SONAR: %d DIST_EVENT_HIGH: %d, DIST_EVENT_LOW: %d  DIST_EVENT_ENABLE: %s\n", AlgoidMessageRX.DISTsens[i].id,
-//				    		  AlgoidMessageRX.DISTsens[i].event_high, AlgoidMessageRX.DISTsens[i].event_low, AlgoidMessageRX.DISTsens[i].event_state);
 				    	  }
 
                                           
@@ -218,20 +209,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 							 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_STOP, AlgoidMessageRX.BATTsens[i].safetyStop_state, 15, &i );
 							 AlgoidMessageRX.BATTsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
 				    	  }
-/*
-                                          // SERVO A RETRAVAILLER
-				    	  if(AlgoidMessageRX.msgParam == pPWM){ 
-				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_STATE, AlgoidMessageRX.PWMout[i].state, 15, &i );
-				    		  int organId=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SERVO, &i);
-				    		  switch(organId){
-				    		  	  case 0 : AlgoidMessageRX.PWMout[i].id=PWM_0; break;
-				    		  	  case 1 : AlgoidMessageRX.PWMout[i].id=PWM_1; break;
-				    		  	  case 2 : AlgoidMessageRX.PWMout[i].id=PWM_2; break;
-				    		  	  default : AlgoidMessageRX.PWMout[i].id=-1; break;
-				    		  }
-				    		  AlgoidMessageRX.PWMout[i].angle= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ANGLE, &i);
-                                            }
- */
+                                          
                                           // LED
 				    	  if(AlgoidMessageRX.msgParam == pLED){
                                                   AlgoidMessageRX.LEDarray[i].time=-1;
@@ -253,13 +231,26 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                                   AlgoidMessageRX.PWMarray[i].powerPercent=-1;
                                                   strcpy(AlgoidMessageRX.PWMarray[i].state,"null");
                                                   AlgoidMessageRX.PWMarray[i].blinkCount=-1;
-                                                  
-				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_STATE, AlgoidMessageRX.PWMarray[i].state, 15, &i );
+				    		  
+                                                  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_STATE, AlgoidMessageRX.PWMarray[i].state, 15, &i );
 				    		  int pwmId=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_PWM, &i);
 				    		  AlgoidMessageRX.PWMarray[i].id=pwmId;
 				    		  AlgoidMessageRX.PWMarray[i].powerPercent= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_POWER, &i);                                                  
                                                   AlgoidMessageRX.PWMarray[i].time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_TIME, &i);
                                                   AlgoidMessageRX.PWMarray[i].blinkCount= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_COUNT, &i);
+				    	  }
+                                          
+                                          // SERVO
+				    	  if(AlgoidMessageRX.msgParam == pSERVO){
+                                                  AlgoidMessageRX.PWMarray[i].time=-1;
+                                                  AlgoidMessageRX.PWMarray[i].powerPercent=-1;
+                                                  strcpy(AlgoidMessageRX.PWMarray[i].state,"null");
+                                                  AlgoidMessageRX.PWMarray[i].blinkCount=-1;
+                                                  
+				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_STATE, AlgoidMessageRX.PWMarray[i].state, 15, &i );
+				    		  int pwmId=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_PWM, &i);
+				    		  AlgoidMessageRX.PWMarray[i].id=pwmId;
+				    		  AlgoidMessageRX.PWMarray[i].powerPercent= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_POSPERCENT, &i);                                                                                                   
 				    	  }
 
 
@@ -581,13 +572,30 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                                 jwObj_int( "pwm", AlgoidResponse[i].PWMresponse.id);
                                                                                             else
                                                                                                 jwObj_string("pwm", "unknown");
-                                                                                            jwObj_string( "state", AlgoidResponse[i].PWMresponse.state);				// add object key:value pairs
-                                                                                            jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);				// add object key:value pairs
+                                                                                            jwObj_string( "state", AlgoidResponse[i].PWMresponse.state);				
+                                                                                            jwObj_int( "power", AlgoidResponse[i].PWMresponse.powerPercent);				
                                                                                             jwObj_int("time", AlgoidResponse[i].PWMresponse.time);
                                                                                             break;
                                                                                 default :   jwObj_string("error", "unknown");break;
                                                                             }
                                                                             break;
+
+                                                        case pSERVO :             
+                                                                            switch(AlgoidResponse[i].responseType){
+                                                                                case EVENT_ACTION_ERROR :   jwObj_string("action", "error");break;
+                                                                                case EVENT_ACTION_END  :    jwObj_string("action", "end"); break;
+                                                                                case EVENT_ACTION_BEGIN  :  jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_ABORT  :  jwObj_string("action", "abort"); break;
+                                                                                case RESP_STD_MESSAGE  :    if(AlgoidResponse[i].PWMresponse.id>=0)
+                                                                                                                jwObj_int( "pwm", AlgoidResponse[i].PWMresponse.id);
+                                                                                                            else
+                                                                                                                jwObj_string("pwm", "unknown");
+                                                                                                            jwObj_string( "state", AlgoidResponse[i].PWMresponse.state);				
+                                                                                                            jwObj_int( "position", AlgoidResponse[i].PWMresponse.powerPercent);				
+                                                                                                            break;
+                                                                                default :                   jwObj_string("error", "unknown");break;
+                                                                            }
+                                                                            break;                                                                         
                                                                                    
                                                         case pLED :             
                                                                             switch(AlgoidResponse[i].responseType){
@@ -603,7 +611,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                                             jwObj_int( "power", AlgoidResponse[i].LEDresponse.powerPercent);				// add object key:value pairs
                                                                                                             jwObj_int("time", AlgoidResponse[i].LEDresponse.time);
                                                                                                             jwObj_int("count", AlgoidResponse[i].LEDresponse.blinkCount);
-                                                                                            break;
+                                                                                                            break;
                                                                                 default :   jwObj_string("error", "unknown");break;
                                                                             }
                                                                             break;

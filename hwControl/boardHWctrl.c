@@ -175,25 +175,25 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
 // position= Angle de positionnement en degr� du servomoteur (de 0..100%)
 //================================================================================
 
-void PCA9685_setServoPos(unsigned char smAddr, unsigned char position){
+void PCA9685_setServoPos(unsigned char smAddr, char position){
 	unsigned int dutyCycleValue;
 	unsigned char dCLow;
 	unsigned char dCHigh;
 
-	// V�rifie que le positionnement d�fini soit entre 0 et 100%
+        // V�rifie que le positionnement d�fini soit entre 0 et 100%
 	if(position>100)
-		position=100;
+            position=100;
+        
+        if(position >= 0)
+            dutyCycleValue = 156+(position*2.72);
+        else dutyCycleValue = 0;                    // Turn off the servomotor (no refresh)   
 
-	// Conversion de la position 0..100% selon le fonctionnement du servo moteur
-	// Dur�e de pulse de minium 0.5mS et maximum 2.5mS
-	dutyCycleValue = 205+(position*2.04);
 	dCLow = dutyCycleValue&0x00FF;;
 	dCHigh = (dutyCycleValue&0x0F00) >>8;
 
 //	Applique les nouvelles valeures
 
-         i2c_write(0, PCA9685, smAddr, dCLow);
-
+        i2c_write(0, PCA9685, smAddr, dCLow);
         i2c_write(0, PCA9685, smAddr+1, dCHigh);
 }
 
@@ -223,10 +223,8 @@ void PCA9685_setLedPower(unsigned char smAddr, unsigned char power){
 //	Applique les nouvelles valeures
 
         i2c_write(0, PCA9685, smAddr, dCLow);
-
         i2c_write(0, PCA9685, smAddr+1, dCHigh);
 }
-
 
 
 //================================================================================
