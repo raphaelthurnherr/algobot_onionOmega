@@ -88,22 +88,11 @@ int setAsyncPwmAction(int actionNumber, int pwmName, int mode, int time, int cou
 int checkBlinkPwmCount(int actionNumber, int pwmName){
 	static int blinkCount=0;     // Variable de comptage du nombre de clignotements       
         static int PWMtoggleState[NBPWM];
-
+         
         // Si mode blink actif, toggle sur PWM et comptage
-        if(body.pwm[pwmName].state==LED_BLINK){    
+        if(body.pwm[pwmName].state==BLINK){
             
-            // Consigned de clignotement atteinte ?
-            if(blinkCount >= body.pwm[pwmName].blinkCount){
-                endPwmAction(actionNumber, pwmName);
-                blinkCount=0;                                   // Reset le compteur
-            }
-            else{
-                    setTimer(body.pwm[pwmName].blinkTime, &checkBlinkPwmCount, actionNumber, pwmName, PWM);      
-            }
-
-            blinkCount++;
-
-            // Realisation du TOGGLE sur la sortie PWM
+            // Performe the PWM toggle
             if(PWMtoggleState[pwmName]>0){
                 setPwmPower(pwmName, 0);
                 PWMtoggleState[pwmName]=0;
@@ -112,10 +101,22 @@ int checkBlinkPwmCount(int actionNumber, int pwmName){
                 setPwmPower(pwmName, body.pwm[pwmName].power);
                 PWMtoggleState[pwmName]=1;
             }
+           
+            // Consigned de clignotement atteinte ?
+            if(blinkCount >= body.pwm[pwmName].blinkCount-1){
+                body.pwm[pwmName].state=PWMtoggleState[pwmName];      // Update the actual state of pPWM
+                endPwmAction(actionNumber, pwmName);
+                blinkCount=0;                                   // Reset le compteur
+            }
+            else{
+                    setTimer(body.pwm[pwmName].blinkTime, &checkBlinkPwmCount, actionNumber, pwmName, PWM);                    
+                    blinkCount++;
+            }
         }
         else{
             // Termine l'action unique (on/off)
             endPwmAction(actionNumber, pwmName);
+            blinkCount=0;
         }
     
 	return 0;

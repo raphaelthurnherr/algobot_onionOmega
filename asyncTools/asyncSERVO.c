@@ -89,7 +89,7 @@ int checkBlinkServoCount(int actionNumber, int pwmName){
         static int PWMtoggleState[NBPWM];
 
         // Si mode blink actif, toggle sur PWM et comptage
-        if(body.pwm[pwmName].state==LED_BLINK){    
+        if(body.pwm[pwmName].state==BLINK){    
             
             // Consigned de clignotement atteinte ?
             if(blinkCount >= body.pwm[pwmName].blinkCount){

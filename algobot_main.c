@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.4.0"
+#define FIRMWARE_VERSION "1.4.1"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -616,11 +616,11 @@ int runLedAction(void){
                 
                 // R�cup�ration de commande d'�tat de la led dans le message
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"off"))
-                    body.led[i].state=LED_OFF;
+                    body.led[i].state=OFF;
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"on"))
-                    body.led[i].state=LED_ON;
+                    body.led[i].state=ON;
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"blink"))
-                    body.led[i].state=LED_BLINK;
+                    body.led[i].state=BLINK;
                 
                 // R�cup�ration des consignes dans le message (si disponible)
                 if(AlgoidCommand.LEDarray[ptrData].powerPercent > 0)
@@ -630,7 +630,7 @@ int runLedAction(void){
                     body.led[i].blinkTime=AlgoidCommand.LEDarray[ptrData].time;
                 
                 if(AlgoidCommand.LEDarray[ptrData].blinkCount > 0)
-                    body.led[i].blinkCount=AlgoidCommand.LEDarray[ptrData].blinkCount*2;
+                    body.led[i].blinkCount=AlgoidCommand.LEDarray[ptrData].blinkCount;
             }
         }
 
@@ -656,7 +656,7 @@ int runLedAction(void){
                                     Count=AlgoidCommand.LEDarray[ptrData].blinkCount;
                                     time=AlgoidCommand.LEDarray[ptrData].time;
                                     // Mode blink
-                                    if(body.led[ID].state==LED_BLINK){
+                                    if(body.led[ID].state==BLINK){
                                         
                                         // Verifie la presence de parametres de type "time" et "count", sinon applique des
                                         // valeurs par defaut
@@ -668,13 +668,14 @@ int runLedAction(void){
                                         }
                                         
                                         if(Count<=0){
+                                            Count=1;
                                             sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"count\"  pour l'action sur la LED %d\n", ID);
                                             printf(reportBuffer);                                                             // Affichage du message dans le shell
                                             sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
                                         }
             
                                         // Creation d'un timer effectu� sans erreur, ni ecrasement d'une ancienne action
-                                         setAsyncLedAction(myTaskId, ID, INFINITE, time, Count);
+                                         setAsyncLedAction(myTaskId, ID, BLINK, time, Count);
 ;                                    }
 
                                     // Mode on ou off
@@ -733,19 +734,19 @@ int runPwmAction(void){
                 
                 // R�cup�ration de commande d'�tat pour la sortie PWM
                 if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"off"))
-                    body.pwm[i].state=LED_OFF;
+                    body.pwm[i].state=OFF;
                 if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"on"))
-                    body.pwm[i].state=LED_ON;
+                    body.pwm[i].state=ON;
                 
 
                 // Blink mode not available in SERVO MODE
                 if(!AlgoidCommand.PWMarray[ptrData].isServoMode){
                     if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"blink"))
-                        body.pwm[i].state=LED_BLINK;
+                        body.pwm[i].state=BLINK;
                     if(AlgoidCommand.PWMarray[ptrData].time > 0)
                         body.pwm[i].blinkTime=AlgoidCommand.PWMarray[ptrData].time;
                     if(AlgoidCommand.PWMarray[ptrData].blinkCount > 0)
-                        body.pwm[i].blinkCount=AlgoidCommand.PWMarray[ptrData].blinkCount*2;
+                        body.pwm[i].blinkCount=AlgoidCommand.PWMarray[ptrData].blinkCount;
                 }
                 else{
                     
@@ -782,7 +783,7 @@ int runPwmAction(void){
                                     // Check if is a servomotor PWM (500uS .. 2.5mS)
                                     if(!AlgoidCommand.PWMarray[ptrData].isServoMode){
                                         // Mode blink
-                                        if(body.pwm[ID].state==LED_BLINK){
+                                        if(body.pwm[ID].state==BLINK){
                                             // Verifie la presence de parametres de type "time" et "count", sinon applique des
                                             // valeurs par defaut
                                             if(time<=0){
@@ -799,7 +800,7 @@ int runPwmAction(void){
                                             }
 
                                             // Creation d'un timer effectu� sans erreur, ni ecrasement d'une ancienne action
-                                             setAsyncPwmAction(myTaskId, ID, INFINITE, time, Count);
+                                             setAsyncPwmAction(myTaskId, ID, BLINK, time, Count);
                                         }
                                         else{
                                             if(body.pwm[ID].state==OFF)
@@ -979,7 +980,7 @@ int makeStatusRequest(int msgType){
 	unsigned char ptrData=0;
 
 	AlgoidCommand.msgValueCnt=0;
-	AlgoidCommand.msgValueCnt = NBDIN + NBBTN + NBMOTOR + NBSONAR + NBLED + NBPWM + NBRGBC +1 ; // Nombre de VALEUR � transmettre + 1 pour le SystemStatus
+	AlgoidCommand.msgValueCnt = NBDIN + NBBTN + NBMOTOR + NBSONAR + NBRGBC + NBLED + NBPWM +1 ; // Nombre de VALEUR � transmettre + 1 pour le SystemStatus
      
         // Preparation du message de reponse pour le status systeme
         strcpy(AlgoidResponse[ptrData].SYSresponse.name, ClientID);
@@ -1035,6 +1036,19 @@ int makeStatusRequest(int msgType){
                 ptrData++;
 	}
         
+        for(i=0;i<NBRGBC;i++){
+		AlgoidResponse[ptrData].RGBresponse.id=i;
+		AlgoidResponse[ptrData].RGBresponse.red.value=body.rgb[i].red.value;
+                AlgoidResponse[ptrData].RGBresponse.green.value=body.rgb[i].green.value;
+                AlgoidResponse[ptrData].RGBresponse.blue.value=body.rgb[i].blue.value;
+                AlgoidResponse[ptrData].RGBresponse.clear.value=body.rgb[i].clear.value;
+                
+                if(body.rgb[i].event_enable) strcpy(AlgoidResponse[ptrData].RGBresponse.event_state, "on");
+                else strcpy(AlgoidResponse[ptrData].RGBresponse.event_state, "off");
+                
+		ptrData++;
+	}
+        
         for(i=0;i<NBLED;i++){
 		AlgoidResponse[ptrData].LEDresponse.id=i;
 		AlgoidResponse[ptrData].value=body.led[i].state;
@@ -1049,21 +1063,7 @@ int makeStatusRequest(int msgType){
                 AlgoidResponse[ptrData].PWMresponse.powerPercent=body.pwm[i].power;
 		ptrData++;
 	}
-        
-        for(i=0;i<NBRGBC;i++){
-		AlgoidResponse[ptrData].RGBresponse.id=i;
-		AlgoidResponse[ptrData].RGBresponse.red.value=body.rgb[i].red.value;
-                AlgoidResponse[ptrData].RGBresponse.green.value=body.rgb[i].green.value;
-                AlgoidResponse[ptrData].RGBresponse.blue.value=body.rgb[i].blue.value;
-                AlgoidResponse[ptrData].RGBresponse.clear.value=body.rgb[i].clear.value;
                 
-                if(body.rgb[i].event_enable) strcpy(AlgoidResponse[ptrData].RGBresponse.event_state, "on");
-                else strcpy(AlgoidResponse[ptrData].RGBresponse.event_state, "off");
-                
-		ptrData++;
-	}
-
-        
 	// Envoie de la r�ponse MQTT
 	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, msgType, STATUS, AlgoidCommand.msgValueCnt);
 	return (1);

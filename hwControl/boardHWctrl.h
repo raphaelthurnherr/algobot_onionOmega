@@ -89,6 +89,7 @@ extern void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char dir
 extern void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
 extern void PCA9685_setServoPos(unsigned char smAddr, char position);
 extern void PCA9685_setLedPower(unsigned char smAddr, unsigned char power);
+
 //extern void setDCmotorPower(unsigned char motorAdr, unsigned char power);
 
 extern int EFM8BB_readSonarDistance(void);					// Get distance in mm from the EFM8BB microcontroller

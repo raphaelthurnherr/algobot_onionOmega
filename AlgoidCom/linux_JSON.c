@@ -503,7 +503,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                 jwEnd(); 
                                                                             }
 
-                                                                                                                                                                // ETAT DES MOTEUR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                            // ETAT DU SONAR                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
                                                                             if(i>=1+NBDIN+NBBTN+NBMOTOR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR){
                                                                             //    jwObj_int("sonar",AlgoidResponse[i].DISTresponse.id);		// add object key:value pairs
                                                                             //    jwObj_int("cm", round((AlgoidResponse[i].value)));
@@ -517,36 +517,9 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     }
                                                                                 jwEnd(); 
                                                                             }
-                                                                            
-                                                                            // ETAT DES LED                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED){
-                                                                                jwObj_array( "pwm" );
-                                                                                    for(j=0;j<NBPWM;j++){
-                                                                                        jwArr_object();
-                                                                                            jwObj_int("state",AlgoidResponse[i].value);
-                                                                                            jwObj_int("power",AlgoidResponse[i].PWMresponse.powerPercent);
-                                                                                        jwEnd();           
-                                                                                        i++;
-                                                                                    }
-                                                                                jwEnd();                                                                                             
-                                                                            }                                                                            
-
-
-                                                                            // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED+NBPWM){
-                                                                                jwObj_array( "led" );
-                                                                                    for(j=0;j<NBLED;j++){
-                                                                                        jwArr_object();
-                                                                                            jwObj_int("state",AlgoidResponse[i].value);
-                                                                                            jwObj_int("power",AlgoidResponse[i].LEDresponse.powerPercent);
-                                                                                        jwEnd();           
-                                                                                        i++;
-                                                                                    }
-                                                                                jwEnd();                                                                                             
-                                                                            }
 
                                                                             // ETAT DES CAPTEURS RGB                                                                                                                                                     // ETAT DES AIN                                                                                       // ETAT DES DIN
-                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED+NBPWM && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBLED+NBPWM+NBRGBC){
+                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBRGBC){
                                                                                 jwObj_array( "rgb" );
                                                                                     for(j=0;j<NBRGBC;j++){
                                                                                         jwArr_object();
@@ -559,7 +532,35 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                         i++;
                                                                                     }
                                                                                 jwEnd();                                                                                             
+                                                                            }                                                                            
+                                                                            
+                                                                            // ETAT DES LED                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBRGBC && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBRGBC+NBLED){
+                                                                                jwObj_array( "led" );
+                                                                                    for(j=0;j<NBLED;j++){
+                                                                                        jwArr_object();
+                                                                                            jwObj_int("state",AlgoidResponse[i].value);
+                                                                                            jwObj_int("power",AlgoidResponse[i].LEDresponse.powerPercent);
+                                                                                        jwEnd();           
+                                                                                        i++;
+                                                                                    }
+                                                                                jwEnd();                                                                                             
+                                                                            }                                                                            
+
+
+                                                                            // ETAT DES PWM                                                                                   // ETAT DES PWM                                                                                        // ETAT DES AIN                                                                                       // ETAT DES DIN
+                                                                            if(i>=1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBRGBC+NBLED && i<1+NBDIN+NBBTN+NBMOTOR+NBSONAR+NBRGBC+NBLED+NBPWM){
+                                                                                jwObj_array( "pwm" );
+                                                                                    for(j=0;j<NBPWM;j++){
+                                                                                        jwArr_object();
+                                                                                            jwObj_int("state",AlgoidResponse[i].value);
+                                                                                            jwObj_int("power",AlgoidResponse[i].PWMresponse.powerPercent);
+                                                                                        jwEnd();           
+                                                                                        i++;
+                                                                                    }
+                                                                                jwEnd();                                                                                             
                                                                             }
+
                                                                             break;
                                                                                     
                                                         case pPWM :             

@@ -23,8 +23,8 @@ int checkBlinkLedCount(int actionNumber, int ledName);
 // -------------------------------------------------------------------
 // SETASYNCLEDACTION
 // Effectue l'action de clignotement
-// - Démarrage du timer avec definition de fonction call-back, et no d'action
-// - Démarrage du clignotement
+// - Dï¿½marrage du timer avec definition de fonction call-back, et no d'action
+// - Dï¿½marrage du clignotement
 // - vitesse de clignotement en mS
 // -------------------------------------------------------------------
 
@@ -32,9 +32,9 @@ int setAsyncLedAction(int actionNumber, int ledName, int mode, int time, int cou
 	int setTimerResult;
 	int endOfTask;
 
-	// Démarre un timer d'action sur la led et spécifie la fonction call back à appeler en time-out
-	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
-        if(mode==INFINITE){
+	// Dï¿½marre un timer d'action sur la led et spï¿½cifie la fonction call back ï¿½ appeler en time-out
+	// Valeur en retour >0 signifie que l'action "en retour" ï¿½ ï¿½tï¿½ ï¿½crasï¿½e
+        if(mode==BLINK){
             setTimerResult=setTimer(time, &checkBlinkLedCount, actionNumber, ledName, LED);
         }
         else{
@@ -44,25 +44,25 @@ int setAsyncLedAction(int actionNumber, int ledName, int mode, int time, int cou
                 if(mode==OFF)
                     setLedPower(ledName, 0);
             // Utilise un delais de 5ms sinon message "Begin" arrive apres
-            setTimerResult=setTimer(5, &checkBlinkLedCount, actionNumber, ledName, LED);     // Considère un blink infini  
+            setTimerResult=setTimer(5, &checkBlinkLedCount, actionNumber, ledName, LED);     // Considï¿½re un blink infini  
         }
         
-	if(setTimerResult!=0){                                          // Timer pret, action effectuée
-		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur le meme peripherique
-			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
+	if(setTimerResult!=0){                                          // Timer pret, action effectuï¿½e
+		if(setTimerResult>1){					// Le timer ï¿½ ï¿½tï¿½ ï¿½crasï¿½ par la nouvelle action en retour car sur le meme peripherique
+			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tï¿½che qui ï¿½ ï¿½tï¿½ ï¿½crasï¿½e par la nouvelle action
                         if(endOfTask){
                                 sprintf(reportBuffer, "Annulation des actions LED pour la tache #%d\n", setTimerResult);
 
-                                // Récupère l'expediteur original du message ayant provoqué
-                                // l'évenement
+                                // Rï¿½cupï¿½re l'expediteur original du message ayant provoquï¿½
+                                // l'ï¿½venement
                                 char msgTo[32];
                                 int ptr=getSenderFromMsgId(endOfTask);
                                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-                                // Libère la memorisation de l'expediteur
+                                // Libï¿½re la memorisation de l'expediteur
                                 removeSenderOfMsgId(endOfTask);
                                 
                                 AlgoidResponse[0].responseType=EVENT_ACTION_ABORT;
-                                sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, pLED, 1);		// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                                sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, pLED, 1);		// Envoie un message ALGOID de fin de tï¿½che pour l'action ï¿½crasï¿½
                                 printf(reportBuffer);                                                   // Affichage du message dans le shell
                                 sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
                         }
@@ -81,26 +81,26 @@ int setAsyncLedAction(int actionNumber, int ledName, int mode, int time, int cou
 // -------------------------------------------------------------------
 // ENDBLINKACTION
 // Fin de l'action de clignotement
-// Fonction appelée après le timout défini par l'utilisateur, Stop le clignotement
+// Fonction appelï¿½e aprï¿½s le timout dï¿½fini par l'utilisateur, Stop le clignotement
 // -------------------------------------------------------------------
 int endLedAction(int actionNumber, int LedNumber){
 	int endOfTask;
-	// Retire l'action de la table et vérification si toute les actions sont effectuées
-	// Pour la tâche en cours donnée par le message ALGOID
+	// Retire l'action de la table et vï¿½rification si toute les actions sont effectuï¿½es
+	// Pour la tï¿½che en cours donnï¿½e par le message ALGOID
 
         endOfTask=removeBuggyTask(actionNumber);
         if(endOfTask>0){
                 sprintf(reportBuffer, "FIN DES ACTIONS LED pour la tache #%d\n", endOfTask);
 
-                // Récupère l'expediteur original du message ayant provoqué
-                // l'évenement
+                // Rï¿½cupï¿½re l'expediteur original du message ayant provoquï¿½
+                // l'ï¿½venement
                 char msgTo[32];
                 int ptr=getSenderFromMsgId(endOfTask);
                 strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-                // Libère la memorisation de l'expediteur
+                // Libï¿½re la memorisation de l'expediteur
                 removeSenderOfMsgId(endOfTask);
                 AlgoidResponse[0].responseType=EVENT_ACTION_END;
-                sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+                sendResponse(endOfTask, msgTo, EVENT, pLED, 1);			// Envoie un message ALGOID de fin de tï¿½che pour l'action ï¿½crasï¿½
                 printf(reportBuffer);									// Affichage du message dans le shell
                 sendMqttReport(endOfTask, reportBuffer);				// Envoie le message sur le canal MQTT "Report"
         }
@@ -111,28 +111,18 @@ int endLedAction(int actionNumber, int LedNumber){
 // ----------------------------------------------------------------------
 // CHECKBLINKCOUNT
 // CONTROLE LE NOMBRE DE CLIGNOTEMENT SUR LA LED
-// Fonction appelée après le timout défini par l'utilisateur.
+// Fonction appelï¿½e aprï¿½s le timout dï¿½fini par l'utilisateur.
 // -----------------------------------------------------------------------
 
 int checkBlinkLedCount(int actionNumber, int ledName){
 	static int blinkCount=0;     // Variable de comptage du nombre de clignotements       
         static int LEDtoggleState[NBLED];
 
+         
         // Si mode blink actif, toggle sur LED et comptage
-        if(body.led[ledName].state==LED_BLINK){    
+        if(body.led[ledName].state==BLINK){
             
-            // Consigned de clignotement atteinte ?
-            if(blinkCount >= body.led[ledName].blinkCount){
-                endLedAction(actionNumber, ledName);
-                blinkCount=0;                                   // Reset le compteur
-            }
-            else{
-                    setTimer(body.led[ledName].blinkTime, &checkBlinkLedCount, actionNumber, ledName, LED);      
-            }
-
-            blinkCount++;
-
-            // Realisation du TOGGLE sur la LED
+            // Performe the LED toggle
             if(LEDtoggleState[ledName]>0){
                 setLedPower(ledName, 0);
                 LEDtoggleState[ledName]=0;
@@ -141,10 +131,22 @@ int checkBlinkLedCount(int actionNumber, int ledName){
                 setLedPower(ledName, body.led[ledName].power);
                 LEDtoggleState[ledName]=1;
             }
+           
+            // Consigned de clignotement atteinte ?
+            if(blinkCount >= body.led[ledName].blinkCount-1){
+                body.led[ledName].state=LEDtoggleState[ledName];      // Update the actual state of led
+                endLedAction(actionNumber, ledName);
+                blinkCount=0;                                   // Reset le compteur
+            }
+            else{
+                    setTimer(body.led[ledName].blinkTime, &checkBlinkLedCount, actionNumber, ledName, LED);                    
+                    blinkCount++;
+            }
         }
         else{
             // Termine l'action unique (on/off)
             endLedAction(actionNumber, ledName);
+            blinkCount=0;
         }
     
 	return 0;
