@@ -237,8 +237,9 @@ int main(void) {
     	}
         
         sysInfo.startUpTime++;
-    	usleep(1000);													// Attente de 1ms
+    	usleep(1000);	// Attente de 1ms
     }
+ 
 	// ------------ FIN DE LA BOUCLE PRINCIPALE ----------------------
 
 

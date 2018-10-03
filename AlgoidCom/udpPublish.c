@@ -83,7 +83,8 @@ void sendUDPHeartBit(char * udpMsg);
     		 	int fd;
 			    struct ifreq ifr;
                         #ifdef I2CSIMU
-			    char *iface = "wlan0";
+			    char *iface = "lo";
+                           // char *iface = "wlan0";
                         #else
                             char *iface = "ra0";
                         #endif                           

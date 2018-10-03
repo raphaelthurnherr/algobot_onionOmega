@@ -248,9 +248,6 @@ int EFM8BB_getBoardType(void){
 // -------------------------------------------------------------------
 int BH1745_getRGBvalue(unsigned char sensorNb, int color){
         int value=-1;  // Registre CLEAR LSB par defaut 
-
-
-        printf(" #SIMU-> Read color: %d on sensor: %d \n", color, sensorNb);
         
         switch(color){
             case RED :   value=0xBB; break;
@@ -260,7 +257,8 @@ int BH1745_getRGBvalue(unsigned char sensorNb, int color){
             
             default : value=-1; break;
         }
-        
+
+        printf(" #SIMU-> Read color: %d on sensor: %d \n", value, sensorNb);        
         return value;
 }
 

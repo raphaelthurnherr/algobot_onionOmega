@@ -163,7 +163,7 @@ void *hwTask (void * arg){
                                     sensor.RGBC[RGBC_SENS_1].blue = BH1745_getRGBvalue(RGBC_SENS_1, BLUE) ;
                                     sensor.RGBC[RGBC_SENS_1].clear = BH1745_getRGBvalue(RGBC_SENS_1, CLEAR) ; break;
                         
-			default:
+			default: 
                             if(i2c_command_queuing[0][CALLBACK]!=0)processCommandQueue(); break;
 		}
                 
