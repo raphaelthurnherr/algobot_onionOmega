@@ -16,7 +16,6 @@ int EFM8BB_readBatteryVoltage(void);				// Get the battery voltage in mV from EF
 int EFM8BB_readFrequency(unsigned char wheelNb);		// Get the wheel frequency
 int EFM8BB_readPulseCounter(unsigned char wheelNb);
 int EFM8BB_clearWheelDistance(unsigned char wheelNb);
-char MCP2308_ReadGPIO(unsigned char input);
 int EFM8BB_getFirmwareVersion(void);                            // Get the MCU firmware version
 int EFM8BB_getBoardType(void);                                  // Get the type of the board.
 int BH1745_getRGBvalue(unsigned char sensorNb, int color);                              // Get the value for specified color

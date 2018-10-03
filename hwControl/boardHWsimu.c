@@ -16,13 +16,12 @@ int EFM8BB_readBatteryVoltage(void);				// Get the battery voltage in mV from EF
 int EFM8BB_readFrequency(unsigned char wheelNb);		// Get the wheel frequency
 int EFM8BB_readPulseCounter(unsigned char wheelNb);
 int EFM8BB_clearWheelDistance(unsigned char wheelNb);
-char MCP2308_ReadGPIO(unsigned char input);
 int EFM8BB_getFirmwareVersion(void);                            // Get the MCU firmware version
 int EFM8BB_getBoardType(void);                                  // Get the type of the board.
 int BH1745_getRGBvalue(unsigned char sensorNb, int color);                              // Get the value for specified color
 
 unsigned char motorDCadr[2]={PCA_DCM0, PCA_DCM1};		// Valeur de la puissance moteur
-int pulses0, pulses1;
+unsigned int pulses0, pulses1;
 
 //================================================================================
 // BUGGYBOARDINIT
@@ -60,8 +59,16 @@ void MCP2308_DCmotorState(unsigned char state){
 //================================================================================
 
 char MCP2308_ReadGPIO(unsigned char input){
-    printf(" #SIMU-> Read MCP GPIO on input: %d\n",input);
-    return 1;
+    unsigned char gpio, result;
+    
+    gpio = rand() % 20;
+    
+    if(gpio > 10)
+        result = 0;
+    else result = 1;
+    
+    //printf(" #SIMU-> Read MCP GPIO on input: %d\n",input);
+    return result;
 }
 
 
@@ -168,9 +175,9 @@ int EFM8BB_readSonarDistance(void){
     sens = rand() % 50;
     
     if(sens>25)
-        SonarDistance_mm += rand() % 25;
+        SonarDistance_mm += rand() % 50;
     else
-        SonarDistance_mm -= rand() % 25;
+        SonarDistance_mm -= rand() % 50;
     
     if (SonarDistance_mm >= 4500)
         SonarDistance_mm=2500;
@@ -178,7 +185,7 @@ int EFM8BB_readSonarDistance(void){
     if (SonarDistance_mm <= 20)
         SonarDistance_mm=2500;
     
-    printf(" #SIMU-> Read sonar distance: %d\n", SonarDistance_mm);
+    //printf(" #SIMU-> Read sonar distance: %d\n", SonarDistance_mm);
 
     return SonarDistance_mm;
 }
@@ -194,9 +201,9 @@ int EFM8BB_readBatteryVoltage(void){
     static unsigned int batteryVoltage_mV =3830;
     unsigned char sens;
    
-    sens = rand() % 50;
+    sens = rand() % 20;
     
-    if(sens>25)
+    if(sens>10)
         batteryVoltage_mV += rand() % 25;
     else
         batteryVoltage_mV -= rand() % 25;
@@ -206,7 +213,7 @@ int EFM8BB_readBatteryVoltage(void){
     
     if (batteryVoltage_mV <= 3300)
         batteryVoltage_mV=3830;
-    printf(" #SIMU-> Read battery voltage: %d\n", batteryVoltage_mV);
+    //printf(" #SIMU-> Read battery voltage: %d\n", batteryVoltage_mV);
 
     return batteryVoltage_mV;
 }
@@ -218,7 +225,7 @@ int EFM8BB_readBatteryVoltage(void){
 // -------------------------------------------------------------------
 int EFM8BB_readFrequency(unsigned char wheelNb){
     int freq=101;
-    printf(" #SIMU-> Read frequency on encoder %d\n", wheelNb);
+    //printf(" #SIMU-> Read frequency on encoder %d\n", wheelNb);
     return freq;
 }
 
@@ -241,7 +248,7 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb){
             default: result=0;break;
         }
     
-    printf(" #SIMU-> Read pulses on encoder %d\n", wheelNb);
+    //printf(" #SIMU-> Read pulses on encoder %d\n", wheelNb);
     return result;
 }
 
@@ -268,24 +275,13 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb){
 // Param�tre "InputNr" plus utilis�...
 // -------------------------------------------------------------------
 char EFM8BB_readDigitalInput(unsigned char InputNr){
-        unsigned char din0, din1, din2, din3;
-        char result;
-        
-        din0 = rand() % 50;
-        din1 = rand() % 50;
-        din2 = rand() % 50;
-        din3 = rand() % 50;
-        
-        switch(InputNr){
-            case 0 : if(din0>25)result=0; else result=1;break;
-            case 1 : if(din1>25)result=0; else result=1;break;
-            case 2 : if(din2>25)result=0; else result=1;break;
-            case 3 : if(din3>25)result=0; else result=1;break;
-        }
+        unsigned char din;
+
+        din = rand() % 255;
         
         
-    printf(" #SIMU-> Read DIN on input %d: %d\n", InputNr, result);
-    return result;
+    //printf(" #SIMU-> Read DIN on input %d: %d\n", InputNr, result);
+    return din;
 }
 
 
@@ -314,26 +310,26 @@ int EFM8BB_getBoardType(void){
 // -------------------------------------------------------------------
 int BH1745_getRGBvalue(unsigned char sensorNb, int color){
         int value=-1;  // Registre CLEAR LSB par defaut 
-        int static red, green, blue, clear;
+        unsigned int static red, green, blue, clear;
         unsigned char Rsens,Gsens, Bsens, Csens;
                 
-        Rsens = rand() % 50;
-        Gsens = rand() % 50;
-        Bsens = rand() % 50;
+        Rsens = rand() % 20;
+        Gsens = rand() % 40;
+        Bsens = rand() % 60;
         Csens = rand() % 50;
         
         //Simulator Only
-        if(Rsens>25)
+        if(Rsens>10)
             red += rand() % 25;
         else
             red -= rand() % 25;
         
-        if(Gsens>25)
+        if(Gsens>20)
             green += rand() % 25;
         else
             green -= rand() % 25; 
         
-        if(Bsens>25)
+        if(Bsens>30)
             blue += rand() % 25;
         else
             blue -= rand() % 25; 
@@ -342,7 +338,17 @@ int BH1745_getRGBvalue(unsigned char sensorNb, int color){
             clear -= rand() % 25;
         else
             clear -= rand() % 25; 
-            
+
+        // Restore implicite default value 
+        if(red >20000)
+            red=3000;
+        if(green >20000)
+            green=3000;
+        if(blue >20000)
+            blue=3000;
+        if(clear >20000)
+            clear=3000;
+        
         // End of simu
         
         switch(color){
@@ -354,11 +360,15 @@ int BH1745_getRGBvalue(unsigned char sensorNb, int color){
             default : value=-1; break;
         }
 
+        
         //  Set to positive value
         if (value < 0)
             value*=-1;
         
-        printf(" #SIMU-> Read color %d: %d on sensor: %d \n",color, value, sensorNb);        
+
+        
+        
+       // printf(" #SIMU-> Read color %d: %d on sensor: %d \n",color, value, sensorNb);        
         return value;
 }
 
