@@ -30,6 +30,14 @@ CND_ARTIFACT_PATH_Debug-GNU-LINUX=dist/Debug-GNU-LINUX/GNU-Linux/algobot_onionom
 CND_PACKAGE_DIR_Debug-GNU-LINUX=dist/Debug-GNU-LINUX/GNU-Linux/package
 CND_PACKAGE_NAME_Debug-GNU-LINUX=algobotonionomega.tar
 CND_PACKAGE_PATH_Debug-GNU-LINUX=dist/Debug-GNU-LINUX/GNU-Linux/package/algobotonionomega.tar
+# Debug-GNU-LINUX_x86 configuration
+CND_PLATFORM_Debug-GNU-LINUX_x86=GNU-Linux
+CND_ARTIFACT_DIR_Debug-GNU-LINUX_x86=dist/Debug-GNU-LINUX_x86/GNU-Linux
+CND_ARTIFACT_NAME_Debug-GNU-LINUX_x86=algobot_onionomega_x86
+CND_ARTIFACT_PATH_Debug-GNU-LINUX_x86=dist/Debug-GNU-LINUX_x86/GNU-Linux/algobot_onionomega_x86
+CND_PACKAGE_DIR_Debug-GNU-LINUX_x86=dist/Debug-GNU-LINUX_x86/GNU-Linux/package
+CND_PACKAGE_NAME_Debug-GNU-LINUX_x86=algobotonionomega.tar
+CND_PACKAGE_PATH_Debug-GNU-LINUX_x86=dist/Debug-GNU-LINUX_x86/GNU-Linux/package/algobotonionomega.tar
 #
 # include compiler specific variables
 #

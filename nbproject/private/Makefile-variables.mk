@@ -6,3 +6,4 @@
 # Debug configuration
 # Release configuration
 # Debug-GNU-LINUX configuration
+# Debug-GNU-LINUX_x86 configuration
