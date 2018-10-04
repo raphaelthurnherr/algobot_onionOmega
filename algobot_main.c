@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.4.3"
+#define FIRMWARE_VERSION "1.4.4"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -205,7 +205,9 @@ int main(int argc, char *argv[]) {
                         }			
 
                         for(i=0;i<NBMOTOR;i++){
+                            
                             body.motor[i].speed= (getMotorFrequency(i)*CMPP) * body.motor[i].direction;
+                            //printf("\n----- SPEED #%d:  %d -----\n",i, body.motor[i].speed);
                             body.motor[i].distance=getMotorPulses(i)*CMPP;
                         }
 

@@ -22,10 +22,10 @@ int checkMotorEncoder(int actionNumber, int encoderName);
 int dummyMotorAction(int actionNumber, int encoderName);
 // -------------------------------------------------------------------
 // SETASYNCMOTORLACTION
-// Effectue l'action sur une roue spécifiée
-// - Démarrage du timer avec definition de fonction call-back, et no d'action
-// - Démarrage du mouvement de la roue spécifiée
-// - Vélocité entre -100 et +100 qui défini le sens de rotation du moteur
+// Effectue l'action sur une roue spï¿½cifiï¿½e
+// - Dï¿½marrage du timer avec definition de fonction call-back, et no d'action
+// - Dï¿½marrage du mouvement de la roue spï¿½cifiï¿½e
+// - Vï¿½locitï¿½ entre -100 et +100 qui dï¿½fini le sens de rotation du moteur
 // -------------------------------------------------------------------
 
 int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value){
@@ -33,7 +33,7 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 	int setTimerResult;
 	int endOfTask;
 
-	// Conversion de la vélocité de -100...+100 en direction AVANCE ou RECULE
+	// Conversion de la vï¿½locitï¿½ de -100...+100 en direction AVANCE ou RECULE
 	if(veloc > 0){
 		myDirection=BUGGY_FORWARD;
 		body.motor[motorNb].direction = 1;
@@ -48,41 +48,41 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 		veloc *=-1;					// Convertion en valeur positive
 	}
 
-	// Démarre de timer d'action sur la roue et spécifie la fonction call back à appeler en time-out
-	// Valeur en retour >0 signifie que l'action "en retour" à été écrasée
+	// Dï¿½marre de timer d'action sur la roue et spï¿½cifie la fonction call back ï¿½ appeler en time-out
+	// Valeur en retour >0 signifie que l'action "en retour" ï¿½ ï¿½tï¿½ ï¿½crasï¿½e
 	switch(unit){
 		case  MILLISECOND:  setTimerResult=setTimer(value, &endWheelAction, actionNumber, motorNb, MOTOR); break;
 		case  CENTIMETER:   //motorNb = getOrganNumber(motorNb);
                                     body.encoder[motorNb].startEncoderValue=getMotorPulses(motorNb)*CMPP;
                                     body.encoder[motorNb].stopEncoderValue = body.encoder[motorNb].startEncoderValue+ value;
-                                    setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, motorNb, MOTOR); break;// Démarre un timer pour contrôle de distance chaque 35mS
+                                    setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, motorNb, MOTOR); break;// Dï¿½marre un timer pour contrï¿½le de distance chaque 35mS
                                    
                 case  INFINITE:     setTimerResult=setTimer(100, &dummyMotorAction, actionNumber, motorNb, MOTOR); break;
 		default: printf("\n!!! ERROR Function [setAsyncMotorAction] -> unknown mode");break;
 	}
 
-	if(setTimerResult!=0){						// Timer pret, action effectuée ()
-		if(setTimerResult>1){					// Le timer à été écrasé par la nouvelle action en retour car sur la même roue
-			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tâche qui à été écrasée par la nouvelle action
+	if(setTimerResult!=0){						// Timer pret, action effectuï¿½e ()
+		if(setTimerResult>1){					// Le timer ï¿½ ï¿½tï¿½ ï¿½crasï¿½ par la nouvelle action en retour car sur la mï¿½me roue
+			endOfTask=removeBuggyTask(setTimerResult);	// Supprime l'ancienne tï¿½che qui ï¿½ ï¿½tï¿½ ï¿½crasï¿½e par la nouvelle action
 			if(endOfTask){
 				sprintf(reportBuffer, "Annulation des actions moteur pour la tache #%d\n", endOfTask);
 
-				// Récupère l'expediteur original du message ayant provoqué
-				// l'évenement
+				// Rï¿½cupï¿½re l'expediteur original du message ayant provoquï¿½
+				// l'ï¿½venement
 				char msgTo[32];
 				int ptr=getSenderFromMsgId(endOfTask);
 				strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-				// Libère la memorisation de l'expediteur
+				// Libï¿½re la memorisation de l'expediteur
 				removeSenderOfMsgId(endOfTask);
 
 				AlgoidResponse[0].responseType=EVENT_ACTION_ABORT;
-				sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, MOTORS, 1);			// Envoie un message ALGOID de fin de tâche pour l'action écrasé
+				sendResponse(endOfTask, AlgoidCommand.msgFrom, EVENT, MOTORS, 1);			// Envoie un message ALGOID de fin de tï¿½che pour l'action ï¿½crasï¿½
 				printf(reportBuffer);									// Affichage du message dans le shell
 				sendMqttReport(endOfTask, reportBuffer);                                                // Envoie le message sur le canal MQTT "Report"
 			}
 		}
 
-		// Défini le "nouveau" sens de rotation à applique au moteur ainsi que la consigne de vitesse
+		// Dï¿½fini le "nouveau" sens de rotation ï¿½ applique au moteur ainsi que la consigne de vitesse
 		if(setMotorDirection(motorNb, myDirection)){							// Sens de rotation
 			setMotorSpeed(motorNb, veloc);									// Vitesse
 
@@ -105,7 +105,7 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 // -------------------------------------------------------------------
 // END2WDACTION
 // Fin de l'action sur une roue
-// Fonction appelée après le timout défini par l'utilisateur, Stop le moteur spécifié
+// Fonction appelï¿½e aprï¿½s le timout dï¿½fini par l'utilisateur, Stop le moteur spï¿½cifiï¿½
 // -------------------------------------------------------------------
 int endWheelAction(int actionNumber, int motorNb){
 	int endOfTask;
@@ -113,20 +113,21 @@ int endWheelAction(int actionNumber, int motorNb){
 
 	// Stop le moteur
 	setMotorSpeed(motorNb, 0);
-
-	// Retire l'action de la table et vérification si toute les actions sont effectuées
-	// Pour la tâche en cours donnée par le message ALGOID
+        body.motor[motorNb].direction = BUGGY_STOP;
+        
+	// Retire l'action de la table et vï¿½rification si toute les actions sont effectuï¿½es
+	// Pour la tï¿½che en cours donnï¿½e par le message ALGOID
 
 	endOfTask = removeBuggyTask(actionNumber);
 
-	// Contrôle que toutes les actions ont été effectuée pour la commande recue dans le message ALGOID
+	// Contrï¿½le que toutes les actions ont ï¿½tï¿½ effectuï¿½e pour la commande recue dans le message ALGOID
 	if(endOfTask){
-		// Récupère l'expediteur original du message ayant provoqué
-		// l'évenement
+		// Rï¿½cupï¿½re l'expediteur original du message ayant provoquï¿½
+		// l'ï¿½venement
 		char msgTo[32];
 		int ptr=getSenderFromMsgId(endOfTask);
 		strcpy(msgTo, msgEventHeader[ptr].msgFrom);
-		// Libère la memorisation de l'expediteur
+		// Libï¿½re la memorisation de l'expediteur
 		removeSenderOfMsgId(endOfTask);
 
 		AlgoidResponse[0].responseType=EVENT_ACTION_END;
@@ -143,8 +144,8 @@ int endWheelAction(int actionNumber, int motorNb){
 
 // ----------------------------------------------------------------------
 // CHECKMOTORENCODER
-// Contrôle la distance parcourue et stop la roue si destination atteinte
-// Fonction appelée après le timout défini par l'utilisateur.
+// Contrï¿½le la distance parcourue et stop la roue si destination atteinte
+// Fonction appelï¿½e aprï¿½s le timout dï¿½fini par l'utilisateur.
 // -----------------------------------------------------------------------
 
 int checkMotorEncoder(int actionNumber, int encoderName){

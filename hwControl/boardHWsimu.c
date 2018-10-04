@@ -168,7 +168,7 @@ unsigned char configRGBdevice(void){
 // -------------------------------------------------------------------
 int EFM8BB_readSonarDistance(void){
 
-    static unsigned int SonarDistance_mm = 2500;
+    static unsigned int SonarDistance_mm = 600;
     
     unsigned char sens;
    
@@ -179,11 +179,11 @@ int EFM8BB_readSonarDistance(void){
     else
         SonarDistance_mm -= rand() % 50;
     
-    if (SonarDistance_mm >= 4500)
-        SonarDistance_mm=2500;
+    if (SonarDistance_mm >= 1200)
+        SonarDistance_mm=600;
     
     if (SonarDistance_mm <= 20)
-        SonarDistance_mm=2500;
+        SonarDistance_mm=600;
     
     //printf(" #SIMU-> Read sonar distance: %d\n", SonarDistance_mm);
 
@@ -224,8 +224,10 @@ int EFM8BB_readBatteryVoltage(void){
 // ou -1 si erreur de lecture
 // -------------------------------------------------------------------
 int EFM8BB_readFrequency(unsigned char wheelNb){
-    int freq=101;
-    //printf(" #SIMU-> Read frequency on encoder %d\n", wheelNb);
+    int freq=150;
+    freq = rand() % 100;
+        
+    //printf(" #SIMU-> Read frequency on encoder %d: %d\n", wheelNb, freq);
     return freq;
 }
 
@@ -310,44 +312,44 @@ int EFM8BB_getBoardType(void){
 // -------------------------------------------------------------------
 int BH1745_getRGBvalue(unsigned char sensorNb, int color){
         int value=-1;  // Registre CLEAR LSB par defaut 
-        unsigned int static red, green, blue, clear;
+        unsigned int static red=1000, green=2500, blue=11000, clear=1000;
         unsigned char Rsens,Gsens, Bsens, Csens;
                 
-        Rsens = rand() % 20;
-        Gsens = rand() % 40;
-        Bsens = rand() % 60;
-        Csens = rand() % 50;
+        Rsens = rand() % 50;
+        Gsens = rand() % 100;
+        Bsens = rand() % 150;
+        Csens = rand() % 200;
         
         //Simulator Only
         if(Rsens>10)
-            red += rand() % 25;
+            red += rand() % 100;
         else
-            red -= rand() % 25;
+            red -= rand() % 100;
         
         if(Gsens>20)
-            green += rand() % 25;
+            green += rand() % 100;
         else
-            green -= rand() % 25; 
+            green -= rand() % 100; 
         
         if(Bsens>30)
-            blue += rand() % 25;
+            blue += rand() % 100;
         else
-            blue -= rand() % 25; 
+            blue -= rand() % 100; 
 
         if(Csens>25)
-            clear -= rand() % 25;
+            clear -= rand() % 100;
         else
-            clear -= rand() % 25; 
+            clear -= rand() % 100; 
 
         // Restore implicite default value 
-        if(red >20000)
-            red=3000;
-        if(green >20000)
-            green=3000;
-        if(blue >20000)
-            blue=3000;
-        if(clear >20000)
-            clear=3000;
+        if(red >11000)
+            red=1000;
+        if(green >27000)
+            green=2500;
+        if(blue >21000)
+            blue=11000;
+        if(clear >2000)
+            clear=1000;
         
         // End of simu
         
@@ -366,7 +368,10 @@ int BH1745_getRGBvalue(unsigned char sensorNb, int color){
             value*=-1;
         
 
-        
+        if(sensorNb>0)
+            if(Rsens>10)
+                value += rand() % 250;
+            else value -= rand() % 250;
         
        // printf(" #SIMU-> Read color %d: %d on sensor: %d \n",color, value, sensorNb);        
         return value;

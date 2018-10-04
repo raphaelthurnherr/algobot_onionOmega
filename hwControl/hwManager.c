@@ -16,8 +16,10 @@
 
 #ifdef I2CSIMU
 #include "boardHWsimu.h"
+#define POOLTIME 25000
 #else
 #include "boardHWctrl.h"
+#define POOLTIME 1000
 #endif
 
 #include "../buggy_descriptor.h"
@@ -175,7 +177,7 @@ void *hwTask (void * arg){
 			timeCount_ms++;
 		else timeCount_ms=0;
 
-		usleep(1000);
+		usleep(POOLTIME);
 	}
 	pthread_exit (0);
 }
@@ -242,18 +244,10 @@ char getButtonInput(unsigned char buttonNumber){
 
 int getMotorFrequency(unsigned char motorNb){
 	char freq;
-
+        
 	freq = sensor.counter[motorNb].frequency;
-	/*
-	switch(motorNb){
-		case 0: freq = buggySensor.left_encoder.frequency; break;
-		case 1: freq = buggySensor.right_encoder.frequency; break;
-		default: freq=-1; break;
-	}
-	*/
-
+        
 	return freq;
-	return 0;
 }
 
 
