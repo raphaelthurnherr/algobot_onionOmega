@@ -1,6 +1,7 @@
 
 //#define ADDRESS     "192.168.3.1:1883"
-#define ADDRESS     "localhost:1883"
+//#define ADDRESS     "localhost:1883"
+#define PORT     ":1883"
 
 #include "stdio.h"
 #include "stdlib.h"
@@ -16,9 +17,11 @@
 // Thread Messager
 pthread_t th_messager;
 
+char ADDRESS[25] = "localhost";
+
 char BroadcastID[50]="algo_";
 char ClientID[50]="algo_";
-
+char GroupID[50]="algo|0";          // Not use at this time
 
 void sendMqttReport(int msgId, char * msg);
 
@@ -49,14 +52,18 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
 	for(i=0;i<10;i++)
 		clearMsgStack(i);
 
-	// Creation d'un id unique avec l'adresse mac
-	sprintf(&ClientID[5], "%s", getMACaddr());
-
+	// Creation d'un id unique avec l'adresse mac si non defini au demarrage
+	if(!strcmp(ClientID, "algo_"))
+            sprintf(&ClientID[5], "%s", getMACaddr());
+        
+        // Creation de l'adresse de connexion au brocker
+        sprintf(&ADDRESS[strlen(ADDRESS)], "%s", PORT);
+        
 	// Connexion au broker MQTT
 	mqttStatus=mqtt_init(ADDRESS, ClientID, mqttMsgArrived);
 
 	if(!mqttStatus){
-		printf("#[MSG MANAGER] Connection au broker MQTT: OK (IP: %s avec ID: %s)\n", ADDRESS, ClientID   );
+		printf("#[MSG MANAGER] Connection au broker MQTT (%s): OK -> Algobot ID: \"%s\"\n", ADDRESS, ClientID   );
 		if(!mqttAddRXChannel(TOPIC_COMMAND)){
 			printf("#[MSG MANAGER] Inscription au topic: OK\n");
                         sendMqttReport(-1, "IS NOW ONLINE");
@@ -75,8 +82,10 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
 	    // RECEPTION DES DONNES UTILES
                 if(GetAlgoidMsg(AlgoidMessageRX, MqttDataBuffer)>0){
                         // Contr�le du destinataire
-                        if(!strcmp(AlgoidMessageRX.msgTo, ClientID) || !strcmp(AlgoidMessageRX.msgTo, BroadcastID)){
-                                // Enregistrement du message dans la pile
+//                        if(!strncmp(AlgoidMessageRX.msgTo, ClientID) || !strcmp(AlgoidMessageRX.msgTo, BroadcastID)){
+                        // Accept messages if destination differe of "algo_"  (is brodcast) or if client ID is Exactly the same
+                        if(strncmp(AlgoidMessageRX.msgTo, ClientID, 5) || !strcmp(AlgoidMessageRX.msgTo, ClientID)){
+                            // Enregistrement du message dans la pile
                                 lastMessage=pushMsgStack();
                                 if(lastMessage>=0){
                                     

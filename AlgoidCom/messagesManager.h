@@ -9,12 +9,13 @@
 #define MESSAGESMANAGER_H_
 
 extern char ClientID[50];
+extern char ADDRESS[25];
 
-// Définition des topic de réponses MQTT
-#define TOPIC_COMMAND "Command"					// Topic d'écoute de l'hote
-#define TOPIC_RESPONSE "Response"					// Topic de réponse à l'hote
-#define TOPIC_EVENT "Event"						// Topic d'envoie des evenements à l'hote
-#define TOPIC_ACK "Ack"					// Topic de réponse ack du gestionnaire de message
+// Dï¿½finition des topic de rï¿½ponses MQTT
+#define TOPIC_COMMAND "Command"					// Topic d'ï¿½coute de l'hote
+#define TOPIC_RESPONSE "Response"					// Topic de rï¿½ponse ï¿½ l'hote
+#define TOPIC_EVENT "Event"						// Topic d'envoie des evenements ï¿½ l'hote
+#define TOPIC_ACK "Ack"					// Topic de rï¿½ponse ack du gestionnaire de message
 #define TOPIC_DEBUG "Debug"
 #define TOPIC_DATAFLOW "Stream"
 

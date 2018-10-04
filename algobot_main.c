@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.4.2"
+#define FIRMWARE_VERSION "1.4.3"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -26,6 +26,9 @@
 #include "asyncLED.h"
 
 unsigned char ptrSpeedCalc;
+
+int getStartupArg(int count, char *arg[]);
+
 int createBuggyTask(int MsgId, int actionCount);
 int removeBuggyTask(int actionNumber);
 
@@ -87,12 +90,15 @@ t_sysConfig sysConfig;
 // - Initialisation d'un broadcast UDP pour publication de la p�sence du buggy sur le r�seau
 // -------------------------------------------------------------------
 
-int main(void) {
+int main(int argc, char *argv[]) {
 	int i;
         int systemDataStreamCounter=0;       // Compteur pour l'envoie periodique du flux de donnees des capteur
                                               // si activ�.
         char welcomeMessage[100];
 	system("clear");
+        
+        getStartupArg(argc, argv);
+        
         sprintf(&welcomeMessage[0], "ALGOBOT V%s Build date: %s\n", FIRMWARE_VERSION, __DATE__);		// Formattage du message avec le Nom du client buggy
         printf(welcomeMessage);
         printf ("------------------------------------\n");
@@ -2089,4 +2095,18 @@ void resetConfig(void){
         
         printf("WARNING ! Configuration reset to default value\n");
         sendMqttReport(AlgoidCommand.msgID, "WARNING ! Configuration reset to default value");// Envoie le message sur le canal MQTT "Report"  
+}
+
+int getStartupArg(int count, char *arg[]){
+    unsigned char i;
+    
+    for(i=0;i<count;i++){
+        printf("ARG #%d : %s\n", count, arg[i]);
+        
+        if(!strcmp(arg[i], "-n"))
+            sprintf(&ClientID, "%s", arg[i+1]);
+        
+        if(!strcmp(arg[i], "-a"))
+            sprintf(&ADDRESS, "%s", arg[i+1]);
+    }
 }

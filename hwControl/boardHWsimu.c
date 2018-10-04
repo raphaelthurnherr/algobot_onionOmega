@@ -112,7 +112,7 @@ void PCA9685_setServoPos(unsigned char smAddr, unsigned char position){
 //================================================================================
 
 void PCA9685_setLedPower(unsigned char smAddr, unsigned char power){
-    printf(" #SIMU-> LED adress: %d with power: %d\n", smAddr, power);
+    printf(" #SIMU-> LED/PWM adress: %d with power: %d\n", smAddr, power);
 }
 
 
