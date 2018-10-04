@@ -16,7 +16,7 @@
 
 #ifdef I2CSIMU
 #include "boardHWsimu.h"
-#define POOLTIME 25000
+#define POOLTIME 20000
 #else
 #include "boardHWctrl.h"
 #define POOLTIME 1000

@@ -11,6 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <termios.h>
+#include <time.h>           // Used for mac generation with SIMU
 
 // MAC ADRESS
 #include <net/if.h>   //ifreq
@@ -79,15 +80,16 @@ void sendUDPHeartBit(char * udpMsg);
 		char* getMACaddr(void){
 			static char myMAC[16]="0011223344556677";
 
-
-    		 	int fd;
-			    struct ifreq ifr;
                         #ifdef I2CSIMU
-			    char *iface = "lo";
-                           // char *iface = "wlan0";
+                           // Create a random macAdr
+                           time_t current_time;
+                           current_time = time(NULL);
+                           
+                           sprintf(&myMAC[0], "sim%d", current_time % 9999); 
                         #else
+                            int fd;
+			    struct ifreq ifr;
                             char *iface = "ra0";
-                        #endif                           
 			    unsigned char *mac = NULL;
 
 			    memset(&ifr, 0, sizeof(ifr));
@@ -104,7 +106,9 @@ void sendUDPHeartBit(char * udpMsg);
 			    close(fd);
                             
 //			    sprintf(&myMAC[0], "%02x%02x%02x%02x%02x%02x",mac[0], mac[1], mac[2], mac[3], mac[4],mac[5]);
-                            sprintf(&myMAC[0], "%02x%02x", mac[4],mac[5]);
+                            sprintf(&myMAC[0], "%02x%02x", mac[4],mac[5]);                            
+                        #endif                           
+
   
 			    return myMAC;
 		}

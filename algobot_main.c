@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.4.4"
+#define FIRMWARE_VERSION "1.4.4a"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -115,11 +115,10 @@ int main(int argc, char *argv[]) {
 
 // Cr�ation de la t�che pour la gestion hardware
 	if(InitHwManager()) printf ("#[CORE] Creation t�che hardware : ERREUR\n");
-		else {
-                    resetHardware();            // Reset les peripheriques hardware
-                    
-                    printf ("#[CORE] Demarrage tache hardware: OK\n");
-                }
+        else {
+            resetHardware();            // Reset les peripheriques hardware                    
+            printf ("#[CORE] Demarrage tache hardware: OK\n");
+        }
 
 // Initialisation UDP pour broadcast IP Adresse
 	initUDP();

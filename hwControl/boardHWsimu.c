@@ -79,7 +79,7 @@ char MCP2308_ReadGPIO(unsigned char input){
 //================================================================================
 
 void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle){
-    printf(" #SIMU-> DC motor adress: %d with dutycycle: %d\n", motorAdr, dutyCycle);
+    printf(" #SIMU-> DC motor speed adress: 0x%2x with dutycycle: %d\n", motorAdr, dutyCycle);
 }
 
 
@@ -89,7 +89,7 @@ void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle){
 //================================================================================
 
 void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction){
-    printf(" #SIMU-> DC motor adress: %d with direction: %d\n", motorAdr, direction);
+    printf(" #SIMU-> DC motor rotation adress: 0x%2x with direction: %d\n", motorAdr, direction);
 }
 
 
@@ -101,7 +101,7 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
 //================================================================================
 
 void PCA9685_setServoPos(unsigned char smAddr, unsigned char position){
-    printf(" #SIMU-> SERVO motor adress: %d with position: %d\n", smAddr, position);
+    printf(" #SIMU-> SERVO motor adress: 0x%2x with position: %d\n", smAddr, position);
 }
 
 //================================================================================
@@ -112,7 +112,7 @@ void PCA9685_setServoPos(unsigned char smAddr, unsigned char position){
 //================================================================================
 
 void PCA9685_setLedPower(unsigned char smAddr, unsigned char power){
-    printf(" #SIMU-> LED/PWM adress: %d with power: %d\n", smAddr, power);
+    printf(" #SIMU-> LED/PWM adress: 0x%2x with power: %d\n", smAddr, power);
 }
 
 
