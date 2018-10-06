@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.4.5a"
+#define FIRMWARE_VERSION "1.4.5b"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -913,7 +913,7 @@ int getLedSetting(int name){
 
 int createBuggyTask(int MsgId, int actionCount){
 	int i;
-	int actionID;
+	int actionID, ptrSender;
 
 
 	// d�fini un num�ro de tache al�atoire pour l'action � executer si pas de message id saisi
@@ -924,7 +924,7 @@ int createBuggyTask(int MsgId, int actionCount){
 	else actionID = MsgId;
 
 	// Recherche un emplacement libre dans la table d'action pour inserer les param�tre
-	for(i=0;i<10;i++){
+	for(i=0;i<50;i++){
 		if(ActionTable[i][TASK_NUMBER]==0){
 			ActionTable[i][TASK_NUMBER]=actionID;
 			ActionTable[i][ACTION_ALGOID_ID]= MsgId;
@@ -932,17 +932,18 @@ int createBuggyTask(int MsgId, int actionCount){
 			return(actionID);
 		}else{
 			if(ActionTable[i][TASK_NUMBER]==actionID)
-			{
-                               
-				sprintf(reportBuffer, "ERREUR: Tache d�ja existante et en cours de traitement: %d\n", actionID);
+			{  
+				sprintf(reportBuffer, "ERREUR: MessageID / Tache en cours de traitement: #%d\n", actionID);
                                 printf(reportBuffer);
                                 AlgoidResponse[0].responseType=EVENT_ACTION_END;
-                                sendResponse(actionID, getSenderFromMsgId(actionID), RESPONSE, ERR_HEADER, 0);			// Envoie un message ALGOID de fin de t�che pour l'action �cras�
+                                ptrSender = getSenderFromMsgId(actionID);
+                                sendResponse(actionID, msgEventHeader[ptrSender].msgFrom, RESPONSE, ERR_HEADER, 0);			// Envoie un message ALGOID de fin de t�che pour l'action �cras�
 				sendMqttReport(actionID, reportBuffer);
 				return -1;
                         }
 		}
 	}
+
 	sprintf(reportBuffer, "ERREUR: Table de t�ches pleine\n");
         printf(reportBuffer);
 	sendMqttReport(actionID, reportBuffer);

@@ -13,10 +13,10 @@ MSG_TRACE msgEventHeader[50];
 // Retourne l'index dans la table des messages avec le ID correspondant
 // -------------------------------------------------------------------
 int getSenderFromMsgId(int msgId){
-	unsigned char i = -1;
-	char ptr = -1;
+	char i = -1;
+	int ptr = -1;
 
-		for(i=0; i<20; i++){
+		for(i=0; i<50; i++){
 			if(msgEventHeader[i].msgId == msgId){
 				ptr = i;
 				break;
