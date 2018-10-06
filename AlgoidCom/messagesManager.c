@@ -88,10 +88,9 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
                             // Enregistrement du message dans la pile
                                 lastMessage=pushMsgStack();
                                 if(lastMessage>=0){
-                                    
                                         // Mise a jour du compteur de message syst�me
                                         msg_stats.messageRX++;
-                                    
+                                        
                                         // Retourne un ack a l'expediteur
                                         sendResponse(AlgoidMessageRX.msgID, AlgoidMessageRX.msgFrom, ACK, AlgoidMessageRX.msgParam, 0);
                                         sprintf(msgReportBuffer, "%s", ClientID);
@@ -104,8 +103,9 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
                                 }
                         }
                         else{
-                                printf("IGNORE: bad destination name\n");
-                                sendMqttReport(-1, "IGNORE: bad destination name");
+                                sprintf(msgReportBuffer, "IGNORE MESSAGE: destination name is [%s]\n", AlgoidMessageRX.msgTo);
+                                printf(msgReportBuffer);
+                                sendMqttReport(-1, msgReportBuffer);
                         }
                         
                 }else{

@@ -31,11 +31,15 @@ int dummyMotorAction(int actionNumber, int encoderName);
 int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value){
 	int myDirection;
 	int setTimerResult;
-	int endOfTask;
-
+	int endOfTask;           
+        
 	// Conversion de la v�locit� de -100...+100 en direction AVANCE ou RECULE
 	if(veloc > 0){
-		myDirection=BUGGY_FORWARD;
+            
+            // Check if motor inversion requiered and modify if necessary
+            if(!sysConfig.motor[motorNb].inverted) myDirection=BUGGY_FORWARD;
+            else myDirection=BUGGY_BACK;
+		
 		body.motor[motorNb].direction = 1;
 	}
 	if(veloc == 0){
@@ -43,7 +47,10 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 		body.motor[motorNb].direction = 0;
 	}
 	if(veloc < 0){
-		myDirection=BUGGY_BACK;
+            // Check if motor inversion requiered and modify if necessary
+            if(!sysConfig.motor[motorNb].inverted) myDirection=BUGGY_BACK;
+            else myDirection=BUGGY_FORWARD;
+            
 		body.motor[motorNb].direction = -1;
 		veloc *=-1;					// Convertion en valeur positive
 	}
@@ -81,7 +88,7 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 				sendMqttReport(endOfTask, reportBuffer);                                                // Envoie le message sur le canal MQTT "Report"
 			}
 		}
-
+                
 		// D�fini le "nouveau" sens de rotation � applique au moteur ainsi que la consigne de vitesse
 		if(setMotorDirection(motorNb, myDirection)){							// Sens de rotation
 			setMotorSpeed(motorNb, veloc);									// Vitesse

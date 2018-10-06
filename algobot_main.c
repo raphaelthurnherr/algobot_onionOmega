@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.4.4a"
+#define FIRMWARE_VERSION "1.4.5a"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -163,7 +163,6 @@ int main(int argc, char *argv[]) {
                     case REQUEST : processAlgoidRequest(); break;						// Traitement du message de type "REQUEST"
                     default : ; break;
             }
-
         }
 
 
@@ -266,7 +265,6 @@ int main(int argc, char *argv[]) {
 int processAlgoidCommand(void){
     int i;
     int updateResult;
-    
 	switch(AlgoidCommand.msgParam){
 		case MOTORS : 	
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
@@ -295,12 +293,13 @@ int processAlgoidCommand(void){
                                 
                                 runMotorAction(); break;			// Action avec en param�tre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
                                 
-                case pPWM  : 	AlgoidCommand.PWMarray[i].isServoMode=0;
-                
+                case pPWM  :
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
-                                    // Controle que le PWM existe...
-                                    if(AlgoidCommand.PWMarray[i].id >= 0 && AlgoidCommand.PWMarray[i].id <NBPWM)
+                                    // Vérification de l'existance de l'index de sortie PWM et défini le mode PWM(FULL)
+                                    if(AlgoidCommand.PWMarray[i].id >= 0 && AlgoidCommand.PWMarray[i].id <NBPWM){
+                                        AlgoidCommand.PWMarray[i].isServoMode=0;
                                         AlgoidResponse[i].PWMresponse.id=AlgoidCommand.PWMarray[i].id;
+                                    }
                                     else
                                         AlgoidResponse[i].PWMresponse.id=-1;
                                             
@@ -311,17 +310,19 @@ int processAlgoidCommand(void){
                                     AlgoidResponse[i].PWMresponse.time=AlgoidCommand.PWMarray[i].time;
                                     AlgoidResponse[i].responseType = RESP_STD_MESSAGE;
                                 }
+
                                 // Retourne en r�ponse le message v�rifi�
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, pPWM, AlgoidCommand.msgValueCnt);     
                     
                                 runPwmAction();break;
 
-                case pSERVO  : 	AlgoidCommand.PWMarray[i].isServoMode=1;
-                
+                case pSERVO  : 
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
-                                    // Controle que le PWM existe...
-                                    if(AlgoidCommand.PWMarray[i].id >= 0 && AlgoidCommand.PWMarray[i].id <NBPWM)
+                                    // Vérification de l'existance de l'index de sortie PWM et défini le mode SERVO
+                                    if(AlgoidCommand.PWMarray[i].id >= 0 && AlgoidCommand.PWMarray[i].id <NBPWM){
                                         AlgoidResponse[i].PWMresponse.id=AlgoidCommand.PWMarray[i].id;
+                                        AlgoidCommand.PWMarray[i].isServoMode=1;
+                                    }
                                     else
                                         AlgoidResponse[i].PWMresponse.id=-1;
                                             
@@ -475,7 +476,6 @@ int processAlgoidCommand(void){
                                 break;
 		default : break;
 	}
-
 	return 0;
 }
 
@@ -527,7 +527,7 @@ int runMotorAction(void){
         for(i=0;i<NBMOTOR;i++){
             ptrData=getWDvalue(i);
             if(ptrData>=0){
-                actionCount++;   
+                actionCount++;
                         body.motor[i].speed=AlgoidCommand.DCmotor[ptrData].velocity;
                         body.motor[i].accel=AlgoidCommand.DCmotor[ptrData].accel;
                         body.motor[i].decel=AlgoidCommand.DCmotor[ptrData].decel;
@@ -2054,7 +2054,10 @@ void resetConfig(void){
                 body.motor[i].distance=0;
                 body.motor[i].speed=0;
                 body.motor[i].time=0;
+                sysConfig.motor[i].inverted=0;
 	}
+        // DEBUG Invert the motor 1 sens         
+        sysConfig.motor[1].inverted=1;          // MOTOR 1 INVERTED
         
         for(i=0;i<NBSONAR;i++){
 		body.distance[i].event_enable=DEFAULT_EVENT_STATE;

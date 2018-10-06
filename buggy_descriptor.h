@@ -85,6 +85,8 @@ typedef enum o_led{
 	NBLED,
 }t_led;
 
+
+// Check TO CONVERT IN INT -1 / 0 / +1   IF NECESSARY !!!!
 #define BUGGY_STOP 		0
 #define BUGGY_FORWARD           1
 #define BUGGY_BACK 		2

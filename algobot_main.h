@@ -83,6 +83,10 @@ struct m_AppConf{
 	int reset;
 };
 
+struct m_MotConfig{
+	char inverted;
+};
+
 struct m_color{
         int value;
 	int event_low;
@@ -125,6 +129,7 @@ typedef struct tSystem{
 typedef struct tConfig{
 	struct m_dataStream dataStream;   
         struct m_AppConf config;  
+        struct m_MotConfig motor[NBMOTOR];
 }t_sysConfig;
 
 extern t_sensor body;
