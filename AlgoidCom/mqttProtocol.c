@@ -19,7 +19,8 @@ MQTTClient client;
 void delivered(void *context, MQTTClient_deliveryToken dt);
 void connlost(void *context, char *cause);
 
-int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArrived* msgarr);
+//int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArrived* msgarr);
+int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArrived* msgarr, MQTTClient_connectionLost *connLost_callback);
 char mqttAddRXChannel(char * topicName);
 char mqttRemoveRXChannel(char * topicName);
 // Envoie le messageau brocker MQTT
@@ -27,7 +28,8 @@ int mqttPutMessage(char *topic, char *data, unsigned short lenght);
 // -------------------------------------------------------------------
 // INITIALISATION DE LA CONNEXION AU BROCKER MQTT
 // -------------------------------------------------------------------
-int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArrived* msgarrFunc){
+int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArrived* msgarrFunc, MQTTClient_connectionLost *connLost_callback){
+//int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArrived* msgarrFunc){
 		int rc;
 
 		MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
@@ -41,8 +43,8 @@ int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArr
 		// Fin de config connexion
 
 		// Configuration de la fonction callback de souscription
-		MQTTClient_setCallbacks(client, NULL, connlost, msgarrFunc, delivered);
-
+		//MQTTClient_setCallbacks(client, NULL, connlost, msgarrFunc, delivered);
+                MQTTClient_setCallbacks(client, NULL, connLost_callback, msgarrFunc, delivered);
 		// Tentative de connexion au broker mqtt
 		if ((rc = MQTTClient_connect(client, &conn_opts)) != MQTTCLIENT_SUCCESS)
 		{
@@ -51,7 +53,7 @@ int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArr
 	}
 
 // -------------------------------------------------------------------
-// Défini le topic sur lequel doit se connecter Eduspider pour la Reception
+// Dï¿½fini le topic sur lequel doit se connecter Eduspider pour la Reception
 // -------------------------------------------------------------------
 char mqttAddRXChannel(char * topicName){
 	// SOUSCRIPTION AU TOPIC MANAGER

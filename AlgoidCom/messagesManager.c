@@ -26,6 +26,8 @@ char GroupID[50]="algo|0";          // Not use at this time
 void sendMqttReport(int msgId, char * msg);
 
 int  mqttMsgArrived(void *context, char *topicName, int topicLen, MQTTClient_message *message);
+void mqttConnectionLost(void *context, char *cause);
+
 void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char msgParam, unsigned char valCnt);
 int pushMsgStack(void);
 int pullMsgStack(unsigned char ptrStack);
@@ -33,6 +35,7 @@ char clearMsgStack(unsigned char ptrStack);
 
 // Initialisation des variables
 unsigned char mqttDataReady=0;
+int mqttStatus;
 
 char MqttDataBuffer[500];
 char msgReportBuffer[100];
@@ -42,8 +45,7 @@ STATISTICS msg_stats;
 
 
 // Initialisation principale du system de messagerie
-void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A , 25% for ePWM0B;
-	int mqttStatus;
+void *MessagerTask (void * arg){
 	int lastMessage;
 	int i;
 
@@ -60,10 +62,10 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
         sprintf(&ADDRESS[strlen(ADDRESS)], "%s", PORT);
         
 	// Connexion au broker MQTT
-	mqttStatus=mqtt_init(ADDRESS, ClientID, mqttMsgArrived);
+	mqttStatus=mqtt_init(ADDRESS, ClientID, mqttMsgArrived, mqttConnectionLost);
 
 	if(!mqttStatus){
-		printf("#[MSG MANAGER] Connection au broker MQTT (%s): OK -> Algobot ID: \"%s\"\n", ADDRESS, ClientID   );
+		printf("#[MSG MANAGER] Connection au broker MQTT (%s): OK -> ID: \"%s\"\n", ADDRESS, ClientID   );
 		if(!mqttAddRXChannel(TOPIC_COMMAND)){
 			printf("#[MSG MANAGER] Inscription au topic: OK\n");
                         sendMqttReport(-1, "IS NOW ONLINE");
@@ -74,9 +76,30 @@ void *MessagerTask (void * arg){	 													// duty cycle is 50% for ePWM0A ,
 	}else {
 		printf("#[MSG MANAGER] Connexion au broker MQTT: ERREUR\n");
 	}
+        
 // BOUCLE PRINCIPALE
 	while(1)
 	{
+            // Vérification de la connexion au brocker
+            if(mqttStatus){
+                // Connexion au broker MQTT
+                mqttStatus=mqtt_init(ADDRESS, ClientID, mqttMsgArrived, mqttConnectionLost);
+
+                if(!mqttStatus){
+                        printf("#[MSG MANAGER] Connection au broker MQTT (%s): OK -> ID: \"%s\"\n", ADDRESS, ClientID   );
+                        if(!mqttAddRXChannel(TOPIC_COMMAND)){
+                                printf("#[MSG MANAGER] Inscription au topic: OK\n");
+                                sendMqttReport(-1, "IS NOW ONLINE");
+                        }
+                        else {
+                                printf("#[MSG MANAGER] Inscription au topic: ERREUR\n");
+                        }
+                }else {
+                        printf("#[MSG MANAGER] Connexion au broker MQTT: ERREUR\n");
+                }
+                sleep(5);
+            }
+            
 	    // Verification de l'arriv�e d'un message MQTT
 	    if(mqttDataReady){
 	    // RECEPTION DES DONNES UTILES
@@ -269,6 +292,15 @@ int mqttMsgArrived(void *context, char *topicName, int topicLen, MQTTClient_mess
     MQTTClient_freeMessage(&message);
     MQTTClient_free(topicName);
     return 1;
+}
+
+// -------------------------------------------------------------------
+// Fonction Call-Back en cas de perte de connexion MQTT
+// -------------------------------------------------------------------
+void mqttConnectionLost(void* context, char* cause)
+{
+    printf("#[MSG MANAGER] Perte de connexion avec le broker MQTT\n");
+    mqttStatus = 1;
 }
 
 
