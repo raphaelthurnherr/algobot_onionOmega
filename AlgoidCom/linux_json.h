@@ -50,6 +50,7 @@ struct m2wd{
 	int cm;
 	int accel;
 	int decel;
+        char invert[25];
 };
 
 struct mDin{

@@ -33,27 +33,25 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 	int setTimerResult;
 	int endOfTask;           
         
-	// Conversion de la v�locit� de -100...+100 en direction AVANCE ou RECULE
-	if(veloc > 0){
-            
-            // Check if motor inversion requiered and modify if necessary
-            if(!sysConfig.motor[motorNb].inverted) myDirection=BUGGY_FORWARD;
-            else myDirection=BUGGY_BACK;
-		
-		body.motor[motorNb].direction = 1;
-	}
 	if(veloc == 0){
 		myDirection=BUGGY_STOP;
 		body.motor[motorNb].direction = 0;
-	}
-	if(veloc < 0){
-            // Check if motor inversion requiered and modify if necessary
-            if(!sysConfig.motor[motorNb].inverted) myDirection=BUGGY_BACK;
-            else myDirection=BUGGY_FORWARD;
-            
-		body.motor[motorNb].direction = -1;
-		veloc *=-1;					// Convertion en valeur positive
-	}
+	}else
+        {
+            if(veloc < 0){
+                // Check if motor inversion requiered and modify if necessary
+                if(!sysConfig.motor[motorNb].inverted) myDirection=BUGGY_FORWARD;
+                else myDirection=BUGGY_BACK;
+                body.motor[motorNb].direction = -1;
+                veloc *=-1;					// Convertion en valeur positive
+            }else{      
+                // Check if motor inversion requiered and modify if necessary
+                if(!sysConfig.motor[motorNb].inverted) myDirection=BUGGY_BACK;
+                else myDirection=BUGGY_FORWARD;
+            body.motor[motorNb].direction = 1;
+            }            
+        }
+
 
 	// D�marre de timer d'action sur la roue et sp�cifie la fonction call back � appeler en time-out
 	// Valeur en retour >0 signifie que l'action "en retour" � �t� �cras�e
@@ -88,7 +86,6 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 				sendMqttReport(endOfTask, reportBuffer);                                                // Envoie le message sur le canal MQTT "Report"
 			}
 		}
-                
 		// D�fini le "nouveau" sens de rotation � applique au moteur ainsi que la consigne de vitesse
 		if(setMotorDirection(motorNb, myDirection)){							// Sens de rotation
 			setMotorSpeed(motorNb, veloc);									// Vitesse

@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.4.6"
+#define FIRMWARE_VERSION "1.4.6a"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -2058,6 +2058,7 @@ void resetConfig(void){
                 sysConfig.motor[i].inverted=0;
 	}
         // DEBUG Invert the motor 1 sens         
+        sysConfig.motor[0].inverted=1;          // MOTOR 0 INVERTED
         sysConfig.motor[1].inverted=1;          // MOTOR 1 INVERTED
         
         for(i=0;i<NBSONAR;i++){
