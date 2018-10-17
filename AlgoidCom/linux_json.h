@@ -70,9 +70,15 @@ struct mAppConf{
 	char reset[25];
 };
 
+struct mMotConfig{
+        int id;
+	char inverted[25];
+};
+
 struct mConfig{
 	struct mStream stream;
         struct mAppConf config;
+        struct mMotConfig motor[10];
 };
 
 struct mDistance{
@@ -205,4 +211,5 @@ ALGOID_RESPONSE AlgoidResponse[20];
 
 
 extern char GetAlgoidMsg(ALGOID DestReceiveMessage,char *srcDataBuffer);
+extern char GetConfigFile(char *srcDataBuffer);
 void ackToJSON(char * buffer, int msgId, char* to, char * from, char * msgType,char * msgParam, unsigned char value, unsigned char count);

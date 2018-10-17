@@ -21,7 +21,6 @@ char ADDRESS[25] = "localhost";
 
 char BroadcastID[50]="algo_";
 char ClientID[50]="algo_";
-char GroupID[50]="algo|0";          // Not use at this time
 
 void sendMqttReport(int msgId, char * msg);
 
@@ -64,7 +63,7 @@ void *MessagerTask (void * arg){
 	// Connexion au broker MQTT
 	mqttStatus=mqtt_init(ADDRESS, ClientID, mqttMsgArrived, mqttConnectionLost);
 
-	if(!mqttStatus){
+	if(mqttStatus==0){
 		printf("#[MSG MANAGER] Connection au broker MQTT (%s): OK -> ID: \"%s\"\n", ADDRESS, ClientID   );
 		if(!mqttAddRXChannel(TOPIC_COMMAND)){
 			printf("#[MSG MANAGER] Inscription au topic: OK\n");
@@ -74,18 +73,18 @@ void *MessagerTask (void * arg){
 			printf("#[MSG MANAGER] Inscription au topic: ERREUR\n");
 		}
 	}else {
-		printf("#[MSG MANAGER] Connexion au broker MQTT: ERREUR\n");
+		printf("#[MSG MANAGER] Connexion au broker MQTT: ERREUR [%d]\n", mqttStatus);
 	}
         
 // BOUCLE PRINCIPALE
 	while(1)
 	{
             // Vérification de la connexion au brocker
-            if(mqttStatus){
+            if(mqttStatus<0){
                 // Connexion au broker MQTT
                 mqttStatus=mqtt_init(ADDRESS, ClientID, mqttMsgArrived, mqttConnectionLost);
 
-                if(!mqttStatus){
+                if(mqttStatus==0){
                         printf("#[MSG MANAGER] Connection au broker MQTT (%s): OK -> ID: \"%s\"\n", ADDRESS, ClientID   );
                         if(!mqttAddRXChannel(TOPIC_COMMAND)){
                                 printf("#[MSG MANAGER] Inscription au topic: OK\n");
@@ -95,7 +94,7 @@ void *MessagerTask (void * arg){
                                 printf("#[MSG MANAGER] Inscription au topic: ERREUR\n");
                         }
                 }else {
-                        printf("#[MSG MANAGER] Connexion au broker MQTT: ERREUR\n");
+                        printf("#[MSG MANAGER] Connexion au broker MQTT: ERREUR [%d]\n", mqttStatus);
                 }
                 sleep(5);
             }
@@ -299,8 +298,8 @@ int mqttMsgArrived(void *context, char *topicName, int topicLen, MQTTClient_mess
 // -------------------------------------------------------------------
 void mqttConnectionLost(void* context, char* cause)
 {
-    printf("#[MSG MANAGER] Perte de connexion avec le broker MQTT\n");
-    mqttStatus = 1;
+    printf("#[MSG MANAGER] Perte de connexion avec le broker MQTT, cause# %d\n", cause);
+    mqttStatus = -1;
 }
 
 
@@ -366,9 +365,3 @@ void sendMqttReport(int msgId, char * msg){
 	sprintf(&MQTTbuf[0], "%s -> Message ID: %d -> %s", ClientID, msgId, msg);
 	mqttPutMessage(TOPIC_DEBUG, MQTTbuf, strlen(MQTTbuf));
 }
-
-
-
-
-
-
