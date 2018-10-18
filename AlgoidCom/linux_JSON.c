@@ -9,6 +9,9 @@
  */
 
 #define FILE_KEY_CONFIG_MOTOR "{'motor'"
+#define FILE_KEY_CONFIG_MOTOR_ID "{'motor'[*{'motor'"
+#define FILE_KEY_CONFIG_MOTOR_INVERT "{'motor'[*{'inverted'"
+
 #define FILE_KEY_CONFIG_STREAM_STATE "{'stream'{'state'"
 #define FILE_KEY_CONFIG_STREAM_TIME "{'stream'{'time'"
 #define FILE_KEY_CONFIG_STREAM_ONEVENT "{'stream'{'onEvent'"
@@ -77,13 +80,15 @@
 #include <time.h>
 #include <math.h>
 
+#include "type.h"
 #include "../buggy_descriptor.h"
 #include "linux_json.h"
 #include "libs/lib_json/jRead.h"
 #include "libs/lib_json/jWrite.h"
 
 void ackToJSON(char * buffer, int msgId, char* to, char * from, char * msgType,char * msgParam, unsigned char orgType, unsigned char count);
-char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer);
+char GetAlgoidMsg(ALGOID destMessage, char *srcDataBuffer);
+char LoadConfig(t_sysConfig * Config, char *srcDataBuffer);
 
 ALGOID myReplyMessage;
 
@@ -313,40 +318,73 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 // Get configuration file
 // -----------------------------------------------------------------------------
 
-char GetConfigFile(char *srcBuffer){
-	struct jReadElement element, cfg_motor_list;
+char LoadConfig(t_sysConfig * Config, char *srcDataBuffer){
+	struct jReadElement cfg_motor_list;
 	int i;
         
-        // Stream settings
-        jRead_string((char *)srcBuffer, FILE_KEY_CONFIG_STREAM_STATE, AlgoidMessageRX.Config.stream.state, 15, &i );
-        AlgoidMessageRX.Config.stream.time= jRead_long((char *)srcBuffer, FILE_KEY_CONFIG_STREAM_TIME, &i);
-        jRead_string((char *)srcBuffer, FILE_KEY_CONFIG_STREAM_ONEVENT, AlgoidMessageRX.Config.stream.onEvent, 15, &i );
+        char * dataSetting;
         
+        printf("\n MY CONFIG FILE FROM GET: %s\n",srcDataBuffer);
+        
+    // EXTRACT STREAM SETTINGS FROM CONFIG
+        // Load data for stream TIME
+        Config->dataStream.time_ms= jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_STREAM_TIME, &i);
+        
+        // Load data for stream STATE
+        jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_STREAM_STATE, dataSetting, 15, &i );
+        if(!strcmp(dataSetting, "on")){
+            Config->dataStream.state = 1;
+        }else
+            if(!strcmp(dataSetting, "off")){
+                Config->dataStream.state = 0;
+            }
 
+        // Load data for stream ONEVENT
+        jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_STREAM_ONEVENT, dataSetting, 15, &i );
+        if(!strcmp(dataSetting, "on")){
+            Config->dataStream.onEvent = 1;
+        }else
+            if(!strcmp(dataSetting, "off")){
+                Config->dataStream.onEvent = 0;
+            }
+        
+    // EXTRACT MOTOR SETTINGS FROM CONFIG    
+        
           int nbOfmotorInConf;
-          int i_mot;
 
           // Reset motor data config before reading
-          for(i_mot=0;i_mot<2;i_mot++){
-            AlgoidMessageRX.Config.motor[i_mot].id=-1;
+          for(i=0;i<2;i++){
+            Config->motor[i].inverted=-1;
           }
 
         // Motor Setting
-            jRead((char *)srcBuffer, FILE_KEY_CONFIG_MOTOR, &cfg_motor_list );
+            jRead((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR, &cfg_motor_list );
 
             // RECHERCHE DATA DE TYPE ARRAY
             if(cfg_motor_list.dataType == JREAD_ARRAY ){
                 // Get the number of motors in array
                 nbOfmotorInConf=cfg_motor_list.elements;
 
-                for(i_mot=0; i_mot < nbOfmotorInConf; i_mot++){                 
-                    AlgoidMessageRX.Config.motor[i_mot].id=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_ID, &i_mot); 
-                    jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT, AlgoidMessageRX.Config.motor[i_mot].inverted, 15, &i_mot ); 
+                int motorId=-1;
+                for(i=0; i < nbOfmotorInConf; i++){ 
+                    motorId=-1;
+                    motorId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_ID, &i); 
+                    
+                    if(motorId >= 0 && motorId < NBMOTOR){
+                        jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_INVERT, dataSetting, 15, &i );
+                        if(!strcmp(dataSetting, "on")){
+                            Config->motor[motorId].inverted = 1;
+                        }else
+                            if(!strcmp(dataSetting, "off")){
+                                Config->motor[motorId].inverted = 0;
+                            }
+                        
+                    }
                 }
             }
 
         // Reset settings
-            jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_APPRESET, AlgoidMessageRX.Config.config.reset, 15, &i );
+//            jRead_string((char *)srcDataBuffer, KEY_MESSAGE_VALUE_CFG_APPRESET, AlgoidMessageRX.Config.config.reset, 15, &i );
             
             return 0;
 }

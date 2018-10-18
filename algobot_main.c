@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.4.7"
+#define FIRMWARE_VERSION "1.4.7b"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -25,6 +25,7 @@
 #include "asyncSERVO.h"
 #include "asyncLED.h"
 #include "fileIO.h"
+#include "type.h"
 
 unsigned char ptrSpeedCalc;
 
@@ -83,6 +84,7 @@ t_sensor body;
 t_system sysInfo;
 t_sysConfig sysConfig;
 
+
 // -------------------------------------------------------------------
 // MAIN APPLICATION
 // - Cr�ation de t�che de gestion de la messagerie avec ALGOID, (ALGOID->JSON->MQTT BROCKER->JSON->BUGGY)
@@ -135,10 +137,21 @@ int main(int argc, char *argv[]) {
 
 	// ----------- DEBUT DE LA BOUCLE PRINCIPALE ----------
         printf("\nTry to load algobot.cfg:\n");
-        loadConfigFile();
+        char * fileDataBuffer;
         
         // Reset configuration to default
         resetConfig();
+        
+        fileDataBuffer = OpenConfigFromFile("algobot.cfg");
+        printf("\n\n MY CONFIG FILE FROM MAIN: \n%s\n", fileDataBuffer);
+        
+        // Load config data frome buffer
+        LoadConfig(&sysConfig, fileDataBuffer);
+        
+        printf("\nCONF: stream: %d  time: %d events: %d\n", sysConfig.dataStream.state, sysConfig.dataStream.time_ms, sysConfig.dataStream.onEvent);
+        for(i=0;i<NBMOTOR;i++){
+            printf("\nMOTOR: %d inverted: %d\n", i, sysConfig.motor[i].inverted);
+        }
         
 	while(1){
         
@@ -386,8 +399,22 @@ int processAlgoidCommand(void){
                                 // CONFIG COMMAND FOR RESET
                                     if(!strcmp(AlgoidCommand.Config.config.reset, "true"))
                                         sysConfig.config.reset=1;
+                                    
+                                // CONFIG COMMAND FOR MOTOR SETTING
+                                for(i=0;AlgoidCommand.Config.motor[i].id != -1 && i < NBMOTOR; i++){
+                                    // Check if motor exist...
+                                    if(AlgoidCommand.Config.motor[i].id >= 0 && AlgoidCommand.Config.motor[i].id <NBMOTOR)
+                                        AlgoidResponse[i].CONFIGresponse.motor[0].id=AlgoidCommand.Config.motor[0].id;
+                                    else
+                                        AlgoidResponse[i].CONFIGresponse.motor[0].id=-1;
+
+                                    if(!strcmp(AlgoidCommand.Config.motor[i].inverted, "true"))
+                                        sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=1;
+                                    else if(!strcmp(AlgoidCommand.Config.motor[i].inverted, "false"))
+                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=0;
+                                }                                    
                                                                         
-                                    // Préparation des valeurs du message de réponse
+                    // Préparation des valeurs du message de réponse
                                     AlgoidResponse[i].CONFIGresponse.stream.time=sysConfig.dataStream.time_ms;
                                     if(sysConfig.dataStream.onEvent==0) 
                                         strcpy(AlgoidResponse[i].CONFIGresponse.stream.onEvent, "off");
@@ -403,21 +430,7 @@ int processAlgoidCommand(void){
                                     
                                     AlgoidResponse[i].responseType = RESP_STD_MESSAGE; 
                                 }
-                                                             
-                            // CONFIG COMMAND FOR MOTOR SETTING
-                                for(i=0;AlgoidCommand.Config.motor[i].id != -1 && i < NBMOTOR; i++){
-                                    // Check if motor exist...
-                                    if(AlgoidCommand.Config.motor[i].id >= 0 && AlgoidCommand.Config.motor[i].id <NBMOTOR)
-                                        AlgoidResponse[i].CONFIGresponse.motor[0].id=AlgoidCommand.Config.motor[0].id;
-                                    else
-                                        AlgoidResponse[i].CONFIGresponse.motor[0].id=-1;
-
-                                    if(!strcmp(AlgoidCommand.Config.motor[i].inverted, "true"))
-                                        sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=1;
-                                    else if(!strcmp(AlgoidCommand.Config.motor[i].inverted, "false"))
-                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=0;
-                                }
-                                
+                                                                                             
                                 for(i=0;i<NBMOTOR;i++){
                                     printf("\n ------- NEW SETTING ------- Motor ID: %d Inverted: %d \n",i , sysConfig.motor[i].inverted);
                                 }                                    

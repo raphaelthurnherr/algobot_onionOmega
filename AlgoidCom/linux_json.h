@@ -1,4 +1,6 @@
 
+#include "type.h"
+
 #define MAX_MQTT_BUFF 4096
 
 
@@ -209,7 +211,8 @@ ALGOID AlgoidMsgRXStack[10];
 // Buffer de sortie pour les msgValue[
 ALGOID_RESPONSE AlgoidResponse[20];
 
+extern t_sysConfig sysConfig;
 
 extern char GetAlgoidMsg(ALGOID DestReceiveMessage,char *srcDataBuffer);
-extern char GetConfigFile(char *srcDataBuffer);
+extern char LoadConfig(t_sysConfig * Config, char *srcDataBuffer);
 void ackToJSON(char * buffer, int msgId, char* to, char * from, char * msgType,char * msgParam, unsigned char value, unsigned char count);

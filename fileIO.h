@@ -23,7 +23,7 @@ extern "C" {
 #define ERR_EXTRACT 2
 #define ERR_CREATE_TAB 3
 
-extern unsigned char loadConfigFile(void);
+extern char * OpenConfigFromFile(char *filename);
 
 
 #ifdef __cplusplus

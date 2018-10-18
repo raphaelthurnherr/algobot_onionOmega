@@ -8,6 +8,7 @@
       <itemPath>asyncTools/asyncLED.h</itemPath>
       <itemPath>asyncTools/asyncMOTOR.h</itemPath>
       <itemPath>asyncTools/asyncTools.h</itemPath>
+      <itemPath>AlgoidCom/type.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -325,6 +326,8 @@
       </item>
       <item path="AlgoidCom/mqttProtocol.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="AlgoidCom/type.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="AlgoidCom/udpPublish.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
@@ -596,6 +599,8 @@
       </item>
       <item path="AlgoidCom/mqttProtocol.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="AlgoidCom/type.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="AlgoidCom/udpPublish.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="AlgoidCom/udpPublish.h" ex="false" tool="3" flavor2="0">
@@ -858,6 +863,8 @@
       <item path="AlgoidCom/mqttProtocol.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="AlgoidCom/mqttProtocol.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/type.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="AlgoidCom/udpPublish.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -1123,6 +1130,8 @@
       <item path="AlgoidCom/mqttProtocol.c" ex="false" tool="0" flavor2="9">
       </item>
       <item path="AlgoidCom/mqttProtocol.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="AlgoidCom/type.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="AlgoidCom/udpPublish.c" ex="false" tool="0" flavor2="9">
       </item>

@@ -36,8 +36,8 @@ char clearMsgStack(unsigned char ptrStack);
 unsigned char mqttDataReady=0;
 int mqttStatus;
 
-char MqttDataBuffer[500];
-char msgReportBuffer[100];
+char MqttDataBuffer[2048];
+char msgReportBuffer[2048];
 
 STATISTICS msg_stats;
 
