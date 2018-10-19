@@ -66,7 +66,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/asyncTools/asyncPWM.o \
 	${OBJECTDIR}/asyncTools/asyncSERVO.o \
 	${OBJECTDIR}/asyncTools/asyncTools.o \
-	${OBJECTDIR}/fileIO.o \
+	${OBJECTDIR}/configManager.o \
 	${OBJECTDIR}/hwControl/boardHWctrl.o \
 	${OBJECTDIR}/hwControl/boardHWsimu.o \
 	${OBJECTDIR}/hwControl/hwManager.o \
@@ -255,10 +255,10 @@ ${OBJECTDIR}/asyncTools/asyncTools.o: asyncTools/asyncTools.c
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncTools.o asyncTools/asyncTools.c
 
-${OBJECTDIR}/fileIO.o: fileIO.c
+${OBJECTDIR}/configManager.o: configManager.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/fileIO.o fileIO.c
+	$(COMPILE.c) -O2 -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/configManager.o configManager.c
 
 ${OBJECTDIR}/hwControl/boardHWctrl.o: hwControl/boardHWctrl.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl

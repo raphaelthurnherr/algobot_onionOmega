@@ -85,6 +85,12 @@ struct m_MotConfig{
 	char inverted;
 };
 
+struct m_LedConfig{
+	int state;
+	int power;
+        char isServoMode;
+};
+
 
 struct m_color{
         int value;
@@ -130,8 +136,8 @@ typedef struct tConfig{
 	struct m_dataStream dataStream;   
         struct m_AppConf config;  
         struct m_MotConfig motor[NBMOTOR];
+        struct m_LedConfig led[NBLED];
 }t_sysConfig;
-
 
 #ifdef __cplusplus
 }
