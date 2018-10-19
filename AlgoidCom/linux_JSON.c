@@ -8,6 +8,8 @@
  ============================================================================
  */
 
+
+
 #define KEY_TO "{'MsgTo'"
 #define KEY_FROM "{'MsgFrom'"
 #define KEY_MSGID "{'MsgID'"
@@ -54,10 +56,21 @@
 #define KEY_MESSAGE_VALUE_ACCEL "{'MsgData'{'MsgValue'[*{'accel'"
 #define KEY_MESSAGE_VALUE_DECEL "{'MsgData'{'MsgValue'[*{'decel'"
 
+#define KEY_MESSAGE_VALUE_CFG_RESET "{'MsgData'{'MsgValue'[*{'config'{'reset'"
+#define KEY_MESSAGE_VALUE_CFG_SAVE "{'MsgData'{'MsgValue'[*{'config'{'save'"
+
 #define KEY_MESSAGE_VALUE_CFG_STREAM_STATE "{'MsgData'{'MsgValue'[*{'stream'{'state'"
 #define KEY_MESSAGE_VALUE_CFG_STREAM_TIME "{'MsgData'{'MsgValue'[*{'stream'{'time'"
 #define KEY_MESSAGE_VALUE_CFG_STREAM_ONEVENT "{'MsgData'{'MsgValue'[*{'stream'{'onEvent'"
-#define KEY_MESSAGE_VALUE_CFG_APPRESET "{'MsgData'{'MsgValue'[*{'config'{'reset'"
+
+#define KEY_MESSAGE_VALUE_CFG_MOTOR "{'MsgData'{'MsgValue'[*{'motor'"
+#define KEY_MESSAGE_VALUE_CFG_MOTOR_ID "{'MsgData'{'MsgValue'[{'motor'[*{'motor'"
+#define KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT "{'MsgData'{'MsgValue'[{'motor'[*{'inverted'"
+
+#define KEY_MESSAGE_VALUE_CFG_LED "{'MsgData'{'MsgValue'[*{'led'"
+#define KEY_MESSAGE_VALUE_CFG_LED_ID "{'MsgData'{'MsgValue'[{'led'[*{'led'"
+#define KEY_MESSAGE_VALUE_CFG_LED_STATE "{'MsgData'{'MsgValue'[{'led'[*{'state'"
+#define KEY_MESSAGE_VALUE_CFG_LED_POWER "{'MsgData'{'MsgValue'[{'led'[*{'power'"
 
 #define KEY_MESSAGE_VALUE_SYS_APP "{'MsgData'{'MsgValue'[*{'application'"
 #define KEY_MESSAGE_VALUE_SYS_FIRMWARE "{'MsgData'{'MsgValue'[*{'firmware'"
@@ -69,13 +82,14 @@
 #include <time.h>
 #include <math.h>
 
+#include "type.h"
 #include "../buggy_descriptor.h"
 #include "linux_json.h"
 #include "libs/lib_json/jRead.h"
 #include "libs/lib_json/jWrite.h"
 
 void ackToJSON(char * buffer, int msgId, char* to, char * from, char * msgType,char * msgParam, unsigned char orgType, unsigned char count);
-char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer);
+char GetAlgoidMsg(ALGOID destMessage, char *srcDataBuffer);
 
 ALGOID myReplyMessage;
 
@@ -90,7 +104,7 @@ ALGOID myReplyMessage;
 // -----------------------------------------------------------------------------
 
 char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
-	struct jReadElement element;
+	struct jReadElement element, cfg_device_list;
 	int i;
 
 	// ENTETE DE MESSAGE
@@ -135,9 +149,9 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 
 				  jRead((char *)srcBuffer, KEY_MESSAGE_VALUE, &element );
 
-					// RECHERCHE DATA ARRAY
+                                    // RECHERCHE DATA ARRAY
 				  if(element.dataType == JREAD_ARRAY ){
-					  AlgoidMessageRX.msgValueCnt=element.elements;
+                                    AlgoidMessageRX.msgValueCnt=element.elements;
 
 				      for(i=0; i<element.elements; i++ )    // loop for no. of elements in JSON
 				      {
@@ -150,17 +164,11 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 					    	  AlgoidMessageRX.DCmotor[i].time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_TIME, &i);
 					    	  AlgoidMessageRX.DCmotor[i].cm= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CM, &i);
 					    	  AlgoidMessageRX.DCmotor[i].accel= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ACCEL, &i);
-					    	  AlgoidMessageRX.DCmotor[i].decel= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_DECEL, &i);
-/*                                                  printf("\n --DEBUG: MOTOR ID: %d, SPEED: %d, TIME, %d, DIST: %d\n", 
-                                                  AlgoidMessageRX.DCmotor[i].motor,
-                                                          AlgoidMessageRX.DCmotor[i].velocity,
-                                                          AlgoidMessageRX.DCmotor[i].time,
-                                                          AlgoidMessageRX.DCmotor[i].cm);
- */ 
+					    	  AlgoidMessageRX.DCmotor[i].decel= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_DECEL, &i); 
 				    	  }
 
 				    	  if(AlgoidMessageRX.msgParam == DINPUT){
-						     AlgoidMessageRX.DINsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_DIN, &i);
+						 AlgoidMessageRX.DINsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_DIN, &i);
 				    		 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_STATE, AlgoidMessageRX.DINsens[i].event_state, 15, &i );
 				    		 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_STOP, AlgoidMessageRX.DINsens[i].safetyStop_state, 15, &i );
 				    		 AlgoidMessageRX.DINsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
@@ -200,7 +208,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				    		  AlgoidMessageRX.RGBsens[i].clear.event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_CLEAR_HIGHER, &i);
 				    	  }
 
-                                          
+                                          // BATTERY
 				    	  if(AlgoidMessageRX.msgParam == BATTERY){
 				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_STATE, AlgoidMessageRX.BATTsens[i].event_state, 15, &i );
 				    		  AlgoidMessageRX.BATTsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_BATT, &i);
@@ -253,18 +261,63 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				    		  AlgoidMessageRX.PWMarray[i].powerPercent= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_POSPERCENT, &i);                                                                                                   
 				    	  }
 
-
+                                        // STATUS
 				    	  if(AlgoidMessageRX.msgParam == STATUS){
                                                   // Nothing to get, return status of all system
 				    	  }
                                           
+                                        // CONFIGURATION
                                           if(AlgoidMessageRX.msgParam == CONFIG){
+                                              int nbOfdeviceInConf;
+                                              int i_dev;
+                                              
+                                              for(i_dev=0;i_dev<4;i_dev++){
+                                                AlgoidMessageRX.Config.motor[i_dev].id=-1;
+                                              }
+                                              
+                                            // Stream settings
                                                   jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_STATE, AlgoidMessageRX.Config.stream.state, 15, &i );
                                                   AlgoidMessageRX.Config.stream.time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_TIME, &i);
                                                   jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STREAM_ONEVENT, AlgoidMessageRX.Config.stream.onEvent, 15, &i );
-                                                  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_APPRESET, AlgoidMessageRX.Config.config.reset, 15, &i );
+                                                  
+                                            // Motor Setting
+                                                jRead((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR, &cfg_device_list );
+
+                                                // RECHERCHE DATA DE TYPE ARRAY
+                                                if(cfg_device_list.dataType == JREAD_ARRAY ){
+                                                    // Get the number of motors in array
+                                                    nbOfdeviceInConf=cfg_device_list.elements;
+                                                    AlgoidMessageRX.Config.motValueCnt=nbOfdeviceInConf;
+                                                    
+                                                    for(i_dev=0; i_dev < nbOfdeviceInConf; i_dev++){                 
+                                                        AlgoidMessageRX.Config.motor[i_dev].id=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_ID, &i_dev); 
+                                                        jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT, AlgoidMessageRX.Config.motor[i_dev].inverted, 15, &i_dev ); 
+                                                    }
+                                                }
+                                                
+                                            // LEDS Setting
+                                                jRead((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_LED, &cfg_device_list );
+
+                                                // RECHERCHE DATA DE TYPE ARRAY
+                                                if(cfg_device_list.dataType == JREAD_ARRAY ){
+                                                    // Get the number of leds in array
+                                                    nbOfdeviceInConf=cfg_device_list.elements;
+                                                    AlgoidMessageRX.Config.ledValueCnt=nbOfdeviceInConf;
+                                                    
+                                                    for(i_dev=0; i_dev < nbOfdeviceInConf; i_dev++){
+                                                        AlgoidMessageRX.Config.led[i_dev].id=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_LED_ID, &i_dev); 
+                                                        AlgoidMessageRX.Config.led[i_dev].power=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_LED_POWER, &i_dev); 
+                                                        jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_LED_STATE, AlgoidMessageRX.Config.led[i_dev].state, 15, &i_dev ); 
+                                                    }
+                                                }                                                
+                                                
+                                            // Reset settings
+                                                jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_RESET, AlgoidMessageRX.Config.config.reset, 15, &i );
+                                            // Save settings
+                                                jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_SAVE, AlgoidMessageRX.Config.config.save, 15, &i );
 				    	  }
                                           
+                                        // SYSTEM                                          
                                           if(AlgoidMessageRX.msgParam == SYSTEM){
                                                   jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SYS_FIRMWARE, AlgoidMessageRX.System.firmwareUpdate, 15, &i );
                                                   jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SYS_APP, AlgoidMessageRX.System.application, 15, &i );
@@ -279,7 +332,6 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				  }else
 					  return 1;
 }
-
 
 // -----------------------------------------------------------------------------
 // replyToHost
@@ -617,22 +669,50 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                             }
                                                                             break;
                                                                                 
-							case CONFIG :           
+							case CONFIG :         
                                                                             switch(AlgoidResponse[i].responseType){
                                                                                 case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
                                                                                 case EVENT_ACTION_END :   jwObj_string("action", "end"); break;
                                                                                 case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
                                                                                 case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
-                                                                                case RESP_STD_MESSAGE   :    
+                                                                                case RESP_STD_MESSAGE   :   
+                                                                                                            jwObj_object( "config" );                                                                                 
+                                                                                                                jwObj_string("reset", AlgoidResponse[i].CONFIGresponse.config.reset);       
+                                                                                                                jwObj_string("save", AlgoidResponse[i].CONFIGresponse.config.save);                                                                                                                       
+                                                                                                            jwEnd();  
+                                                                                                            
                                                                                                             jwObj_object( "stream" );                                                                                 
                                                                                                                     jwObj_string("state", AlgoidResponse[i].CONFIGresponse.stream.state);
                                                                                                                     jwObj_int("time", AlgoidResponse[i].CONFIGresponse.stream.time);
                                                                                                                     jwObj_string("onEvent", AlgoidResponse[i].CONFIGresponse.stream.onEvent);         
                                                                                                             jwEnd();
-                                                                                                            jwObj_object( "application" );                                                                                 
-                                                                                                                    jwObj_string("reset", AlgoidResponse[i].CONFIGresponse.config.reset);       
-                                                                                                            jwEnd();                                                                                                             
-                                                                                                            ; break;
+                                                                                                            
+                                                                                                        // CREATE JSON CONFIG FOR MOTOR  
+                                                                                                            if(AlgoidResponse[i].CONFIGresponse.motValueCnt > 0){
+                                                                                                                jwObj_array("motor");
+                                                                                                                    for(j=0;j<AlgoidResponse[i].CONFIGresponse.motValueCnt;j++){
+                                                                                                                        jwArr_object();
+                                                                                                                            jwObj_int( "motor", AlgoidResponse[i].CONFIGresponse.motor[j].id);
+                                                                                                                            jwObj_string("inverted", AlgoidResponse[i].CONFIGresponse.motor[j].inverted);
+                                                                                                                        jwEnd();
+                                                                                                                    } 
+                                                                                                                jwEnd();
+                                                                                                            }
+                                                                                                            
+                                                                                                        // CREATE JSON CONFIG FOR LED
+                                                                                                            if(AlgoidResponse[i].CONFIGresponse.ledValueCnt > 0){
+                                                                                                                jwObj_array("led");
+                                                                                                                    for(j=0;j<AlgoidResponse[i].CONFIGresponse.ledValueCnt;j++){
+                                                                                                                        jwArr_object();
+                                                                                                                            jwObj_int( "led", AlgoidResponse[i].CONFIGresponse.led[j].id);
+                                                                                                                            jwObj_string("state", AlgoidResponse[i].CONFIGresponse.led[j].state);
+                                                                                                                            jwObj_int( "power", AlgoidResponse[i].CONFIGresponse.led[j].power);
+                                                                                                                        jwEnd();
+                                                                                                                    } 
+                                                                                                                jwEnd();                                             
+                                                                                                            }
+                                                                                                           
+                                                                                                            break;
                                                                                 default : jwObj_string("error", "unknown"); break;
                                                                             }
                                                                             break;
