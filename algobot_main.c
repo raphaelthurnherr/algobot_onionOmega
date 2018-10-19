@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.4.6a"
+#define FIRMWARE_VERSION "1.5.0"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -24,6 +24,8 @@
 #include "asyncPWM.h"
 #include "asyncSERVO.h"
 #include "asyncLED.h"
+#include "configManager.h"
+#include "type.h"
 
 unsigned char ptrSpeedCalc;
 
@@ -82,6 +84,7 @@ t_sensor body;
 t_system sysInfo;
 t_sysConfig sysConfig;
 
+
 // -------------------------------------------------------------------
 // MAIN APPLICATION
 // - Cr�ation de t�che de gestion de la messagerie avec ALGOID, (ALGOID->JSON->MQTT BROCKER->JSON->BUGGY)
@@ -93,7 +96,7 @@ t_sysConfig sysConfig;
 int main(int argc, char *argv[]) {
 	int i;
         int systemDataStreamCounter=0;       // Compteur pour l'envoie periodique du flux de donnees des capteur
-                                              // si activ�.
+                                             // si activ�.
         char welcomeMessage[100];
 	system("clear");
         
@@ -133,14 +136,13 @@ int main(int argc, char *argv[]) {
 // --------------------------------------------------------------------
 
 	// ----------- DEBUT DE LA BOUCLE PRINCIPALE ----------
- 
-        // Reset configuration to default
         resetConfig();
         
 	while(1){
         
         // Check if reset was triggered by user
         if(sysConfig.config.reset>0){
+            // Reset configuration to default value
             resetConfig();
             resetHardware();
             systemDataStreamCounter=0;
@@ -263,7 +265,7 @@ int main(int argc, char *argv[]) {
 // S�l�ctionne et traite le param�tre de commande recue [LL2WD, BACK, FORWARD, STOP, SPIN, etc...]
 // -------------------------------------------------------------------
 int processAlgoidCommand(void){
-    int i;
+    int i, valCnt;
     int updateResult;
 	switch(AlgoidCommand.msgParam){
 		case MOTORS : 	
@@ -275,7 +277,7 @@ int processAlgoidCommand(void){
                                     else
                                         AlgoidResponse[i].MOTresponse.motor=-1;
                                             
-                                    // R�cup�ration des param�tes de commandes
+                                    // Récupération des paramètes de commandes
                                     
                                     // Retourne un message ALGOID si velocit� hors tol�rences
                                     if((AlgoidCommand.DCmotor[i].velocity < -100) ||(AlgoidCommand.DCmotor[i].velocity > 100)){
@@ -358,10 +360,9 @@ int processAlgoidCommand(void){
                                 runLedAction();
                                 break;
                                 
-            case CONFIG  : 	
-                                for(i=0;i<AlgoidCommand.msgValueCnt;i++){
-                                    
-                                // CONFIG COMMAND FOR DATASTREAM
+            case CONFIG  :
+                                for(valCnt=0;valCnt<AlgoidCommand.msgValueCnt;valCnt++){
+                            // CONFIG COMMAND FOR DATASTREAM
                                     // R�cup�re les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par polling
                                     if(!strcmp(AlgoidCommand.Config.stream.state, "on"))
                                         sysConfig.dataStream.state=1; 			// Activation de l'envoie du datastream
@@ -379,42 +380,95 @@ int processAlgoidCommand(void){
                                     
                                     if(AlgoidCommand.Config.stream.time>0)
                                         sysConfig.dataStream.time_ms=AlgoidCommand.Config.stream.time;
-
                                     
+                                // CONFIG COMMAND FOR MOTOR SETTING
+                                    for(i=0;i<AlgoidCommand.Config.motValueCnt; i++){
+                                        AlgoidResponse[valCnt].CONFIGresponse.motValueCnt=AlgoidCommand.Config.motValueCnt;
+                                        // Check if motor exist...
+                                        if(AlgoidCommand.Config.motor[i].id >= 0 && AlgoidCommand.Config.motor[i].id <NBMOTOR){
+                                            // Save config for motor inversion
+                                            if(!strcmp(AlgoidCommand.Config.motor[i].inverted, "on")){
+                                                sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=1;
+                                                strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].inverted, "on");
+                                            }
+                                            else if(!strcmp(AlgoidCommand.Config.motor[i].inverted, "off")){
+                                                    sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=0;
+                                                    strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].inverted, "off");
+                                            }
+
+                                            AlgoidResponse[valCnt].CONFIGresponse.motor[i].id = AlgoidCommand.Config.motor[i].id;
+                                        }
+                                        else
+                                            AlgoidResponse[valCnt].CONFIGresponse.motor[i].id=-1;
+                                    }
+
+                                // CONFIG COMMAND FOR LED SETTING
+                                    for(i=0;i<AlgoidCommand.Config.ledValueCnt; i++){
+                                        AlgoidResponse[valCnt].CONFIGresponse.ledValueCnt=AlgoidCommand.Config.ledValueCnt;
+                                        
+                                        // Check if led exist...
+                                        if(AlgoidCommand.Config.led[i].id >= 0 && AlgoidCommand.Config.led[i].id <NBLED){
+                                            sysConfig.led[AlgoidCommand.Config.led[i].id].power=AlgoidCommand.Config.led[i].power;
+                                            AlgoidResponse[valCnt].CONFIGresponse.led[i].power=AlgoidCommand.Config.led[i].power;
+                                            // Save config for led inversion
+                                            if(!strcmp(AlgoidCommand.Config.led[i].state, "on")){
+                                                sysConfig.led[AlgoidCommand.Config.led[i].id].state=1;
+                                                strcpy(AlgoidResponse[valCnt].CONFIGresponse.led[i].state, "on");
+                                            }
+                                            else if(!strcmp(AlgoidCommand.Config.led[i].state, "off")){
+                                                    sysConfig.led[AlgoidCommand.Config.led[i].id].state=0;
+                                                    strcpy(AlgoidResponse[valCnt].CONFIGresponse.led[i].state, "off");
+                                            }
+
+                                            AlgoidResponse[valCnt].CONFIGresponse.led[i].id = AlgoidCommand.Config.led[i].id;
+                                        }
+                                        else
+                                            AlgoidResponse[valCnt].CONFIGresponse.led[i].id=-1;
+                                    }
+
+                                // CONFIG COMMAND FOR SAVE
+                                    if(!strcmp(AlgoidCommand.Config.config.save, "true"))
+                                        SaveConfig(&sysConfig, "algobot.cfg");
+
+                                // CONFIG COMMAND FOR RESET
                                     if(!strcmp(AlgoidCommand.Config.config.reset, "true"))
-                                        sysConfig.config.reset=1; 			// Activation de l'envoie du datastream
+                                       sysConfig.config.reset=1;
 
-                                    //printf("StatusStream state: %d time:%d Event: %d\n", sysConfig.dataStream.state, sysConfig.dataStream.time_ms, sysConfig.dataStream.onEvent);
-  
+                        // Préparation des valeurs du message de réponse
+                                // GET STREAM CONFIG FOR RESPONSE
+                                    AlgoidResponse[valCnt].CONFIGresponse.stream.time=sysConfig.dataStream.time_ms;
                                     
-                                    
-                                    // Pr�paration des valeurs du message de r�ponse
-                                    AlgoidResponse[i].CONFIGresponse.stream.time=sysConfig.dataStream.time_ms;
                                     if(sysConfig.dataStream.onEvent==0) 
-                                        strcpy(AlgoidResponse[i].CONFIGresponse.stream.onEvent, "off");
-                                    else strcpy(AlgoidResponse[i].CONFIGresponse.stream.onEvent, "on");
+                                        strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.onEvent, "off");
+                                    else strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.onEvent, "on");
 
                                     if(sysConfig.dataStream.state==0) 
-                                        strcpy(AlgoidResponse[i].CONFIGresponse.stream.state, "off");
-                                    else strcpy(AlgoidResponse[i].CONFIGresponse.stream.state, "on");
-                                    
+                                        strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.state, "off");
+                                    else strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.state, "on");
+
                                     if(sysConfig.config.reset==1) 
-                                        strcpy(AlgoidResponse[i].CONFIGresponse.config.reset, "true");
-                                    else strcpy(AlgoidResponse[i].CONFIGresponse.config.reset, "---");
+                                        strcpy(AlgoidResponse[valCnt].CONFIGresponse.config.reset, "true");
+                                    else strcpy(AlgoidResponse[valCnt].CONFIGresponse.config.reset, "---");
                                     
-                                    AlgoidResponse[i].responseType = RESP_STD_MESSAGE; 
-                                }
+                                    if(!strcmp(AlgoidCommand.Config.config.save, "true")) 
+                                        strcpy(AlgoidResponse[valCnt].CONFIGresponse.config.save, "true");
+                                    else strcpy(AlgoidResponse[valCnt].CONFIGresponse.config.save, "---");
+                                    
+                                    AlgoidResponse[valCnt].responseType = RESP_STD_MESSAGE;
+                                } 
                                 
-                                                                   // R�cup�ration des param�tes 
-                                 
+                                //AlgoidResponse[0].responseType = RESP_STD_MESSAGE;                     
                                 // Retourne en r�ponse le message v�rifi�
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, CONFIG, AlgoidCommand.msgValueCnt);
                                 
-                                AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
-                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, CONFIG, AlgoidCommand.msgValueCnt);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
+                                //AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
+                                //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, CONFIG, AlgoidCommand.msgValueCnt);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
 
-                                AlgoidResponse[0].responseType=EVENT_ACTION_END;
-                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, CONFIG, AlgoidCommand.msgValueCnt);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
+                                //AlgoidResponse[0].responseType=EVENT_ACTION_END;
+                                //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, CONFIG, AlgoidCommand.msgValueCnt);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
+
+
+
                                 break;
                                 
             case SYSTEM :       
@@ -2024,6 +2078,10 @@ void runRestartCommand(void){
 void resetConfig(void){
     int i;
     
+        // DEBUG Invert the motor 1 sens         
+        sysConfig.motor[0].inverted=1;          // MOTOR 0 INVERTED
+        sysConfig.motor[1].inverted=1;          // MOTOR 1 INVERTED
+        
     	// Init body membre
 	for(i=0;i<NBAIN;i++){
 		body.battery[i].safetyStop_value=0;
@@ -2057,9 +2115,6 @@ void resetConfig(void){
                 body.motor[i].time=0;
                 sysConfig.motor[i].inverted=0;
 	}
-        // DEBUG Invert the motor 1 sens         
-        sysConfig.motor[0].inverted=1;          // MOTOR 0 INVERTED
-        sysConfig.motor[1].inverted=1;          // MOTOR 1 INVERTED
         
         for(i=0;i<NBSONAR;i++){
 		body.distance[i].event_enable=DEFAULT_EVENT_STATE;
@@ -2099,15 +2154,25 @@ void resetConfig(void){
         sysConfig.dataStream.time_ms=1000;
         sysConfig.config.reset=0;
         
-        printf("WARNING ! Configuration reset to default value\n");
-        sendMqttReport(AlgoidCommand.msgID, "WARNING ! Configuration reset to default value");// Envoie le message sur le canal MQTT "Report"  
+                
+        // Load config data
+        char configStatus = LoadConfig(&sysConfig, "algobot.cfg");
+        if(configStatus<0){
+            printf("#[CORE] Load configuration file from \"algobot.cfg\": ERROR\n");
+        }else
+            printf("#[CORE] Load configuration file from \"algobot.cfg\": OK\n");
+            
+        
+        
+        
+        sendMqttReport(AlgoidCommand.msgID, "WARNING ! Configuration reset");// Envoie le message sur le canal MQTT "Report"  
 }
 
 int getStartupArg(int count, char *arg[]){
     unsigned char i;
     
     for(i=0;i<count;i++){
-        printf("ARG #%d : %s\n", count, arg[i]);
+        //printf("ARG #%d : %s\n", count, arg[i]);
         
         if(!strcmp(arg[i], "-n"))
             sprintf(&ClientID, "%s", arg[i+1]);

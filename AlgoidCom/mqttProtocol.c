@@ -43,13 +43,14 @@ int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArr
 		// Fin de config connexion
 
 		// Configuration de la fonction callback de souscription
-		//MQTTClient_setCallbacks(client, NULL, connlost, msgarrFunc, delivered);
                 MQTTClient_setCallbacks(client, NULL, connLost_callback, msgarrFunc, delivered);
-		// Tentative de connexion au broker mqtt
+		
+                // Connexion au broker mqtt
 		if ((rc = MQTTClient_connect(client, &conn_opts)) != MQTTCLIENT_SUCCESS)
 		{
-			return(rc);
+                    return(rc);
 		}else return 0;
+
 	}
 
 // -------------------------------------------------------------------
@@ -95,7 +96,6 @@ void connlost(void *context, char *cause)
 
 int mqttPutMessage(char *topic, char *data, unsigned short lenght){
 	int rc;
-
 	MQTTClient_publish(client, topic, lenght, data, QOS, 0, &token);
 	rc = MQTTClient_waitForCompletion(client, token, TIMEOUT);
 
