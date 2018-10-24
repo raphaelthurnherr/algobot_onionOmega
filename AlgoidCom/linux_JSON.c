@@ -45,10 +45,6 @@
 #define KEY_MESSAGE_VALUE_EVENT_CLEAR_LOWER "{'MsgData'{'MsgValue'[*{'clear'{'event_lower'"
 #define KEY_MESSAGE_VALUE_EVENT_CLEAR_HIGHER "{'MsgData'{'MsgValue'[*{'clear'{'event_higher'"
 
-#define KEY_MESSAGE_VALUE_SAFETY_STOP "{'MsgData'{'MsgValue'[*{'safety_stop'"
-#define KEY_MESSAGE_VALUE_SAFETY_VALUE "{'MsgData'{'MsgValue'[*{'safety_value'"
-
-
 #define KEY_MESSAGE_VALUE_MOTOR "{'MsgData'{'MsgValue'[*{'motor'"
 #define KEY_MESSAGE_VALUE_VELOCITY "{'MsgData'{'MsgValue'[*{'velocity'"
 #define KEY_MESSAGE_VALUE_TIME "{'MsgData'{'MsgValue'[*{'time'"
@@ -170,20 +166,12 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				    	  if(AlgoidMessageRX.msgParam == DINPUT){
 						 AlgoidMessageRX.DINsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_DIN, &i);
 				    		 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_STATE, AlgoidMessageRX.DINsens[i].event_state, 15, &i );
-				    		 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_STOP, AlgoidMessageRX.DINsens[i].safetyStop_state, 15, &i );
-				    		 AlgoidMessageRX.DINsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
-					    	 //printf("id: %d event: %s Safety: %s Value: %d\n", AlgoidMessageRX.DINsens[i].id, AlgoidMessageRX.DINsens[i].event_state,AlgoidMessageRX.DINsens[i].safetyStop_state  ,AlgoidMessageRX.DINsens[i].safetyStop_value);
 				    	  }
                                           
                                           if(AlgoidMessageRX.msgParam == BUTTON){
 						 AlgoidMessageRX.BTNsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_BTN, &i);
 				    		 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_STATE, AlgoidMessageRX.BTNsens[i].event_state, 15, &i );
-				    		 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_STOP, AlgoidMessageRX.BTNsens[i].safetyStop_state, 15, &i );
-				    		 AlgoidMessageRX.BTNsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
-					    	 //printf("id: %d event: %s Safety: %s Value: %d\n", AlgoidMessageRX.DINsens[i].id, AlgoidMessageRX.DINsens[i].event_state,AlgoidMessageRX.DINsens[i].safetyStop_state  ,AlgoidMessageRX.DINsens[i].safetyStop_value);
 				    	  }
-
-                                          
 
 				    	  if(AlgoidMessageRX.msgParam == DISTANCE){
 				    		  jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_STATE, AlgoidMessageRX.DISTsens[i].event_state, 15, &i );
@@ -191,8 +179,6 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				    		  AlgoidMessageRX.DISTsens[i].angle= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ANGLE, &i);
 				    		  AlgoidMessageRX.DISTsens[i].event_low= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_LOWER, &i);
 				    		  AlgoidMessageRX.DISTsens[i].event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_HIGHER, &i);
-							 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_STOP, AlgoidMessageRX.DISTsens[i].safetyStop_state, 15, &i );
-							 AlgoidMessageRX.DISTsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
 				    	  }
 
                                           if(AlgoidMessageRX.msgParam == COLORS){
@@ -214,8 +200,6 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 				    		  AlgoidMessageRX.BATTsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_BATT, &i);
 				    		  AlgoidMessageRX.BATTsens[i].event_low= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_LOWER, &i);
 				    		  AlgoidMessageRX.BATTsens[i].event_high= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_EVENT_HIGHER, &i);
-							 jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_STOP, AlgoidMessageRX.BATTsens[i].safetyStop_state, 15, &i );
-							 AlgoidMessageRX.BATTsens[i].safetyStop_value= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_SAFETY_VALUE, &i);
 				    	  }
                                           
                                           // LED
@@ -393,8 +377,6 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     jwObj_string("event", AlgoidResponse[i].DISTresponse.event_state);				// add object key:value pairs
                                                                                     jwObj_int("event_lower", AlgoidResponse[i].DISTresponse.event_low);				// add object key:value pairs
                                                                                     jwObj_int("event_higher", AlgoidResponse[i].DISTresponse.event_high);				// add object key:value pairs
-                                                                                    jwObj_string("safety_stop", AlgoidResponse[i].DISTresponse.safetyStop_state);				// add object key:value pairs
-                                                                                    jwObj_int("safety_value", AlgoidResponse[i].DISTresponse.safetyStop_value);				// add object key:value pairs
                                                                             } else
                                                                                     jwObj_string("cm", "error");
 
@@ -444,9 +426,6 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     jwObj_string("event", AlgoidResponse[i].BATTesponse.event_state);				// add object key:value pairs
                                                                                     jwObj_int("event_lower", AlgoidResponse[i].BATTesponse.event_low);				// add object key:value pairs
                                                                                     jwObj_int("event_higher", AlgoidResponse[i].BATTesponse.event_high);				// add object key:value pairs
-                                                                                    jwObj_string("safety_stop", AlgoidResponse[i].BATTesponse.safetyStop_state);				// add object key:value pairs
-                                                                                    jwObj_int("safety_value", AlgoidResponse[i].BATTesponse.safetyStop_value);				// add object key:value pairs
-                                                                            } else{
                                                                                     jwObj_string("mV", "error");
                                                                             }
 
@@ -460,8 +439,6 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                  if(AlgoidResponse[i].value >= 0){
                                                                                          jwObj_int( "state", AlgoidResponse[i].value);				// add object key:value pairs
                                                                                          jwObj_string("event", AlgoidResponse[i].DINresponse.event_state);			// Etat des evenements DIN
-                                                                                         jwObj_string("safety_stop", AlgoidResponse[i].DINresponse.safetyStop_state);				// add object key:value pairs
-                                                                                         jwObj_int("safety_value", AlgoidResponse[i].DINresponse.safetyStop_value);				// add object key:value pairs
                                                                                  } else
                                                                                          jwObj_string("state", "error");
                                                                              }

@@ -40,10 +40,6 @@ void DINEventCheck(void);
 void BUTTONEventCheck(void);
 void COLOREventCheck(void);
 
-void DINSafetyCheck(void);
-void BatterySafetyCheck(void);
-void DistanceSafetyCheck(void);
-
 int ActionTable[10][3];
 
 // Traitement du message algoid recu
@@ -219,11 +215,6 @@ int main(int argc, char *argv[]) {
                         
                         COLOREventCheck();										// Cont�le les valeur RGB des capteurs
                         
-			DINSafetyCheck();										// Cont�le de l'�tat des entr�es num�rique
-			BatterySafetyCheck();
-			DistanceSafetyCheck(); 										// effectue une action si safety actif
-
-
 			body.distance[0].value = getSonarDistance();
 			distanceEventCheck();										// Provoque un �venement de type "distance" si la distance mesur�e
 															// est hors de la plage sp�cifi�e par l'utilisateur
@@ -231,15 +222,6 @@ int main(int argc, char *argv[]) {
 			body.battery[0].value = getBatteryVoltage();
                         body.battery[0].capacity=(body.battery[0].value-3500)/((4210-3500)/100);
                         batteryEventCheck();
-                        
-
-
-			// est hors a plage sp�cifi�e par les paramettre utilisateur
-//			printf("Pulses left: %d    right: %d\n", test[0], test[1]);
-			//printf("\nBattery: %d, safetyStop_state: %d safetyStop_value: %d", 0, body.battery[0].safetyStop_state, body.battery[0].safetyStop_value);
-//			printf("\nSpeed : G %.1f   D %.1f   ||| Dist G: %.1fcm  Dist D: %.1fcm",
-//					body.motor[MOTOR_0].speed, body.motor[MOTOR_1].speed, body.motor[MOTOR_0].distance, body.motor[MOTOR_1].distance);
-//			printf(" dist US: %d cm\n", body.distance[0].value);
 
 			t100msFlag=0;												// Quittance le flag 100mS
     	}
@@ -1156,11 +1138,6 @@ int makeSensorsRequest(void){
 				// Recherche de param�tres suppl�mentaires et enregistrement des donn�e en "local"
 				if(!strcmp(AlgoidCommand.DINsens[i].event_state, "on"))	body.proximity[AlgoidCommand.DINsens[i].id].event_enable=1; 			// Activation de l'envoie de messages sur �venements
 				else if(!strcmp(AlgoidCommand.DINsens[i].event_state, "off"))	body.proximity[AlgoidCommand.DINsens[i].id].event_enable=0;    // D�sactivation de l'envoie de messages sur �venements
-
-				if(!strcmp(AlgoidCommand.DINsens[i].safetyStop_state, "on"))	body.proximity[AlgoidCommand.DINsens[i].id].safetyStop_state=1; 			// Activation de l'envoie de messages sur �venements
-				else if(!strcmp(AlgoidCommand.DINsens[i].safetyStop_state, "off"))	body.proximity[AlgoidCommand.DINsens[i].id].safetyStop_state=0;    // D�sactivation de l'envoie de messages sur �venemen
-
-				body.proximity[AlgoidCommand.DINsens[i].id].safetyStop_value = AlgoidCommand.DINsens[i].safetyStop_value;
 			} else
 				AlgoidResponse[i].value = -1;
 		};
@@ -1174,10 +1151,6 @@ int makeSensorsRequest(void){
 			AlgoidResponse[i].value = body.proximity[temp].state;
 			if(body.proximity[temp].event_enable) strcpy(AlgoidResponse[i].DINresponse.event_state, "on");
 				else strcpy(AlgoidResponse[i].DINresponse.event_state, "off");
-
-			if(body.proximity[temp].safetyStop_state) strcpy(AlgoidResponse[i].DINresponse.safetyStop_state, "on");
-				else strcpy(AlgoidResponse[i].DINresponse.safetyStop_state, "off");
-			AlgoidResponse[i].DINresponse.safetyStop_value = body.proximity[temp].safetyStop_value;
 		} else
 			AlgoidResponse[i].value = -1;
 	//---
@@ -1211,11 +1184,6 @@ int makeButtonRequest(void){
 				// Recherche de param�tres suppl�mentaires et enregistrement des donn�e en "local"
 				if(!strcmp(AlgoidCommand.BTNsens[i].event_state, "on"))	body.button[AlgoidCommand.BTNsens[i].id].event_enable=1; 			// Activation de l'envoie de messages sur �venements
 				else if(!strcmp(AlgoidCommand.BTNsens[i].event_state, "off"))	body.button[AlgoidCommand.BTNsens[i].id].event_enable=0;    // D�sactivation de l'envoie de messages sur �venements
-
-				if(!strcmp(AlgoidCommand.BTNsens[i].safetyStop_state, "on"))	body.button[AlgoidCommand.BTNsens[i].id].safetyStop_state=1; 			// Activation de l'envoie de messages sur �venements
-				else if(!strcmp(AlgoidCommand.BTNsens[i].safetyStop_state, "off"))	body.button[AlgoidCommand.BTNsens[i].id].safetyStop_state=0;    // D�sactivation de l'envoie de messages sur �venemen
-
-				body.button[AlgoidCommand.BTNsens[i].id].safetyStop_value = AlgoidCommand.BTNsens[i].safetyStop_value;
 			} else
 				AlgoidResponse[i].value = -1;
 		};
@@ -1228,11 +1196,7 @@ int makeButtonRequest(void){
 		if(AlgoidCommand.BTNsens[i].id < NBBTN){
 			AlgoidResponse[i].value = body.button[temp].state;
 			if(body.button[temp].event_enable) strcpy(AlgoidResponse[i].BTNresponse.event_state, "on");
-				else strcpy(AlgoidResponse[i].BTNresponse.event_state, "off");
-
-			if(body.button[temp].safetyStop_state) strcpy(AlgoidResponse[i].BTNresponse.safetyStop_state, "on");
-				else strcpy(AlgoidResponse[i].BTNresponse.safetyStop_state, "off");
-			AlgoidResponse[i].BTNresponse.safetyStop_value = body.button[temp].safetyStop_value;
+                        else strcpy(AlgoidResponse[i].BTNresponse.event_state, "off");
 		} else
 			AlgoidResponse[i].value = -1;
 	//---
@@ -1279,11 +1243,7 @@ int makeDistanceRequest(void){
 						body.distance[AlgoidCommand.DISTsens[i].id].event_high=AlgoidCommand.DISTsens[i].event_high;
 					// Evemenent bas
 					if(AlgoidCommand.DISTsens[i].event_low!=0)
-						body.distance[AlgoidCommand.DISTsens[i].id].event_low=AlgoidCommand.DISTsens[i].event_low;
-
-					if(!strcmp(AlgoidCommand.DISTsens[i].safetyStop_state, "on")) body.distance[AlgoidCommand.DISTsens[i].id].safetyStop_state=1;
-					else if(!strcmp(AlgoidCommand.DISTsens[i].safetyStop_state, "off")) body.distance[AlgoidCommand.DISTsens[i].id].safetyStop_state=0;
-					body.distance[AlgoidCommand.DISTsens[i].id].safetyStop_value = AlgoidCommand.DISTsens[i].safetyStop_value;
+                                            body.distance[AlgoidCommand.DISTsens[i].id].event_low=AlgoidCommand.DISTsens[i].event_low;
 				} else
 					AlgoidResponse[i].value = -1;
 			};
@@ -1301,10 +1261,6 @@ int makeDistanceRequest(void){
 			else strcpy(AlgoidResponse[i].DISTresponse.event_state, "off");
 			AlgoidResponse[i].DISTresponse.event_high=body.distance[temp].event_high;
 			AlgoidResponse[i].DISTresponse.event_low=body.distance[temp].event_low;
-
-			if(body.distance[temp].safetyStop_state)strcpy(AlgoidResponse[i].DISTresponse.safetyStop_state, "on");
-			else strcpy(AlgoidResponse[i].DISTresponse.safetyStop_state, "off");
-			AlgoidResponse[i].DISTresponse.safetyStop_value=body.distance[temp].safetyStop_value;
 		} else
 			AlgoidResponse[i].value = -1;
 	};
@@ -1459,10 +1415,6 @@ int makeBatteryRequest(void){
 					// Evemenent haut
 					if(AlgoidCommand.BATTsens[i].event_high!=0) body.battery[AlgoidCommand.BATTsens[i].id].event_high=AlgoidCommand.BATTsens[i].event_high;
 					if(AlgoidCommand.BATTsens[i].event_high!=0) body.battery[AlgoidCommand.BATTsens[i].id].event_low=AlgoidCommand.BATTsens[i].event_low;
-
-					if(!strcmp(AlgoidCommand.BATTsens[i].safetyStop_state, "on")) body.battery[AlgoidCommand.BATTsens[i].id].safetyStop_state=1;
-					else if(!strcmp(AlgoidCommand.BATTsens[i].safetyStop_state, "off")) body.battery[AlgoidCommand.BATTsens[i].id].safetyStop_state=0;
-					if(AlgoidCommand.BATTsens[i].safetyStop_value!=0) body.battery[AlgoidCommand.BATTsens[i].id].safetyStop_value=AlgoidCommand.BATTsens[i].safetyStop_value;
 				}else
 					AlgoidResponse[i].value = -1;
 			};
@@ -1484,10 +1436,6 @@ int makeBatteryRequest(void){
 			}
 			AlgoidResponse[i].BATTesponse.event_high=body.battery[temp].event_high;
 			AlgoidResponse[i].BATTesponse.event_low=body.battery[temp].event_low;
-
-			if(body.battery[temp].safetyStop_state)strcpy(AlgoidResponse[i].BATTesponse.safetyStop_state, "on");
-			else strcpy(AlgoidResponse[i].BATTesponse.safetyStop_state, "off");
-			AlgoidResponse[i].BATTesponse.safetyStop_value=body.battery[temp].safetyStop_value;
 		} else
 			AlgoidResponse[i].value = -1;
 	};
@@ -1906,138 +1854,6 @@ void COLOREventCheck(void){
  
 }
 
-// -------------------------------------------------------------------
-// DINSAFETYCHECK
-// V�rifie si une changement d'�tat � eu lieu sur les entr�es num�riques
-// et effectue une action si safety actif et valeur concordante
-// -------------------------------------------------------------------
-void DINSafetyCheck(void){
-	// Mise � jour de l'�tat des E/S
-	unsigned char ptrBuff=0, DINsafety=0, i;
-	static unsigned char safetyAction[NBDIN];
-
-	for(i=0;i<NBDIN;i++){
-		// Mise � jour de l'�tat des E/S
-		body.proximity[i].state = getDigitalInput(i);
-
-		// V�rifie si un changement a eu lieu sur les entrees et transmet un message
-		// "event" listant les modifications
-		if(body.proximity[i].safetyStop_state){
-			if((body.proximity[i].safetyStop_value == body.proximity[i].state)){
-				if(!safetyAction[i]){
-					ptrBuff++;
-					printf("SAFETY DETECTION ON DIN%d, ETAT:%d\n", i, body.proximity[i].state);
-					DINsafety++;
-					safetyAction[i]=1;
-				}
-			} else safetyAction[i]=0;
-		}
-	}
-	if(DINsafety>0){
-		// ACTION A EFFECTUER
-		//sendResponse(AlgoidCommand.msgID, EVENT, DINPUT, DINsafety);
-	}
-}
-
-// -------------------------------------------------------------------
-// BTNSAFETYCHECK
-// V�rifie si une changement d'�tat � eu lieu sur les boutons
-// et effectue une action si safety actif et valeur concordante
-// -------------------------------------------------------------------
-void BTNSafetyCheck(void){
-	// Mise � jour de l'�tat des E/S
-	unsigned char ptrBuff=0, BTNsafety=0, i;
-	static unsigned char safetyAction[NBBTN];
-
-	for(i=0;i<NBBTN;i++){
-		// Mise � jour de l'�tat des E/S
-		body.button[i].state = getButtonInput(i);
-
-		// V�rifie si un changement a eu lieu sur les entrees et transmet un message
-		// "event" listant les modifications
-		if(body.button[i].safetyStop_state){
-			if((body.button[i].safetyStop_value == body.button[i].state)){
-				if(!safetyAction[i]){
-					ptrBuff++;
-					printf("SAFETY DETECTION ON BUTTON%d, ETAT:%d\n", i, body.button[i].state);
-					BTNsafety++;
-					safetyAction[i]=1;
-				}
-			} else safetyAction[i]=0;
-		}
-	}
-	if(BTNsafety>0){
-		// ACTION A EFFECTUER
-		//sendResponse(AlgoidCommand.msgID, EVENT, DINPUT, DINsafety);
-	}
-}
-
-// -------------------------------------------------------------------
-// BATTERYSAFETYCHECK
-// V�rifie si une changement d'�tat � eu lieu sur les entr�es num�riques
-// et effectue une action si safety actif et valeur concordante
-// -------------------------------------------------------------------
-void BatterySafetyCheck(void){
-	// Mise � jour de l'�tat des E/S
-	unsigned char ptrBuff=0, AINsafety=0, i;
-	static unsigned char safetyAction[NBAIN];
-
-	for(i=0;i<NBAIN;i++){
-		// Mise � jour de l'�tat des E/S
-		body.battery[i].value = getBatteryVoltage();
-
-		// V�rifie si un changement a eu lieu sur les entrees et transmet un message
-		// "event" listant les modifications
-		if(body.battery[i].safetyStop_state){
-			if((body.battery[i].safetyStop_value > body.battery[i].value)){
-				if(!safetyAction[i]){
-					ptrBuff++;
-					printf("SAFETY DETECTION ON BATTERY%d, VALUE:%d\n", i, body.battery[i].value);
-					AINsafety++;
-					safetyAction[i]=1;
-				}
-			} else safetyAction[i]=0;
-		}
-	}
-	if(AINsafety>0){
-		// ACTION A EFFECTUER
-		//sendResponse(AlgoidCommand.msgID, EVENT, DINPUT, DINsafety);
-	}
-}
-
-// -------------------------------------------------------------------
-// DISTANCESAFETYCHECK
-// V�rifie si une changement d'�tat � eu lieu sur les entr�es num�riques
-// et effectue une action si safety actif et valeur concordante
-// -------------------------------------------------------------------
-void DistanceSafetyCheck(void){
-	// Mise � jour de l'�tat des E/S
-	unsigned char ptrBuff=0, DISTsafety=0, i;
-	static unsigned char safetyAction[NBPWM];
-
-	for(i=0;i<NBPWM;i++){
-		// Mise � jour de l'�tat des E/S
-		body.distance[i].value = getSonarDistance();
-
-		// V�rifie si un changement a eu lieu sur les entrees et transmet un message
-		// "event" listant les modifications
-		if(body.distance[i].safetyStop_state){
-			if((body.distance[i].safetyStop_value > body.distance[i].value)){
-				if(!safetyAction[i]){
-					ptrBuff++;
-					printf("SAFETY DETECTION ON SONAR %d, VALUE:%d\n", i, body.distance[i].value);
-					DISTsafety++;
-					safetyAction[i]=1;
-				}
-			} else safetyAction[i]=0;
-		}
-	}
-	if(DISTsafety>0){
-		// ACTION A EFFECTUER
-		//sendResponse(AlgoidCommand.msgID, EVENT, DINPUT, DINsafety);
-	}
-}
-
 int runUpdateCommand(int type){
     int status=0;
     int updateState=0;
@@ -2084,26 +1900,19 @@ void resetConfig(void){
         
     	// Init body membre
 	for(i=0;i<NBAIN;i++){
-		body.battery[i].safetyStop_value=0;
 		body.battery[i].event_enable=DEFAULT_EVENT_STATE;
 		body.battery[i].event_high=65535;
 		body.battery[i].event_low=0;
-		body.battery[i].safetyStop_state=0;
-		body.battery[i].safetyStop_value=0;
 	}
 
 	for(i=0;i<NBDIN;i++){
 		body.proximity[i].em_stop=0;
 		body.proximity[i].event_enable=DEFAULT_EVENT_STATE;
-		body.proximity[i].safetyStop_state=0;
-		body.proximity[i].safetyStop_value=0;
 	}
         
         for(i=0;i<NBBTN;i++){
 		body.button[i].em_stop=0;
 		body.button[i].event_enable=DEFAULT_EVENT_STATE;
-		body.button[i].safetyStop_state=0;
-		body.button[i].safetyStop_value=0;
 	}
         
         for(i=0;i<NBMOTOR;i++){

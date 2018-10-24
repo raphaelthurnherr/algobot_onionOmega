@@ -22,8 +22,6 @@ extern "C" {
 struct m_prox{
 	int state;
 	int event_enable;
-	int safetyStop_state;
-	int safetyStop_value;
 	int em_stop;
 };
 
@@ -33,8 +31,6 @@ struct m_dist{
 	int event_low;
 	int event_high;
 	int event_hysteresis;
-	int safetyStop_state;
-	int safetyStop_value;
 };
 
 struct m_voltage{
@@ -44,8 +40,6 @@ struct m_voltage{
 	int event_low;
 	int event_high;
 	int event_hysteresis;
-	int safetyStop_state;
-	int safetyStop_value;
 };
 
 struct m_counter{

@@ -56,8 +56,6 @@ struct m2wd{
 struct mDin{
 	int id;
 	char event_state[25];
-	char safetyStop_state[25];
-	int safetyStop_value;
 };
 
 struct mStream{
@@ -98,8 +96,6 @@ struct mDistance{
 	int event_low;
 	int event_high;
 	int angle;
-	char safetyStop_state[25];
-	int safetyStop_value;
 };
 
 struct mBattery{
@@ -107,8 +103,6 @@ struct mBattery{
 	char event_state[50];
 	int event_low;
 	int event_high;
-	char safetyStop_state[25];
-	int safetyStop_value;
         int capacity;
 };
 
