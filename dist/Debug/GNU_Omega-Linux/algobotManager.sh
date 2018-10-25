@@ -369,7 +369,7 @@ base_install(){
       then                                                                                                                              
        echo "NPM installed successfully"                                                                                          
        echo "Installing Websocket gateway..."
-       npm install -g ws-tcp-bridge
+       npm install -g ws-tcp-bridge ws-tcp-bridge
        if [ $? -eq 0 ];                                                                                                                  
        then                                                                                                                              
          echo "WS gateway successfully installed"                                                                                          
