@@ -418,7 +418,7 @@ base_install(){
     rm /www/setup-wizard/index.html
     cp /tmp/mounts/SD-P1/www_onion/setup-wizard/index.html /www/setup-wizard
     
-    ln -s /tmp/mounts/SD-P1/www /www/algobot
+    ln -s /tmp/mounts/SD-P1/www /www/kehops
         
     # Starting application files
     restart
