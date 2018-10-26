@@ -412,13 +412,16 @@ base_install(){
     cp /tmp/mounts/SD-P1/bin/algobot/algobot_onionomega.md5 /root/algobot
 
     echo "- Configuring Web App"   
-    rm /www/index.html
-    cp /tmp/mounts/SD-P1/www_onion/index.html /www
-    
-    rm /www/setup-wizard/index.html
-    cp /tmp/mounts/SD-P1/www_onion/setup-wizard/index.html /www/setup-wizard
-    
+    # Remove files in web directory
+    rm -R /www/*
+    # Create link to 
     ln -s /tmp/mounts/SD-P1/www /www/kehops
+    # Copy welcome page to web directory
+    cp /tmp/mounts/SD-P1/index.html /www/
+#    cp /tmp/mounts/SD-P1/www_onion/index.html /www 
+ #   rm /www/setup-wizard/index.html
+  #  cp /tmp/mounts/SD-P1/www_onion/setup-wizard/index.html /www/setup-wizard
+    #ln -s /tmp/mounts/SD-P1/www /www/kehops
         
     # Starting application files
     restart
