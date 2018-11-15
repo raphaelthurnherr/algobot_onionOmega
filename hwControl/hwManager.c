@@ -121,7 +121,8 @@ void *hwTask (void * arg){
         
 
 	while(1){
-		// Sequencage des messages sur bus I2C � interval r�gulier
+		// Sequencage des messages sur bus I2C à interval régulier
+                // de 250mS
 		switch(timeCount_ms){
 			case 5	: sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_LEFT);
 					  sensor.counter[MOTOR_ENCODER_LEFT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_LEFT); 

@@ -353,6 +353,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                 case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
                                                                                 case EVENT_ACTION_END : jwObj_string("action", "end"); break;
                                                                                 case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_RUN : jwObj_string("action", "run"); break;
                                                                                 case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
                                                                                 case RESP_STD_MESSAGE   :   if(AlgoidResponse[i].MOTresponse.motor>=0)
                                                                                                                 jwObj_int( "motor", AlgoidResponse[i].MOTresponse.motor);
@@ -597,6 +598,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                 case EVENT_ACTION_ERROR :   jwObj_string("action", "error");break;
                                                                                 case EVENT_ACTION_END  :   jwObj_string("action", "end"); break;
                                                                                 case EVENT_ACTION_BEGIN  :   jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_RUN  :   jwObj_string("action", "run"); break;
                                                                                 case EVENT_ACTION_ABORT  :   jwObj_string("action", "abort"); break;
                                                                                 case RESP_STD_MESSAGE  :   if(AlgoidResponse[i].PWMresponse.id>=0)
                                                                                                 jwObj_int( "pwm", AlgoidResponse[i].PWMresponse.id);
@@ -632,6 +634,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                 case EVENT_ACTION_ERROR :    jwObj_string("action", "error");break;
                                                                                 case EVENT_ACTION_END  :     jwObj_string("action", "end"); break;
                                                                                 case EVENT_ACTION_BEGIN  :   jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_RUN  :   jwObj_string("action", "run"); break;
                                                                                 case EVENT_ACTION_ABORT  :   jwObj_string("action", "abort"); break;
                                                                                 case RESP_STD_MESSAGE  :    if(AlgoidResponse[i].LEDresponse.id>=0)
                                                                                                                 jwObj_int( "led", AlgoidResponse[i].LEDresponse.id);

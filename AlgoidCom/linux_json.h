@@ -8,6 +8,7 @@ typedef enum msgformat{
 	EVENT_ACTION_END,
 	EVENT_ACTION_BEGIN,
 	EVENT_ACTION_ABORT,
+        EVENT_ACTION_RUN,
 	RESP_STD_MESSAGE,
 } t_msgformat;
 

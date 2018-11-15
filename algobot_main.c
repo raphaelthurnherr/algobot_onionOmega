@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.5.0"
+#define FIRMWARE_VERSION "1.5.0a"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -442,22 +442,13 @@ int processAlgoidCommand(void){
                                 //AlgoidResponse[0].responseType = RESP_STD_MESSAGE;                     
                                 // Retourne en r�ponse le message v�rifi�
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, CONFIG, AlgoidCommand.msgValueCnt);
-                                
-                                //AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
-                                //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, CONFIG, AlgoidCommand.msgValueCnt);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
-
-                                //AlgoidResponse[0].responseType=EVENT_ACTION_END;
-                                //sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, EVENT, CONFIG, AlgoidCommand.msgValueCnt);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
-
-
 
                                 break;
                                 
             case SYSTEM :       
                                 // RECHERCHE DES MISE A JOURS
                                 if(!strcmp(AlgoidCommand.System.application, "check")){
-                                    AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
-                                            
+                                    AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;                                            
                                     updateResult = runUpdateCommand(0);
                                     
                                     char message[100];
@@ -574,6 +565,12 @@ int runMotorAction(void){
 
         // Au moin une action � effectuer
         if(actionCount>0){
+            
+            // Retoure un message EVENT de type BEGIN 
+            AlgoidResponse[0].responseType = EVENT_ACTION_BEGIN;
+            // Retourne un message event ALGOID 
+            sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, MOTORS, 1);
+                    
             // Ouverture d'une t�che pour les toutes les actions du message algoid � effectuer
             // Recois un num�ro de tache en retour
             myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			// 2 actions pour mouvement 2WD
@@ -595,9 +592,15 @@ int runMotorAction(void){
                             // Effectue l'action sur la roue
                             if(body.motor[ID].cm <=0 && body.motor[ID].time<=0){                                
                                 sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\" ou \"cm\" pour l'action sur le moteur %d\n", ID);
+
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
                                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
                                 setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, INFINITE, NULL);
+
+                                // Défini l'état de laction comme "en cours" pour message de réponse
+                                AlgoidResponse[0].responseType = EVENT_ACTION_RUN;
+                                // Retourne un message event ALGOID 
+                                sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, MOTORS, 1);
                             }else
                             {
                                 if(body.motor[ID].cm > 0)
@@ -606,14 +609,9 @@ int runMotorAction(void){
                                         setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
                                 }
                             }
-                             // D�fini l'�tat de laction comme "d�marr�e" pour message de r�ponse
-                            AlgoidResponse[0].responseType = EVENT_ACTION_BEGIN;
                         }
                         action++;
                     }
-
-                    // Retourne un message event ALGOID 
-                    sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, MOTORS, 1);
                     return 0;
             }
             else
@@ -689,6 +687,9 @@ int runLedAction(void){
             if(myTaskId>0){
                     printf("Creation de tache LED: #%d avec %d actions\n", myTaskId, actionCount);
 
+                    AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
+                    sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pLED, 1);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
+                    
                     // Sauvegarde du nom de l'emetteur et du ID du message pour la r�ponse
                     // en fin d'�venement
                     saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
@@ -704,20 +705,26 @@ int runLedAction(void){
                                         
                                         // Verifie la presence de parametres de type "time" et "count", sinon applique des
                                         // valeurs par defaut
-                                        if(time<=0){
+/*                                        if(time<=0){
+ */ 
+                                        if(time<=0 && Count<=0){
                                             time=500;
-                                            sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\"  pour l'action sur la LED %d\n", ID);
+                                            Count=1;
+                                            sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\" ou \"count\" pour l'action sur la LED %d\n", ID);
                                             printf(reportBuffer);                                                             // Affichage du message dans le shell
                                             sendMqttReport(AlgoidCommand.msgID, reportBuffer);	
+                                            
+                                            AlgoidResponse[0].responseType=EVENT_ACTION_RUN;
+                                            sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pLED, 1);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
                                         }
-                                        
+            /*
                                         if(Count<=0){
                                             Count=1;
                                             sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"count\"  pour l'action sur la LED %d\n", ID);
                                             printf(reportBuffer);                                                             // Affichage du message dans le shell
                                             sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
                                         }
-            
+            */
                                         // Creation d'un timer effectu� sans erreur, ni ecrasement d'une ancienne action
                                          setAsyncLedAction(myTaskId, ID, BLINK, time, Count);
 ;                                    }
@@ -734,8 +741,6 @@ int runLedAction(void){
                                     action++;
                             }
                     }
-                    AlgoidResponse[0].responseType=EVENT_ACTION_BEGIN;
-                    sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pLED, 1);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
             }            
         }
         else{   
