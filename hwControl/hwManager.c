@@ -117,22 +117,20 @@ void *hwTask (void * arg){
         
         BoardInfo.mcuVersion=EFM8BB_getFirmwareVersion();      
         BoardInfo.HWrevision=EFM8BB_getBoardType();
-        
-        
 
 	while(1){
 		// Sequencage des messages sur bus I2C à interval régulier
                 // de 250mS
 		switch(timeCount_ms){
-			case 5	: sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_LEFT);
-					  sensor.counter[MOTOR_ENCODER_LEFT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_LEFT); 
+			case 5	: //sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_LEFT);
+				//	  sensor.counter[MOTOR_ENCODER_LEFT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_LEFT); 
                                           //printf("Pulses left: %d - ",sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup);
                                           break;
-			case 10	: sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_RIGHT);
-					  sensor.counter[MOTOR_ENCODER_RIGHT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_RIGHT);
+			case 10	: //sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_RIGHT);
+				//	  sensor.counter[MOTOR_ENCODER_RIGHT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_RIGHT);
                                           //printf("Pulses right: %d\n\n",sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
                                           break;
-			case 15	:   dinState = EFM8BB_readDigitalInput(0);              // Param�tre transmis non utilis� par la fonction...
+			case 15	:   //dinState = EFM8BB_readDigitalInput(0);              // Param�tre transmis non utilis� par la fonction...
                                     if(dinState & 0x01) sensor.din[DIN_0] = 1;
                                     else sensor.din[DIN_0]=0;
                         
@@ -145,27 +143,43 @@ void *hwTask (void * arg){
                                     if(dinState & 0x08) sensor.din[DIN_3] = 1;
                                     else sensor.din[DIN_3]=0;
                                     break;
-			case 20	: sensor.pwm[SONAR_0] = EFM8BB_readSonarDistance()/10;        // Conversion de distance mm en cm
+			case 20	: //sensor.pwm[SONAR_0] = EFM8BB_readSonarDistance()/10;        // Conversion de distance mm en cm
                                     //printf("Dist cm: %d - ",sensor.pwm[SONAR_0]);
                                     break;
                                     
-			case 25	: sensor.ain[BATT_0] = EFM8BB_readBatteryVoltage(); 
+			case 25	: //sensor.ain[BATT_0] = EFM8BB_readBatteryVoltage(); 
                                   //printf("Battery: %d\n",sensor.ain[BATT_0]);
                                 break;
                         
                         case 30	: sensor.btn[BTN_0] = MCP2308_ReadGPIO(BTN_0) ;
-                                  sensor.btn[BTN_1] = MCP2308_ReadGPIO(BTN_1) ; break;
+                                  sensor.btn[BTN_1] = MCP2308_ReadGPIO(BTN_1) ; 
+                                  break;
 
                         case 35	: sensor.RGBC[RGBC_SENS_0].red = BH1745_getRGBvalue(RGBC_SENS_0, RED) ;
                                   sensor.RGBC[RGBC_SENS_0].green = BH1745_getRGBvalue(RGBC_SENS_0, GREEN) ;
                                   sensor.RGBC[RGBC_SENS_0].blue = BH1745_getRGBvalue(RGBC_SENS_0,BLUE) ;
                                   sensor.RGBC[RGBC_SENS_0].clear = BH1745_getRGBvalue(RGBC_SENS_0,CLEAR) ; break;
  
-                        case 36	: sensor.RGBC[RGBC_SENS_1].red = BH1745_getRGBvalue(RGBC_SENS_1, RED) ;
-                                    sensor.RGBC[RGBC_SENS_1].green = BH1745_getRGBvalue(RGBC_SENS_1, GREEN) ;
-                                    sensor.RGBC[RGBC_SENS_1].blue = BH1745_getRGBvalue(RGBC_SENS_1, BLUE) ;
-                                    sensor.RGBC[RGBC_SENS_1].clear = BH1745_getRGBvalue(RGBC_SENS_1, CLEAR) ; break;
+                        case 36 : sensor.RGBC[RGBC_SENS_1].red = BH1745_getRGBvalue(RGBC_SENS_1, RED) ;
+                                  sensor.RGBC[RGBC_SENS_1].green = BH1745_getRGBvalue(RGBC_SENS_1, GREEN) ;
+                                  sensor.RGBC[RGBC_SENS_1].blue = BH1745_getRGBvalue(RGBC_SENS_1, BLUE) ;
+                                  sensor.RGBC[RGBC_SENS_1].clear = BH1745_getRGBvalue(RGBC_SENS_1, CLEAR) ; break;
                         
+                    case 40 : 
+                                I2C_readDeviceReg(MCP2308, 0x00);
+                                //I2C_writeDeviceReg(MCP2308, 0x00, 0);
+                              I2C_readDeviceReg(MCP2308, 0x01);
+                              I2C_readDeviceReg(MCP2308, 0x02);
+                              I2C_readDeviceReg(MCP2308, 0x03);
+                              I2C_readDeviceReg(MCP2308, 0x04);
+                              I2C_readDeviceReg(MCP2308, 0x05);
+                              I2C_readDeviceReg(MCP2308, 0x06);
+                              I2C_readDeviceReg(MCP2308, 0x07);
+                              I2C_readDeviceReg(MCP2308, 0x08);
+                              I2C_readDeviceReg(MCP2308, 0x09);
+                              I2C_readDeviceReg(MCP2308, 0x0A);
+                              break;
+                                  
 			default: 
                             if(i2c_command_queuing[0][CALLBACK]!=0)processCommandQueue(); break;
 		}

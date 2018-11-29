@@ -42,11 +42,11 @@ extern "C" {
 
 
 // helper functions
-int 	_i2c_getFd 				(int adapterNum, int *devHandle);
+int 	_i2c_getFd 			(int adapterNum, int *devHandle);
 int 	_i2c_releaseFd			(int devHandle);
 
 int 	_i2c_setDevice 			(int devHandle, int addr);
-int 	_i2c_setDevice10bit 	(int devHandle, int addr);
+int 	_i2c_setDevice10bit             (int devHandle, int addr);
 
 int 	_i2c_writeBuffer		(int devNum, int devAddr, uint8_t *buffer, int size);
 

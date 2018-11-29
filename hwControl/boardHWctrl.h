@@ -101,4 +101,6 @@ extern int EFM8BB_clearWheelDistance(unsigned char wheelNb);                    
 extern int EFM8BB_getFirmwareVersion(void);                                     // Get the MCU firmware version
 extern int EFM8BB_getBoardType(void);                                           // Get the type of the board.
 extern int BH1745_getRGBvalue(unsigned char sensorNb, int color);                              // Get the value for specified color
+extern int I2C_readDeviceReg(unsigned char deviceAd, unsigned char registerAdr);    // Get the value for selected register on device
+extern int I2C_writeDeviceReg(unsigned char deviceAd, unsigned char registerAdr, unsigned char data);    // Get the value for selected register on device
 #endif

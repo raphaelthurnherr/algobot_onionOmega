@@ -18,7 +18,10 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb);
 int EFM8BB_clearWheelDistance(unsigned char wheelNb);
 int EFM8BB_getFirmwareVersion(void);                            // Get the MCU firmware version
 int EFM8BB_getBoardType(void);                                  // Get the type of the board.
-int BH1745_getRGBvalue(unsigned char sensorNb, int color);                              // Get the value for specified color
+int BH1745_getRGBvalue(unsigned char sensorNb, int color);                   // Get the value for specified color
+
+int I2C_readDeviceReg(unsigned char deviceAd, unsigned char registerAdr);    // Get the value for selected register on device
+int I2C_writeDeviceReg(unsigned char deviceAd, unsigned char registerAdr, unsigned char data);    // Get the value for selected register on device
 
 unsigned char motorDCadr[2]={PCA_DCM0, PCA_DCM1};		// Valeur de la puissance moteur
 
@@ -35,8 +38,9 @@ unsigned char buggyBoardInit(void){
         err+=configRGBdevice();                                 // Configuration du capteur de couleur RGBC
         
 	MCP2308_DCmotorState(1);				// Set the HDRIVER ON
-	if(err)
+	if(err){
 		return 0;							// Erreur
+        }
 	else return 1;
 }
 
@@ -120,11 +124,8 @@ void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle){
 void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction){
 	int MCP2308_GPIO_STATE;
 
-	// S�lection du chip d'entr�e/sortie qui pilote le pont en H
-
+	// Sélection du chip d'entrée/sortie qui pilote le pont en H
 	i2c_readByte(0, MCP2308, 0x09, &MCP2308_GPIO_STATE);
-        
-        
         
         // le bit n�n�ssaire
 	//	SELECTION DU MOTEUR No 0
@@ -279,8 +280,8 @@ unsigned char configGPIOdevice(void){
 
 	// Pas de auto-incrementation
         i2c_write(0, MCP2308, 0x05, 0x20);
-	// Pull up activee
-        i2c_write(0, MCP2308, 0x06, 0xFF);
+	// Pull up activee 
+        //i2c_write(0, MCP2308, 0x06, 0xFF);
 	// GPIO 0..4 en sorties, GPIO 5..6 en entree pour boutons
         i2c_write(0, MCP2308, 0x00, 0x60);
 	return err;
@@ -351,7 +352,8 @@ int EFM8BB_readSonarDistance(void){
 	if(!err){              
                 SonarDistance_mm=mmLSB + (mmMSB<<8);
                 return SonarDistance_mm;
-	}else return -1;
+	}else
+            return -1;
 }
 
 
@@ -535,4 +537,23 @@ int BH1745_getRGBvalue(unsigned char sensorNb, int color){
             return -1;
 }
 
+// Get the value for selected register on device
+int I2C_readDeviceReg(unsigned char deviceAd, unsigned char registerAdr){
+    unsigned char err;
+    int value=-1;
+
+    err = i2c_readByte(0, deviceAd, registerAdr, &value);
+    
+    printf("READ device: %d Register: %d    value: %d\n", deviceAd, registerAdr, value);
+    
+    if(!err){
+            return value;
+    }else return -1;
+}
+
+// Set the value for selected register on device
+int I2C_writeDeviceReg(unsigned char deviceAd, unsigned char registerAdr, unsigned char data){
+    i2c_write(0, deviceAd, registerAdr, data);
+    printf("WRITE device: %d Register: %d    value: %d\n", deviceAd, registerAdr, data);
+}
 #endif
