@@ -10,6 +10,7 @@
             <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/boardHWctrl.h</file>
             <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/hwManager.c</file>
             <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/boardHWctrl.c</file>
+            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/libs/i2c/onion-i2c.c</file>
         </group>
     </open-files>
 </project-private>

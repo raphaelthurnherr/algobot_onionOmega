@@ -6,7 +6,8 @@
 // Device addresses (7 bits, lsb is a don't care)
 #ifdef BOARD_REV2
     #define  PCA9685               	0x40 	// Device address for PWM controller
-    #define  MCP2308               	0x20	// Device address for GPIO controller
+    #define  PCA9629               	0x20	// Device address for GPIO controller
+    #define  MCP2308               	0x21	// Device address for GPIO controller
     #define  EFM8BB               	0x0A	// Device address for EFM8BB microcontroller
     #define  BH1745_0               	0x38	// Device address for RGB SENSOR
     #define  BH1745_1               	0x39	// Device address for RGB SENSOR

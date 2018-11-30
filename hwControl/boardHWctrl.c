@@ -5,6 +5,8 @@
 #include <onion-i2c.h>
 #include "../buggy_descriptor.h"
 
+unsigned char buggyBoardInit(void);                             // Initialisation of the board (PWM Driver, GPIO driver, etc..)
+
 unsigned char configPWMdevice(void);                            // Configuration of the PCA9685 for 50Hz operation
 unsigned char configGPIOdevice(void);                           // Configuration IO mode of the MCP28003
 unsigned char configRGBdevice(void);                            // Configuration mode of the BH1745NUC RGB sensor
@@ -33,15 +35,21 @@ unsigned char motorDCadr[2]={PCA_DCM0, PCA_DCM1};		// Valeur de la puissance mot
 unsigned char buggyBoardInit(void){
 	unsigned char err;
 
+        // Reset la distance de la carte EFM8BB
+	EFM8BB_clearWheelDistance(MOTOR_ENCODER_LEFT);
+	EFM8BB_clearWheelDistance(MOTOR_ENCODER_RIGHT);
+        
 	err+=configPWMdevice();					// Configuration du Chip PWM pour gestion de la v�locit� des DC moteur et angle servomoteur
 	err+=configGPIOdevice();				// Confguration du chip d'entr�es/sortie pour la gestion du sens de rotation des moteur DC
         err+=configRGBdevice();                                 // Configuration du capteur de couleur RGBC
         
 	MCP2308_DCmotorState(1);				// Set the HDRIVER ON
 	if(err){
-		return 0;							// Erreur
+            printf("Kehops I2C devices initialization with %d error\n", err);
+            return 0;   // Erreur
         }
-	else return 1;
+	else
+            return 1;
 }
 
 
@@ -241,27 +249,29 @@ unsigned char configPWMdevice(void){
 
 	// Registre MODE1, sleep before config, horloge interne � 25MHz
 
-        i2c_write(0, PCA9685, 0x00, 0x10);
+        err+= i2c_write(0, PCA9685, 0x00, 0x10);
         
 	// Prescaler pour op�ration 50Hz
 
-        i2c_write(0, PCA9685, 0xFE, 0x81);
+        err+= i2c_write(0, PCA9685, 0xFE, 0x81);
 
 	// Registre MODE 2, sorties non invers�es
 
-        i2c_write(0, PCA9685, 0x01, 0x04);
+        err+= i2c_write(0, PCA9685, 0x01, 0x04);
         
 	// TOUTES LED ON au clock 0
 
-        i2c_write(0, PCA9685, 0xFA, 0x00);
+        err+= i2c_write(0, PCA9685, 0xFA, 0x00);
        
-        i2c_write(0, PCA9685, 0xFB, 0x00);
+        err+= i2c_write(0, PCA9685, 0xFB, 0x00);
 
 	// MODE 1, Syst�me pr�t,
 
-        i2c_write(0, PCA9685, 0x00, 0x81);
+        err+= i2c_write(0, PCA9685, 0x00, 0x81);
 
-
+        if(err)
+            printf("Kehops I2C PWM device initialization with %d error\n", err);
+        
 	return err;
 }
 
@@ -279,11 +289,19 @@ unsigned char configGPIOdevice(void){
 //	err=i2cSelectSlave(MCP2308);
 
 	// Pas de auto-incrementation
-        i2c_write(0, MCP2308, 0x05, 0x20);
-	// Pull up activee 
-        //i2c_write(0, MCP2308, 0x06, 0xFF);
-	// GPIO 0..4 en sorties, GPIO 5..6 en entree pour boutons
-        i2c_write(0, MCP2308, 0x00, 0x60);
+        err+= i2c_write(0, MCP2308, 0x05, 0x20);
+        
+        // GPIO 0..4 en sorties, GPIO 5..6 en entree pour boutons
+        if(!err) 
+            err+= i2c_write(0, MCP2308, 0x00, 0x60);
+
+        // Pull up activee         
+        if(!err) 
+            err+= i2c_write(0, MCP2308, 0x06, 0xFF);
+
+        if(err)
+            printf("Kehops I2C GPIO device initialization with %d error\n", err);
+        
 	return err;
 }
 
@@ -295,34 +313,39 @@ unsigned char configGPIOdevice(void){
 
 //================================================================================
 unsigned char configRGBdevice(void){
-    
+    unsigned char err;
     // --- CONFIGURATION DU CAPTEUR 1
     
     // Configuration du registre de contr�le du capteur 1
     // b7:Initial reset, b6, INT inactive
-    i2c_write(0, BH1745_0, 0x40, 0xC0);   
+    err+= i2c_write(0, BH1745_0, 0x40, 0xC0);   
     // Configuration du registre de contr�le mode1 (Measurement time=640mS)
-    i2c_write(0, BH1745_0, 0x41, 0x02);   
+    err+= i2c_write(0, BH1745_0, 0x41, 0x02);   
     // Configuration du registre de contr�le mode2 (Mesure RGBC active, Gain=1)
-    i2c_write(0, BH1745_0, 0x42, 0x10);   
+    err+= i2c_write(0, BH1745_0, 0x42, 0x10);   
     // Configuration du registre d'interruption (Interruption d�sactiv�es, pin d�sactiv�e
-    i2c_write(0, BH1745_0, 0x60, 0x00);
+    err+= i2c_write(0, BH1745_0, 0x60, 0x00);
     // Configuration du registre de persistance (Interruption apr�s chaque mesure)
-    i2c_write(0, BH1745_0, 0x61, 0x00);  
+    err+= i2c_write(0, BH1745_0, 0x61, 0x00);  
     
     // --- CONFIGURATION DU CAPTEUR 2
     
     // Configuration du registre de contr�le du capteur 1
     // b7:Initial reset, b6, INT inactive
-    i2c_write(0, BH1745_1, 0x40, 0xC0);   
+    err+= i2c_write(0, BH1745_1, 0x40, 0xC0);   
     // Configuration du registre de contr�le mode1 (Measurement time=640mS)
-    i2c_write(0, BH1745_1, 0x41, 0x02);   
+    err+= i2c_write(0, BH1745_1, 0x41, 0x02);   
     // Configuration du registre de contr�le mode2 (Mesure RGBC active, Gain=1)
-    i2c_write(0, BH1745_1, 0x42, 0x10);   
+    err+= i2c_write(0, BH1745_1, 0x42, 0x10);   
     // Configuration du registre d'interruption (Interruption d�sactiv�es, pin d�sactiv�e
-    i2c_write(0, BH1745_1, 0x60, 0x00);
+    err+= i2c_write(0, BH1745_1, 0x60, 0x00);
     // Configuration du registre de persistance (Interruption apr�s chaque mesure)
-    i2c_write(0, BH1745_1, 0x61, 0x00);      
+    err+= i2c_write(0, BH1745_1, 0x61, 0x00); 
+    
+    if(err)
+        printf("Kehops I2C RGB device initialization with %d error\n", err);
+    
+    return err;    
 }
 
 
@@ -544,7 +567,7 @@ int I2C_readDeviceReg(unsigned char deviceAd, unsigned char registerAdr){
 
     err = i2c_readByte(0, deviceAd, registerAdr, &value);
     
-    printf("READ device: %d Register: %d    value: %d\n", deviceAd, registerAdr, value);
+    printf("READ device: %d Register: %d    value: %d   ERROR: %d\n", deviceAd, registerAdr, value, err);
     
     if(!err){
             return value;
