@@ -19,9 +19,9 @@
     #define PCA_DCM0				0x08	// PCA9685 Output 0 address (Motor 0 speed pwm)
     #define PCA_DCM1				0x0C	// PCA9685 Output 1 address (Motor 1 speed pwm)
 
-    #define PCA_LED0				0x40	//  (Led 0 pwm)
-    #define PCA_LED1				0x2C	//  (Led 1 pwm)
-    #define PCA_LED2				0x38	//  (Led 2 pwm)
+    #define PCA_LED0				0x2C	//  (Led 0 pwm)
+    #define PCA_LED1				0x38	//  (Led 1 pwm)
+    #define PCA_LED2				0x40	//  (Led 2 pwm)
   
     #define PCA_CN1_4				0x10	//  (PWM on CN1 connector)
     #define PCA_CN2_4				0x14	//  (PWM on CN2 connector)

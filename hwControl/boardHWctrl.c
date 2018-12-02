@@ -244,7 +244,7 @@ void PCA9685_setLedPower(unsigned char smAddr, unsigned char power){
 //	- Ps d'auto incrementation
 //================================================================================
 unsigned char configPWMdevice(void){
-	unsigned char err;
+	unsigned char err=0;
 //	err=i2cSelectSlave(PCA9685);
 
 	// Registre MODE1, sleep before config, horloge interne � 25MHz
@@ -284,7 +284,7 @@ unsigned char configPWMdevice(void){
 //	- Pin en sortie
 //================================================================================
 unsigned char configGPIOdevice(void){
-	unsigned char err;
+	unsigned char err=0;
 
 //	err=i2cSelectSlave(MCP2308);
 
@@ -313,7 +313,7 @@ unsigned char configGPIOdevice(void){
 
 //================================================================================
 unsigned char configRGBdevice(void){
-    unsigned char err;
+    unsigned char err=0;
     // --- CONFIGURATION DU CAPTEUR 1
     
     // Configuration du registre de contr�le du capteur 1
