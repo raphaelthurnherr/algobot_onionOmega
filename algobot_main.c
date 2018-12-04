@@ -711,7 +711,8 @@ int runStepperAction(void){
 
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
                                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
-//                                setAsyncMotorAction(myTaskId, ID, body.stepper[ID].speed, INFINITE, NULL);
+//                               setAsyncMotorAction(myTaskId, ID, body.stepper[ID].speed, INFINITE, NULL);
+                                setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
                                 printf("TO ADD - > DEMMARAGE DU MOTEUR EN INFINI\n");
 
                                 // Défini l'état de laction comme "en cours" pour message de réponse
@@ -720,12 +721,15 @@ int runStepperAction(void){
                                 sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, STEPPER, 1);
                             }else
                             {
-                                if(body.stepper[ID].step > 0)
+                                if(body.stepper[ID].step > 0){
 //                                       setAsyncMotorAction(myTaskId, ID, body.stepper[ID].speed, CENTIMETER, body.motor[ID].cm);
                                     printf("TO ADD - > DEMMARAGE DU MOTEUR EN PAS\n");
+                                    setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
+                                }
                                 else{
 //                                       setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
                                     printf("TO ADD - > DEMMARAGE DU MOTEUR EN TOUR\n");
+                                    setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
                                 }
                             }
                         }

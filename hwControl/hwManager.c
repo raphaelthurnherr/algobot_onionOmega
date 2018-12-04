@@ -82,6 +82,8 @@ int setMotorDirection(int motorName, int direction);
 void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
 unsigned char getMotorPower(unsigned char motorNr);											// Retourne la velocit� actuelle d'un moteur
 
+int setStepperStepAction(int motorNumber, int direction, int stepCount);      // Effectue une action sur le moteur pas à pas (direction, nombre de pas)
+
 void setServoPosition(unsigned char smName, char position);
 void setLedPower(unsigned char ledID, unsigned char power);
 void setPwmPower(unsigned char ID, unsigned char power);
@@ -361,6 +363,30 @@ void checkDCmotorPower(void){
 		}
 	}
 }
+// -------------------------------------------------------------------
+// Effectue une action sur le moteur pas à pas (direction, nombre de pas)
+// - Numéro de moteur
+// - Sens de ratation
+// - nombre de pas
+// -------------------------------------------------------------------
+
+int setStepperStepAction(int motorNumber, int direction, int stepCount){
+    unsigned char ctrlData = 0;
+    
+    switch(direction){
+            case BUGGY_FORWARD :	ctrlData = 0x90; break;
+            case BUGGY_BACK :           ctrlData = 0x91; break;
+
+            case BUGGY_STOP : 		ctrlData = 0x00; break;
+            default :		     	break;
+    }
+
+    set_i2c_command_queue(&PCA9629_StepperMotorSetStep, motorNumber, stepCount);
+    set_i2c_command_queue(&PCA9629_StepperMotorControl, motorNumber, ctrlData);
+
+    
+    return (0);
+}   
 
 // -------------------------------------------------------------------
 // GETMOTORPOWER

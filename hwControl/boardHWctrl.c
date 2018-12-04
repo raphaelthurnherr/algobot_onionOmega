@@ -24,9 +24,13 @@ int EFM8BB_getBoardType(void);                                  // Get the type 
 
 void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
 
-int BH1745_getRGBvalue(unsigned char sensorNb, int color);                   // Get the value for specified color
+int PCA9629_StepperMotorControl(int motorNumber, int data);         //Configuration du registre "PAS" du driver moteur
+int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount);         //Configuration du registre "PAS" du driver moteur
+int PCA9629_StepperMotorSetRotation(int motorNumber, int rotationCount); //Configuration du registre "ROTATION" du driver moteur
 
-int PCA9629_StepMotorStepAction(int motorNumber, int direction, int stepCount); //Démarre une action "PAS" sur le moteur pas à pas
+
+
+int BH1745_getRGBvalue(unsigned char sensorNb, int color);                   // Get the value for specified color
 
 int I2C_readDeviceReg(unsigned char deviceAd, unsigned char registerAdr);    // Get the value for selected register on device
 int I2C_writeDeviceReg(unsigned char deviceAd, unsigned char registerAdr, unsigned char data);    // Get the value for selected register on device
@@ -183,47 +187,64 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
 }
 
 //================================================================================
-// STEPMOTORSTEPACTION
-// Défini le sens de rotation, le nombre de pas du moteur
+// STEPPERMOTORSETSTEP
+// Paramètrage du nombre de pas dans les registres du driver moteur pour CW et CCW
 //================================================================================
 
-int PCA9629_StepMotorStepAction(int motorNumber, int direction, int stepCount){
+int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount){
    	unsigned char err=0;
-        
 	unsigned char motorAddress = 0;
-        unsigned char regAddress = 0;
-        unsigned char regStepValue = 0;
-        unsigned char regCtrlValue = 0;
         
         motorAddress = PCA9629 + motorNumber;
 
-        if(direction != BUGGY_STOP){
-            
-            switch(direction){
-                    case BUGGY_FORWARD :    regAddress = STEP_DRIVER_STEP_CW_REG;
-                                            regCtrlValue = 0x80; break;
-                    case BUGGY_BACK :       regAddress = STEP_DRIVER_STEP_CCW_REG;
-                                            regCtrlValue = 0x81; break;
-                    default :               regAddress = STEP_DRIVER_STEP_CW_REG;
-                                            regCtrlValue = 0x00; break;
-            }
-            
-            // Nombre de pas non spécifié -> rotation infinie
-            if(stepCount <= 0){
-                regCtrlValue += 0x10;
-            }
-                    
-            err += i2c_write(0, motorAddress, regAddress, regStepValue&0x00FF);           // Défini le nombre de pas dans le registre LOW
-            err += i2c_write(0, motorAddress, regAddress+1, (regStepValue&0xFF00)>>8);    // Défini le nombre de pas dans le registre HIGH
-            err += i2c_write(0, motorAddress, STEP_DRIVER_STEP_CTRL_REG, regCtrlValue);
-        }
-        else{
-            // Stop le moteur et réinitialisation en mode CCW, STEP
-            err += i2c_write(0, motorAddress, STEP_DRIVER_STEP_CTRL_REG, 0x00);
-        }
+        printf ("\n************** STEP  driverAd: %2x   stepCount: %d *****************\n", motorAddress, stepCount);
+        // Configuration du registre de nombre de pas dans le sens horaire
+        err += i2c_write(0, motorAddress, 0x1A, stepCount&0x00FF);           // Défini le nombre de pas dans le registre LOW
+        err += i2c_write(0, motorAddress, 0x1B, (stepCount&0xFF00)>>8);    // Défini le nombre de pas dans le registre HIGH
+
+        // Configuration du registre de nombre de pas dans le sens anti-horaire
+        err += i2c_write(0, motorAddress, 0x1C, stepCount&0x00FF);           // Défini le nombre de pas dans le registre LOW
+        err += i2c_write(0, motorAddress, 0x1D, (stepCount&0xFF00)>>8);    // Défini le nombre de pas dans le registre HIGH        
 
 	return(err);
 }
+
+//================================================================================
+// STEPPERMOTORSETSTEP
+// Configuration du registre du nombre de rotation du driver
+//================================================================================
+int PCA9629_StepperMotorSetRotation(int motorNumber, int rotationCount){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+
+        // Configuration du registre de nombre de rotation sens horaire
+        err += i2c_write(0, motorAddress, 0x1E, rotationCount&0x00FF);           // Défini le nombre de rotation dans le registre LOW
+        err += i2c_write(0, motorAddress, 0x1F, (rotationCount&0xFF00)>>8);    // Défini le nombre de rotation dans le registre HIGH
+
+        // Configuration du registre de nombre de rotation sens anti-horaire
+        err += i2c_write(0, motorAddress, 0x20, rotationCount&0x00FF);           // Défini le nombre de rotation dans le registre LOW
+        err += i2c_write(0, motorAddress, 0x21, (rotationCount&0xFF00)>>8);    // Défini le nombre de rotation dans le registre HIGH       
+        return(err);
+}
+
+//================================================================================
+// STEPPERMOTORCONTROL
+// Registre de commande du driver de moteur
+//================================================================================
+int PCA9629_StepperMotorControl(int motorNumber, int data){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+        
+        printf ("\n************** CTRL  driverAd: %2x   data: %2x *****************\n", motorAddress, data);
+        // Configuration du registre dans le sens horaire
+        err += i2c_write(0, motorAddress, 0x26, data & 0x00FF);           // Défini le nombre de rotation dans le registre LOW    
+        return(err);
+}
+
 
 //================================================================================
 // SETSERVOPOS
@@ -412,6 +433,14 @@ unsigned char configStepMotorDriver(void){
     
     // Configuration du registre MODE (pin INT désactivée, Allcall Adr. désactivé)
     err+= i2c_write(0, PCA9629, 0x00, 0x20);
+    /*
+    err+= i2c_write(0, PCA9629, 0x01, 0xE2);
+    err+= i2c_write(0, PCA9629, 0x02, 0xE4);
+    err+= i2c_write(0, PCA9629, 0x03, 0xE6);
+    err+= i2c_write(0, PCA9629, 0x04, 0xE0);
+    err+= i2c_write(0, PCA9629, 0x04, 0xFF);
+    */
+    
     
     // Configuration du registre SROTNx (64 pas par tour * 32x reduction = 2048)
     err+= i2c_write(0, PCA9629, 0x14, 0x00);
