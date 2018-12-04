@@ -10,6 +10,7 @@ unsigned char buggyBoardInit(void);                             // Initialisatio
 unsigned char configPWMdevice(void);                            // Configuration of the PCA9685 for 50Hz operation
 unsigned char configGPIOdevice(void);                           // Configuration IO mode of the MCP28003
 unsigned char configRGBdevice(void);                            // Configuration mode of the BH1745NUC RGB sensor
+unsigned char configStepMotorDriver(void);                           // Configuration du contrôleur de moteur pas à pas
 
 char MCP2308_ReadGPIO(unsigned char input);                     // Get the selected input value on device
 int EFM8BB_readSonarDistance(void);				// Get distance in mm from the EFM8BB microcontroller
@@ -34,14 +35,15 @@ unsigned char motorDCadr[2]={PCA_DCM0, PCA_DCM1};		// Valeur de la puissance mot
 
 unsigned char buggyBoardInit(void){
 	unsigned char err;
-
-        // Reset la distance de la carte EFM8BB
-	EFM8BB_clearWheelDistance(MOTOR_ENCODER_LEFT);
-	EFM8BB_clearWheelDistance(MOTOR_ENCODER_RIGHT);
         
 	err+=configPWMdevice();					// Configuration du Chip PWM pour gestion de la v�locit� des DC moteur et angle servomoteur
 	err+=configGPIOdevice();				// Confguration du chip d'entr�es/sortie pour la gestion du sens de rotation des moteur DC
         err+=configRGBdevice();                                 // Configuration du capteur de couleur RGBC
+        err+=configStepMotorDriver();                           // Configuration du contrôleur de moteur pas à pas
+        
+        // Reset la distance de la carte EFM8BB
+	EFM8BB_clearWheelDistance(MOTOR_ENCODER_LEFT);
+	EFM8BB_clearWheelDistance(MOTOR_ENCODER_RIGHT);
         
 	MCP2308_DCmotorState(1);				// Set the HDRIVER ON
 	if(err){
@@ -349,6 +351,26 @@ unsigned char configRGBdevice(void){
 }
 
 
+//================================================================================
+// configStepMotorDriver
+// Configuration initiale du contrôleur de moteur pas à pas
+//	- Registre de contr�le
+
+//================================================================================
+unsigned char configStepMotorDriver(void){
+    unsigned char err=0;
+    // --- CONFIGURATION DU CAPTEUR 1
+    
+    // Configuration du registre de contr�le du capteur 1
+    // b7:Initial reset, b6, INT inactive
+    err+= i2c_write(0, PCA9629, 0x00, 0x21);   
+
+    
+    if(err)
+        printf("Kehops I2C Step motor driver device initialization with %d error\n", err);
+    
+    return err;    
+}
 
 
 
@@ -375,8 +397,10 @@ int EFM8BB_readSonarDistance(void){
 	if(!err){              
                 SonarDistance_mm=mmLSB + (mmMSB<<8);
                 return SonarDistance_mm;
-	}else
+	}else{
+            printf("EFM8BB_readSonarDistance() -> Read error\n");
             return -1;
+        }
 }
 
 
@@ -397,10 +421,12 @@ int EFM8BB_readBatteryVoltage(void){
         err=i2c_readByte(0, EFM8BB, VOLT0, &mVLSB);
         err+=i2c_readByte(0, EFM8BB, VOLT0+1, &mVMSB);
 	if(!err){
-
                 batteryVoltage_mV=mVLSB + (mVMSB<<8);
 		return batteryVoltage_mV;
-	}else return -1;
+	}else{
+            printf("EFM8BB_readBatteryVoltage() -> Read error\n");
+            return -1;
+        }
 }
 
 // -------------------------------------------------------------------
@@ -419,7 +445,10 @@ int EFM8BB_readFrequency(unsigned char wheelNb){
         err=i2c_readByte(0, EFM8BB, regAddr, &freq);
 	if(!err){    
 		return freq;
-	}else return -1;
+	}else{
+            printf("EFM8BB_readFrequency() -> Read error\n");
+            return -1;
+        }
 }
 
 // -------------------------------------------------------------------
@@ -449,7 +478,10 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb){
                 
 	if(!err){
 		return pulseCount;
-	}else return -1;
+	}else{
+            printf("EFM8BB_readPulseCounter() -> Read error\n");
+            return -1;
+        }
 }
 
 // -------------------------------------------------------------------
@@ -472,7 +504,10 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb){
         err=i2c_readByte(0, EFM8BB, regAddr, &pulseCount);
 	if(!err){
 		return pulseCount;
-	}else return -1;
+	}else{
+            printf("EFM8BB_clearWheelDistance() -> Read error\n");
+            return -1;
+        }
 }
 
 // -------------------------------------------------------------------
@@ -488,7 +523,10 @@ char EFM8BB_readDigitalInput(unsigned char InputNr){
 
 	if(!err){
 		return inputState;
-	}else return -1;
+	}else{
+            printf("EFM8BB_readDigitalInput() -> Read error\n");
+            return -1;
+        }
 }
 
 
@@ -504,7 +542,10 @@ int EFM8BB_getFirmwareVersion(void){
 
 	if(!err){
 		return value;
-	}else return -1;
+	}else{
+            printf("EFM8BB_getFirmwareVersion() -> Read error\n");
+            return -1;
+        }
 }
 
 // -------------------------------------------------------------------
@@ -518,7 +559,10 @@ int EFM8BB_getBoardType(void){
         err = i2c_readByte(0, EFM8BB, BOARDTYPE_REG, &value);
 	if(!err){
 		return value;
-	}else return -1;
+	}else{
+            printf("EFM8BB_getBoardType() -> Read error\n");
+            return -1;
+        }
 }
 
 // -------------------------------------------------------------------
@@ -556,8 +600,10 @@ int BH1745_getRGBvalue(unsigned char sensorNb, int color){
 	if(!err){
             value = pcLSB + (pcMSB<<8);
 		return value;
-	}else
+	}else{
+            printf("BH1745_getRGBvalue() -> Read error\n");
             return -1;
+        }
 }
 
 // Get the value for selected register on device
@@ -567,16 +613,24 @@ int I2C_readDeviceReg(unsigned char deviceAd, unsigned char registerAdr){
 
     err = i2c_readByte(0, deviceAd, registerAdr, &value);
     
-    printf("READ device: %d Register: %d    value: %d   ERROR: %d\n", deviceAd, registerAdr, value, err);
+    //printf("READ device: %d Register: %d    value: %d   ERROR: %d\n", deviceAd, registerAdr, value, err);
     
     if(!err){
             return value;
-    }else return -1;
+    }else{
+        printf("I2C_readDeviceReg() -> Read error\n");
+        return -1;
+    }
 }
 
 // Set the value for selected register on device
 int I2C_writeDeviceReg(unsigned char deviceAd, unsigned char registerAdr, unsigned char data){
-    i2c_write(0, deviceAd, registerAdr, data);
+    unsigned char err=0;
+    err+=i2c_write(0, deviceAd, registerAdr, data);
+    
+    if(err){
+        printf("I2C_writeDeviceReg() -> Write error\n");
+    }
     printf("WRITE device: %d Register: %d    value: %d\n", deviceAd, registerAdr, data);
 }
 #endif

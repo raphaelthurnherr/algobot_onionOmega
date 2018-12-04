@@ -243,7 +243,7 @@ int i2c_read(int devNum, int devAddr, int addr, uint8_t *buffer, int numBytes)
 		// write to the i2c device
 		status = write(fd, buffer, size);
 		if (status != size) {
-			onionPrint(ONION_SEVERITY_FATAL, "%s write issue for register 0x%02x, errno is %d: %s\n", I2C_PRINT_BANNER, addr, errno, strerror(errno) );
+			onionPrint(ONION_SEVERITY_FATAL, "%s write issue for device 0x%2x register 0x%02x, errno is %d: %s\n",  I2C_PRINT_BANNER,devAddr,  addr, errno, strerror(errno) );
 		}
 #endif
 
@@ -256,7 +256,7 @@ int i2c_read(int devNum, int devAddr, int addr, uint8_t *buffer, int numBytes)
 		size 	= numBytes;
 		status 	= read(fd, buffer, size);
 		if (status != size) {
-			onionPrint(ONION_SEVERITY_FATAL, "%s read issue for register 0x%02x, errno is %d: %s\n", I2C_PRINT_BANNER, addr, errno, strerror(errno) );
+			onionPrint(ONION_SEVERITY_FATAL, "%s read issue for device 0x%2x register 0x%02x, errno is %d: %s\n", I2C_PRINT_BANNER,devAddr, addr, errno, strerror(errno) );
 			status 	= EXIT_FAILURE;
 		}
 		else {
