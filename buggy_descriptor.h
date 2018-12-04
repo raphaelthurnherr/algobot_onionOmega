@@ -12,6 +12,7 @@
 typedef enum o_type{
 	UNKNOWN = -1,
 	MOTOR,
+        STEPMOTOR,
 	PWM,
 	LED
 }t_type;
@@ -57,6 +58,11 @@ typedef enum o_motor{
 	MOTOR_1,
 	NBMOTOR
 }t_motor;
+
+typedef enum o_stepper{
+	STEPPER_0,
+        NBSTEPPER
+}t_stepper;
 
 typedef enum o_servo{
 	SERVO_0,

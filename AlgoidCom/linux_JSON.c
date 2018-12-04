@@ -51,6 +51,8 @@
 #define KEY_MESSAGE_VALUE_CM "{'MsgData'{'MsgValue'[*{'cm'"
 #define KEY_MESSAGE_VALUE_ACCEL "{'MsgData'{'MsgValue'[*{'accel'"
 #define KEY_MESSAGE_VALUE_DECEL "{'MsgData'{'MsgValue'[*{'decel'"
+#define KEY_MESSAGE_VALUE_STEP "{'MsgData'{'MsgValue'[*{'step'"
+#define KEY_MESSAGE_VALUE_ROTATION "{'MsgData'{'MsgValue'[*{'rotation'"
 
 #define KEY_MESSAGE_VALUE_CFG_RESET "{'MsgData'{'MsgValue'[*{'config'{'reset'"
 #define KEY_MESSAGE_VALUE_CFG_SAVE "{'MsgData'{'MsgValue'[*{'config'{'save'"
@@ -142,6 +144,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                         if(!strcmp(myDataString, "rgb")) AlgoidMessageRX.msgParam = COLORS;
                                         if(!strcmp(myDataString, "config")) AlgoidMessageRX.msgParam = CONFIG;
                                         if(!strcmp(myDataString, "system")) AlgoidMessageRX.msgParam = SYSTEM;
+                                        if(!strcmp(myDataString, "stepper")) AlgoidMessageRX.msgParam = STEPPER;
 
 				  jRead((char *)srcBuffer, KEY_MESSAGE_VALUE, &element );
 
@@ -162,6 +165,17 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
 					    	  AlgoidMessageRX.DCmotor[i].accel= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ACCEL, &i);
 					    	  AlgoidMessageRX.DCmotor[i].decel= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_DECEL, &i); 
 				    	  }
+                                          
+                                            if(AlgoidMessageRX.msgParam == STEPPER){
+                                                AlgoidMessageRX.StepperMotor[i].motor=UNKNOWN;	// Initialisation roue inconnue
+                                                //jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_MOTOR, myDataString, 15, &i );
+                                                AlgoidMessageRX.StepperMotor[i].motor= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_MOTOR, &i);
+
+                                                AlgoidMessageRX.StepperMotor[i].velocity= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_VELOCITY, &i);
+                                                AlgoidMessageRX.StepperMotor[i].step= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_STEP, &i);
+                                                AlgoidMessageRX.StepperMotor[i].rotation= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ROTATION, &i);
+                                                AlgoidMessageRX.StepperMotor[i].time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_TIME, &i);
+                                            }
 
 				    	  if(AlgoidMessageRX.msgParam == DINPUT){
 						 AlgoidMessageRX.DINsens[i].id= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_DIN, &i);
@@ -365,8 +379,26 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                                             ; break;
                                                                                 default : jwObj_string("error", "unknown"); break;
                                                                             }
-
                                                                             break;
+
+							case STEPPER :                   
+                                                                            switch(AlgoidResponse[i].responseType){
+                                                                                case EVENT_ACTION_ERROR : jwObj_string("action", "error"); break;
+                                                                                case EVENT_ACTION_END : jwObj_string("action", "end"); break;
+                                                                                case EVENT_ACTION_BEGIN : jwObj_string("action", "begin"); break;
+                                                                                case EVENT_ACTION_RUN : jwObj_string("action", "run"); break;
+                                                                                case EVENT_ACTION_ABORT : jwObj_string("action", "abort"); break;
+                                                                                case RESP_STD_MESSAGE   :   if(AlgoidResponse[i].STEPPERresponse.motor>=0)
+                                                                                                                jwObj_int( "motor", AlgoidResponse[i].STEPPERresponse.motor);
+                                                                                                            else
+                                                                                                                jwObj_string("motor", "unknown");
+                                                                                                            jwObj_int( "step", AlgoidResponse[i].STEPPERresponse.step);				// add object key:value pairs
+                                                                                                            jwObj_int( "rotation", AlgoidResponse[i].STEPPERresponse.rotation);				// add object key:value pairs
+                                                                                                            jwObj_int("velocity", round((AlgoidResponse[i].STEPPERresponse.velocity)));
+                                                                                                            ; break;
+                                                                                default : jwObj_string("error", "unknown"); break;
+                                                                            }
+                                                                            break;                                                                            
 
 							case DISTANCE :                 
                                                                             jwObj_int( "sonar",AlgoidResponse[i].DISTresponse.id);

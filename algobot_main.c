@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.5.0b"
+#define FIRMWARE_VERSION "1.6.0 beta"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -55,6 +55,7 @@ int makeButtonRequest(void);
 int makeRgbRequest(void);
 
 int runMotorAction(void);
+int runStepperAction(void);
 
 int getWDvalue(int wheelName);
 
@@ -276,6 +277,33 @@ int processAlgoidCommand(void){
                                 sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, MOTORS, AlgoidCommand.msgValueCnt);  // Retourne une r�ponse d'erreur, (aucun moteur d�fini)
                                 
                                 runMotorAction(); break;			// Action avec en param�tre MOTEUR, VELOCITE, ACCELERATION, TEMPS d'action
+                                
+		case STEPPER : 	
+                                for(i=0;i<AlgoidCommand.msgValueCnt;i++){
+                                   
+                                    // Controle que le moteur existe...
+                                    if(AlgoidCommand.StepperMotor[i].motor >= 0 && AlgoidCommand.StepperMotor[i].motor < NBSTEPPER)
+                                        AlgoidResponse[i].STEPPERresponse.motor=AlgoidCommand.StepperMotor[i].motor;
+                                    else
+                                        AlgoidResponse[i].STEPPERresponse.motor=-1;
+                                            
+                                    // Récupération des paramètes de commandes
+                                    
+                                    // Retourne un message ALGOID si velocit� hors tol�rences
+                                    if((AlgoidCommand.StepperMotor[i].velocity < -100) ||(AlgoidCommand.StepperMotor[i].velocity > 100)){
+                                            AlgoidCommand.StepperMotor[i].velocity=0;
+                                            AlgoidResponse[i].STEPPERresponse.velocity=-1;
+                                    }else
+                                        AlgoidResponse[i].STEPPERresponse.velocity=AlgoidCommand.StepperMotor[i].velocity;
+                                    
+                                    AlgoidResponse[i].STEPPERresponse.step=AlgoidCommand.StepperMotor[i].step;
+                                    AlgoidResponse[i].STEPPERresponse.rotation=AlgoidCommand.StepperMotor[i].rotation;
+                                    AlgoidResponse[i].responseType = RESP_STD_MESSAGE;
+                                }
+                                // Retourne en r�ponse le message v�rifi�
+                                sendResponse(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom, RESPONSE, STEPPER, AlgoidCommand.msgValueCnt);  // Retourne une r�ponse d'erreur, (aucun moteur d�fini)
+                                
+                                runStepperAction(); break;			// Action avec en param�tre MOTEUR, VELOCITE, PAS, ROTATION
                                 
                 case pPWM  :
                                 for(i=0;i<AlgoidCommand.msgValueCnt;i++){
@@ -607,6 +635,97 @@ int runMotorAction(void){
                                         setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, CENTIMETER, body.motor[ID].cm);
                                 else{
                                         setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
+                                }
+                            }
+                        }
+                        action++;
+                    }
+                    return 0;
+            }
+            else
+                return 1;
+        }
+        // Aucun param�tre trouv� ou moteur inexistant
+        else{
+            
+            AlgoidResponse[0].responseType = EVENT_ACTION_ERROR;
+            sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, MOTORS, 1);               // Envoie un message EVENT error
+            sprintf(reportBuffer, "ERREUR: Aucun moteur d�fini ou inexistant pour le message #%d\n", AlgoidCommand.msgID);
+            printf(reportBuffer);                                                             // Affichage du message dans le shell
+            sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"
+        }
+}
+
+// -------------------------------------------------------------------
+// runStepperAction
+// Effectue une action avec les paramètre recus: MOTEUR, VELOCITE, PAS, ROTATION
+// -------------------------------------------------------------------
+int runStepperAction(void){
+	int ptrData;
+	int myTaskId;
+	unsigned char actionCount=0;
+	int action=0;
+        int i;
+        int ID;
+
+	// Comptabilise le nombre de paramètre (moteur pas à pas) recu dans le message
+	// 
+        for(i=0;i<NBSTEPPER;i++){
+            ptrData=getWDvalue(i);
+            if(ptrData>=0){
+                actionCount++;
+                        body.stepper[i].speed=AlgoidCommand.StepperMotor[ptrData].velocity;
+                        body.stepper[i].step=AlgoidCommand.StepperMotor[ptrData].step;
+                        body.stepper[i].rotation=AlgoidCommand.StepperMotor[ptrData].rotation;
+                        body.stepper[i].time=AlgoidCommand.StepperMotor[ptrData].time;
+            }
+        }
+
+        // Au moin une action à effectuer
+        if(actionCount>0){
+            
+            // Retoure un message EVENT de type BEGIN 
+            AlgoidResponse[0].responseType = EVENT_ACTION_BEGIN;
+            // Retourne un message event ALGOID 
+            sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, STEPPER, 1);
+                    
+            // Ouverture d'une tâche pour les toutes les actions du message algoid � effectuer
+            // Recois un numéro de tache en retour
+            myTaskId=createBuggyTask(AlgoidCommand.msgID, actionCount);			// 2 actions pour mouvement 2WD
+
+            // Démarrage des actions
+            if(myTaskId>0){
+                    printf("Creation de tache STEPPER MOTOR: #%d avec %d actions\n", myTaskId, actionCount);
+
+                    // Sauvegarde du nom de l'emetteur et du ID du message pour la r�ponse
+                    // en fin d'�venement
+                    saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
+
+                    for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
+                        ID = AlgoidCommand.StepperMotor[ptrData].motor;
+                        if(ID >= 0){
+                            
+                            // Effectue l'action sur la roue
+                            if(body.stepper[ID].step <=0 && body.stepper[ID].rotation<=0){                                
+                                sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"step\" ou \"rotation\" pour l'action sur le moteur pas à pas %d\n", ID);
+
+                                printf(reportBuffer);                                                             // Affichage du message dans le shell
+                                sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
+//                                setAsyncMotorAction(myTaskId, ID, body.stepper[ID].speed, INFINITE, NULL);
+                                printf("TO ADD - > DEMMARAGE DU MOTEUR EN INFINI\n");
+
+                                // Défini l'état de laction comme "en cours" pour message de réponse
+                                AlgoidResponse[0].responseType = EVENT_ACTION_RUN;
+                                // Retourne un message event ALGOID 
+                                sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, STEPPER, 1);
+                            }else
+                            {
+                                if(body.stepper[ID].step > 0)
+//                                       setAsyncMotorAction(myTaskId, ID, body.stepper[ID].speed, CENTIMETER, body.motor[ID].cm);
+                                    printf("TO ADD - > DEMMARAGE DU MOTEUR EN PAS\n");
+                                else{
+//                                       setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
+                                    printf("TO ADD - > DEMMARAGE DU MOTEUR EN TOUR\n");
                                 }
                             }
                         }

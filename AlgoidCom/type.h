@@ -57,6 +57,14 @@ struct m_motor{
         int time;
 };
 
+struct m_stepper{
+    	int speed;
+	int direction;
+	int step;
+        char rotation;
+        int time;
+};
+
 struct m_led{
 	int state;
 	int power;
@@ -109,6 +117,7 @@ typedef struct tsensor{
 	struct m_voltage battery[NBAIN];
 	struct m_counter encoder[NBMOTOR];
 	struct m_motor motor[NBMOTOR];
+        struct m_stepper stepper[NBSTEPPER];
         struct m_led led[NBLED];
         struct m_led pwm[NBPWM];
         struct m_RGB rgb[NBRGBC];

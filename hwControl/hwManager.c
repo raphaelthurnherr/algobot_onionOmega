@@ -118,7 +118,8 @@ void *hwTask (void * arg){
 		// Sequencage des messages sur bus I2C à interval régulier
                 // de 250mS
 		switch(timeCount_ms){
-			case 5	: sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_LEFT);
+
+                        case 5	: sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup = EFM8BB_readPulseCounter(MOTOR_ENCODER_LEFT);
 					  sensor.counter[MOTOR_ENCODER_LEFT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_LEFT); 
                                           //printf("Pulses left: %d - ",sensor.counter[MOTOR_ENCODER_LEFT].pulseFromStartup);
                                           break;
@@ -126,6 +127,7 @@ void *hwTask (void * arg){
 					  sensor.counter[MOTOR_ENCODER_RIGHT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_RIGHT);
                                           //printf("Pulses right: %d\n\n",sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
                                           break;
+                                          
 			case 15	:   dinState = EFM8BB_readDigitalInput(0);              // Param�tre transmis non utilis� par la fonction...
                                     if(dinState & 0x01) sensor.din[DIN_0] = 1;
                                     else sensor.din[DIN_0]=0;
@@ -504,7 +506,7 @@ unsigned char getOrganI2Cregister(char organType, unsigned char organName){
 			default :	organAdr = UNKNOWN; break;
 		}
 	}
-
+        
 	if(organType == PWM){
 		switch(organName){
 			case PWM_0 : organAdr = PCA_CN1_4; break;

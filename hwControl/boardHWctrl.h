@@ -6,7 +6,8 @@
 // Device addresses (7 bits, lsb is a don't care)
 #ifdef BOARD_REV2
     #define  PCA9685               	0x40 	// Device address for PWM controller
-    #define  PCA9629               	0x20	// Device address for GPIO controller
+    #define  PCA9629               	0x20	// Device address for Step motor Driver
+
     #define  MCP2308               	0x21	// Device address for GPIO controller
     #define  EFM8BB               	0x0A	// Device address for EFM8BB microcontroller
     #define  BH1745_0               	0x38	// Device address for RGB SENSOR
@@ -18,6 +19,12 @@
 
     #define PCA_DCM0				0x08	// PCA9685 Output 0 address (Motor 0 speed pwm)
     #define PCA_DCM1				0x0C	// PCA9685 Output 1 address (Motor 1 speed pwm)
+    
+    #define STEP_DRIVER_STEP_CTRL_REG           0x26    // PCA9629 Controle register (start, stop, step mode or rotation mode)
+    #define STEP_DRIVER_STEP_CW_REG             0x1A    // PCA9629 Low register for Step count in CW sens
+    #define STEP_DRIVER_STEP_CCW_REG            0x1C    // PCA9629 high register for Step count in CCW sens
+    #define STEP_DRIVER_ROT_CW_REG              0x1E    // PCA9629 Low register for Rotation count in CW sens
+    #define STEP_DRIVER_ROT_CCW_REG             0x20    // PCA9629 high register for Rotation count in CCW sens
 
     #define PCA_LED0				0x2C	//  (Led 0 pwm)
     #define PCA_LED1				0x38	//  (Led 1 pwm)
@@ -85,12 +92,15 @@
 
 extern unsigned char buggyBoardInit(void);
 extern unsigned char motorDCadr[2];                                             // Valeur de la puissance moteur
+
 extern void MCP2308_DCmotorState(unsigned char state);
 extern void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction);
+
 extern void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
 extern void PCA9685_setServoPos(unsigned char smAddr, char position);
 extern void PCA9685_setLedPower(unsigned char smAddr, unsigned char power);
 
+extern int PCA9629_StepMotorStepAction(int motorNumber, int direction, int stepCount); //Démarre une action "PAS" sur le moteur pas à pas
 //extern void setDCmotorPower(unsigned char motorAdr, unsigned char power);
 
 extern int EFM8BB_readSonarDistance(void);					// Get distance in mm from the EFM8BB microcontroller

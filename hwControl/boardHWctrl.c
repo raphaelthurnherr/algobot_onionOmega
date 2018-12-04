@@ -21,7 +21,12 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb);
 int EFM8BB_clearWheelDistance(unsigned char wheelNb);
 int EFM8BB_getFirmwareVersion(void);                            // Get the MCU firmware version
 int EFM8BB_getBoardType(void);                                  // Get the type of the board.
+
+void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
+
 int BH1745_getRGBvalue(unsigned char sensorNb, int color);                   // Get the value for specified color
+
+int PCA9629_StepMotorStepAction(int motorNumber, int direction, int stepCount); //Démarre une action "PAS" sur le moteur pas à pas
 
 int I2C_readDeviceReg(unsigned char deviceAd, unsigned char registerAdr);    // Get the value for selected register on device
 int I2C_writeDeviceReg(unsigned char deviceAd, unsigned char registerAdr, unsigned char data);    // Get the value for selected register on device
@@ -177,6 +182,48 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
 
 }
 
+//================================================================================
+// STEPMOTORSTEPACTION
+// Défini le sens de rotation, le nombre de pas du moteur
+//================================================================================
+
+int PCA9629_StepMotorStepAction(int motorNumber, int direction, int stepCount){
+   	unsigned char err=0;
+        
+	unsigned char motorAddress = 0;
+        unsigned char regAddress = 0;
+        unsigned char regStepValue = 0;
+        unsigned char regCtrlValue = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+
+        if(direction != BUGGY_STOP){
+            
+            switch(direction){
+                    case BUGGY_FORWARD :    regAddress = STEP_DRIVER_STEP_CW_REG;
+                                            regCtrlValue = 0x80; break;
+                    case BUGGY_BACK :       regAddress = STEP_DRIVER_STEP_CCW_REG;
+                                            regCtrlValue = 0x81; break;
+                    default :               regAddress = STEP_DRIVER_STEP_CW_REG;
+                                            regCtrlValue = 0x00; break;
+            }
+            
+            // Nombre de pas non spécifié -> rotation infinie
+            if(stepCount <= 0){
+                regCtrlValue += 0x10;
+            }
+                    
+            err += i2c_write(0, motorAddress, regAddress, regStepValue&0x00FF);           // Défini le nombre de pas dans le registre LOW
+            err += i2c_write(0, motorAddress, regAddress+1, (regStepValue&0xFF00)>>8);    // Défini le nombre de pas dans le registre HIGH
+            err += i2c_write(0, motorAddress, STEP_DRIVER_STEP_CTRL_REG, regCtrlValue);
+        }
+        else{
+            // Stop le moteur et réinitialisation en mode CCW, STEP
+            err += i2c_write(0, motorAddress, STEP_DRIVER_STEP_CTRL_REG, 0x00);
+        }
+
+	return(err);
+}
 
 //================================================================================
 // SETSERVOPOS
@@ -359,12 +406,24 @@ unsigned char configRGBdevice(void){
 //================================================================================
 unsigned char configStepMotorDriver(void){
     unsigned char err=0;
-    // --- CONFIGURATION DU CAPTEUR 1
     
-    // Configuration du registre de contr�le du capteur 1
-    // b7:Initial reset, b6, INT inactive
-    err+= i2c_write(0, PCA9629, 0x00, 0x21);   
-
+    // CONFIGURATION DU CIRCUIT DRIVER MOTEUR PAS A PAS
+    // bit 6 et 7 non utilisés dans les registres
+    
+    // Configuration du registre MODE (pin INT désactivée, Allcall Adr. désactivé)
+    err+= i2c_write(0, PCA9629, 0x00, 0x20);
+    
+    // Configuration du registre SROTNx (64 pas par tour * 32x reduction = 2048)
+    err+= i2c_write(0, PCA9629, 0x14, 0x00);
+    err+= i2c_write(0, PCA9629, 0x15, 0x08);
+    
+    // Configuration du registre CWPWx (Prescaler 7, count 52 = 20mS)
+    err+= i2c_write(0, PCA9629, 0x16, 0x34);
+    err+= i2c_write(0, PCA9629, 0x17, 0x70);
+    
+     // Configuration du registre CCWPWx (Prescaler 7, count 52 = 20mS)
+    err+= i2c_write(0, PCA9629, 0x18, 0x34);
+    err+= i2c_write(0, PCA9629, 0x19, 0x70);   
     
     if(err)
         printf("Kehops I2C Step motor driver device initialization with %d error\n", err);

@@ -41,6 +41,7 @@ typedef enum msgparam{
         COLORS,
         CONFIG,
         SYSTEM,
+        STEPPER,
 }t_msgparam;
 
 
@@ -51,6 +52,15 @@ struct m2wd{
 	int cm;
 	int accel;
 	int decel;
+        char invert[25];
+};
+
+struct mStepper{
+	int motor;
+	int velocity;
+	int step;
+	int rotation;
+        int time;
         char invert[25];
 };
 
@@ -174,6 +184,7 @@ typedef struct JsonCommand{
 
 	// UNION ???
 	struct m2wd DCmotor[20];
+        struct mStepper StepperMotor[20];
 	struct mDin DINsens[20];
         struct mDin BTNsens[20];
 	struct mDistance DISTsens[20];
@@ -184,7 +195,6 @@ typedef struct JsonCommand{
         struct mConfig Config;
         struct mSystemCmd System;
 	// UNION ???
-
 }ALGOID;
 
 // Structure de r�ponse � un message algoid
@@ -199,6 +209,7 @@ typedef struct JsonResponse{
 	struct mDistance DISTresponse;
         struct mServo SERVOresponse;
 	struct m2wd MOTresponse;
+        struct mStepper STEPPERresponse;
         struct mLed PWMresponse;
         struct mLed LEDresponse;
         struct mDin BTNresponse;
