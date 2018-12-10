@@ -197,14 +197,13 @@ int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount){
         
         motorAddress = PCA9629 + motorNumber;
 
-        printf ("\n************** STEP  driverAd: %2x   stepCount: %d *****************\n", motorAddress, stepCount);
         // Configuration du registre de nombre de pas dans le sens horaire
-        err += i2c_write(0, motorAddress, 0x1A, stepCount&0x00FF);           // Défini le nombre de pas dans le registre LOW
-        err += i2c_write(0, motorAddress, 0x1B, (stepCount&0xFF00)>>8);    // Défini le nombre de pas dans le registre HIGH
+        err += i2c_write(0, motorAddress, 0x12, stepCount&0x00FF);           // Défini le nombre de pas dans le registre LOW
+        err += i2c_write(0, motorAddress, 0x13, (stepCount&0xFF00)>>8);    // Défini le nombre de pas dans le registre HIGH
 
         // Configuration du registre de nombre de pas dans le sens anti-horaire
-        err += i2c_write(0, motorAddress, 0x1C, stepCount&0x00FF);           // Défini le nombre de pas dans le registre LOW
-        err += i2c_write(0, motorAddress, 0x1D, (stepCount&0xFF00)>>8);    // Défini le nombre de pas dans le registre HIGH        
+        err += i2c_write(0, motorAddress, 0x14, stepCount&0x00FF);           // Défini le nombre de pas dans le registre LOW
+        err += i2c_write(0, motorAddress, 0x15, (stepCount&0xFF00)>>8);    // Défini le nombre de pas dans le registre HIGH        
 
 	return(err);
 }
@@ -218,7 +217,7 @@ int PCA9629_StepperMotorSetRotation(int motorNumber, int rotationCount){
 	unsigned char motorAddress = 0;
         
         motorAddress = PCA9629 + motorNumber;
-
+/*
         // Configuration du registre de nombre de rotation sens horaire
         err += i2c_write(0, motorAddress, 0x1E, rotationCount&0x00FF);           // Défini le nombre de rotation dans le registre LOW
         err += i2c_write(0, motorAddress, 0x1F, (rotationCount&0xFF00)>>8);    // Défini le nombre de rotation dans le registre HIGH
@@ -226,6 +225,7 @@ int PCA9629_StepperMotorSetRotation(int motorNumber, int rotationCount){
         // Configuration du registre de nombre de rotation sens anti-horaire
         err += i2c_write(0, motorAddress, 0x20, rotationCount&0x00FF);           // Défini le nombre de rotation dans le registre LOW
         err += i2c_write(0, motorAddress, 0x21, (rotationCount&0xFF00)>>8);    // Défini le nombre de rotation dans le registre HIGH       
+        */
         return(err);
 }
 
@@ -241,7 +241,7 @@ int PCA9629_StepperMotorControl(int motorNumber, int data){
         
         printf ("\n************** CTRL  driverAd: %2x   data: %2x *****************\n", motorAddress, data);
         // Configuration du registre dans le sens horaire
-        err += i2c_write(0, motorAddress, 0x26, data & 0x00FF);           // Défini le nombre de rotation dans le registre LOW    
+        err += i2c_write(0, motorAddress, 0x1A, data & 0x00FF);           // Défini le nombre de rotation dans le registre LOW    
         return(err);
 }
 
@@ -431,29 +431,43 @@ unsigned char configStepMotorDriver(void){
     // CONFIGURATION DU CIRCUIT DRIVER MOTEUR PAS A PAS
     // bit 6 et 7 non utilisés dans les registres
     
-    // Configuration du registre MODE (pin INT désactivée, Allcall Adr. désactivé)
-    err+= i2c_write(0, PCA9629, 0x00, 0x20);
-    /*
-    err+= i2c_write(0, PCA9629, 0x01, 0xE2);
-    err+= i2c_write(0, PCA9629, 0x02, 0xE4);
-    err+= i2c_write(0, PCA9629, 0x03, 0xE6);
-    err+= i2c_write(0, PCA9629, 0x04, 0xE0);
-    err+= i2c_write(0, PCA9629, 0x04, 0xFF);
-    */
     
-    
-    // Configuration du registre SROTNx (64 pas par tour * 32x reduction = 2048)
-    err+= i2c_write(0, PCA9629, 0x14, 0x00);
-    err+= i2c_write(0, PCA9629, 0x15, 0x08);
-    
-    // Configuration du registre CWPWx (Prescaler 7, count 52 = 20mS)
-    err+= i2c_write(0, PCA9629, 0x16, 0x34);
-    err+= i2c_write(0, PCA9629, 0x17, 0x70);
-    
-     // Configuration du registre CCWPWx (Prescaler 7, count 52 = 20mS)
-    err+= i2c_write(0, PCA9629, 0x18, 0x34);
-    err+= i2c_write(0, PCA9629, 0x19, 0x70);   
-    
+    err+= i2c_write(0, PCA9629, 0x00, 0x20);    // MODE - Configuration du registre MODE (pin INT désactivée, Allcall Adr. désactivé)
+    err+= i2c_write(0, PCA9629, 0x01, 0xFF);    // WDTOI
+    err+= i2c_write(0, PCA9629, 0x02, 0x00);    // WDCNTL
+    err+= i2c_write(0, PCA9629, 0x03, 0x0F);    // IO_CFG
+    err+= i2c_write(0, PCA9629, 0x04, 0x10);    // INTMODE
+    err+= i2c_write(0, PCA9629, 0x05, 0x1F);    // MSK
+    err+= i2c_write(0, PCA9629, 0x06, 0x00);    // INTSTAT
+    //err+= i2c_write(0, PCA9629, 0x07, 0x);      // IP
+    err+= i2c_write(0, PCA9629, 0x08, 0x00);    // INT_MTR_ACT
+    err+= i2c_write(0, PCA9629, 0x09, 0x00);    // EXTRASTEPS0
+    err+= i2c_write(0, PCA9629, 0x0A, 0x00);    // EXTRASTEPS1
+    err+= i2c_write(0, PCA9629, 0x0B, 0x10);    // OP_CFG_PHS
+    err+= i2c_write(0, PCA9629, 0x0C, 0x00);    // OP_STAT_TO
+    err+= i2c_write(0, PCA9629, 0x0D, 0x00);    // RUCNTL
+    err+= i2c_write(0, PCA9629, 0x0E, 0x00);    // RDCNTL
+    err+= i2c_write(0, PCA9629, 0x0F, 0x01);    // PMA - Action unique
+    err+= i2c_write(0, PCA9629, 0x10, 0x05);    // LOOPDLY_CW
+    err+= i2c_write(0, PCA9629, 0x11, 0x05);    // LOOPDLY_CCW
+    err+= i2c_write(0, PCA9629, 0x12, 0xFF);    // CWSCOUNTL - Nombre de pas CW
+    err+= i2c_write(0, PCA9629, 0x13, 0xFF);    // CWSCOUNTH
+    err+= i2c_write(0, PCA9629, 0x14, 0xFF);    // CCWSCOUNTL - Nombre de pas CCW
+    err+= i2c_write(0, PCA9629, 0x15, 0xFF);    // CCWSCOUNTH
+    err+= i2c_write(0, PCA9629, 0x16, 0x9A);    // CWPWL 
+    err+= i2c_write(0, PCA9629, 0x17, 0x02);    // CWPWH
+    err+= i2c_write(0, PCA9629, 0x18, 0x9A);    // CCWPWL
+    err+= i2c_write(0, PCA9629, 0x19, 0x02);    // CCWPWL
+    err+= i2c_write(0, PCA9629, 0x1A, 0x00);    // MCNTL - Registre contrôle moteur
+    err+= i2c_write(0, PCA9629, 0x1B, 0xE2);    // SUBA1
+    err+= i2c_write(0, PCA9629, 0x1C, 0xE4);    // SUBA2
+    err+= i2c_write(0, PCA9629, 0x1D, 0xE8);    // SUBA3
+    err+= i2c_write(0, PCA9629, 0x1E, 0xE0);    // ALLCALLA
+    //err+= i2c_write(0, PCA9629, 0x1F, 0x00);    // STEPCOUNT0
+    //err+= i2c_write(0, PCA9629, 0x20, 0x00);    // STEPCOUNT1
+    //err+= i2c_write(0, PCA9629, 0x21, 0x00);    // STEPCOUNT2
+    //err+= i2c_write(0, PCA9629, 0x22, 0x00);    // STEPCOUNT3
+   
     if(err)
         printf("Kehops I2C Step motor driver device initialization with %d error\n", err);
     

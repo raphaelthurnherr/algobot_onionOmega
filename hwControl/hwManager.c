@@ -374,8 +374,8 @@ int setStepperStepAction(int motorNumber, int direction, int stepCount){
     unsigned char ctrlData = 0;
     
     switch(direction){
-            case BUGGY_FORWARD :	ctrlData = 0x90; break;
-            case BUGGY_BACK :           ctrlData = 0x91; break;
+            case BUGGY_FORWARD :	ctrlData = 0x80; break;
+            case BUGGY_BACK :           ctrlData = 0x81; break;
 
             case BUGGY_STOP : 		ctrlData = 0x00; break;
             default :		     	break;
