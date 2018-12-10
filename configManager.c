@@ -19,6 +19,10 @@
 #define FILE_KEY_CONFIG_MOTOR_ID "{'motor'[*{'motor'"
 #define FILE_KEY_CONFIG_MOTOR_INVERT "{'motor'[*{'inverted'"
 
+#define FILE_KEY_CONFIG_STEPPER "{'stepper'"
+#define FILE_KEY_CONFIG_STEPPER_ID "{'stepper'[*{'motor'"
+#define FILE_KEY_CONFIG_STEPPER_INVERT "{'stepper'[*{'inverted'"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -100,7 +104,6 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
 
             // Load data for stream STATE
             jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_STREAM_STATE, dataValue, 15, &i );
-    //printf("asdfmnasdfklsadf: %d\n\n", Config->dataStream.time_ms);                        
 
             if(!strcmp(dataValue, "on")){
                 Config->dataStream.state = 1;
@@ -149,6 +152,36 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                     }
                 }
             }
+
+        // Reset motor data config before reading
+        for(i=0;i<NBSTEPPER;i++){
+          Config->stepper[i].inverted=-1;
+        }
+            
+        // Stepper motor Settings
+            jRead((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER, &cfg_devices_list );
+
+            // RECHERCHE DATA DE TYPE ARRAY
+            if(cfg_devices_list.dataType == JREAD_ARRAY ){
+                // Get the number of motors in array
+                nbOfDeviceInConf=cfg_devices_list.elements;
+
+                for(i=0; i < nbOfDeviceInConf; i++){ 
+                    deviceId=-1;
+                    deviceId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_ID, &i); 
+
+                    if(deviceId >= 0 && deviceId < NBMOTOR){
+                        jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_INVERT, dataValue, 15, &i );
+                        if(!strcmp(dataValue, "on")){
+                            Config->stepper[deviceId].inverted = 1;
+                        }else
+                            if(!strcmp(dataValue, "off")){
+                                Config->stepper[deviceId].inverted = 0;
+                            }
+
+                    }
+                }
+            }            
 
     // EXTRACT LED SETTINGS FROM CONFIG    
           // Reset motor data config before reading
@@ -238,6 +271,20 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
                     jwEnd();
                 } 
             jwEnd();
+            
+        // CREATE JSON CONFIG FOR STEPPER MOTOR            
+            jwObj_array("stepper");
+                for(i=0;i<NBSTEPPER;i++){
+                    jwArr_object();
+                        jwObj_int( "stepper", i);
+                        if(Config->stepper[i].inverted == 0)
+                            jwObj_string("inverted", "off");
+                        else 
+                            if(Config->motor[i].inverted == 1)
+                                jwObj_string("inverted", "on");
+                    jwEnd();
+                } 
+            jwEnd();            
             
         // CREATE JSON CONFIG FOR LED
             jwObj_array("led");

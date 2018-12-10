@@ -411,6 +411,27 @@ int processAlgoidCommand(void){
                                         else
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].id=-1;
                                     }
+                                    
+                                // CONFIG COMMAND FOR STEPPER SETTING
+                                    for(i=0;i<AlgoidCommand.Config.stepperValueCnt; i++){
+                                        AlgoidResponse[valCnt].CONFIGresponse.stepperValueCnt=AlgoidCommand.Config.stepperValueCnt;
+                                        // Check if motor exist...
+                                        if(AlgoidCommand.Config.stepper[i].id >= 0 && AlgoidCommand.Config.stepper[i].id <NBSTEPPER){
+                                            // Save config for motor inversion
+                                            if(!strcmp(AlgoidCommand.Config.stepper[i].inverted, "on")){
+                                                sysConfig.stepper[AlgoidCommand.Config.stepper[i].id].inverted=1;
+                                                strcpy(AlgoidResponse[valCnt].CONFIGresponse.stepper[i].inverted, "on");
+                                            }
+                                            else if(!strcmp(AlgoidCommand.Config.stepper[i].inverted, "off")){
+                                                    sysConfig.stepper[AlgoidCommand.Config.stepper[i].id].inverted=0;
+                                                    strcpy(AlgoidResponse[valCnt].CONFIGresponse.stepper[i].inverted, "off");
+                                            }
+
+                                            AlgoidResponse[valCnt].CONFIGresponse.stepper[i].id = AlgoidCommand.Config.stepper[i].id;
+                                        }
+                                        else
+                                            AlgoidResponse[valCnt].CONFIGresponse.stepper[i].id=-1;
+                                    }                                    
 
                                 // CONFIG COMMAND FOR LED SETTING
                                     for(i=0;i<AlgoidCommand.Config.ledValueCnt; i++){
@@ -675,9 +696,10 @@ int runStepperAction(void){
             if(ptrData>=0){
                 actionCount++;
                         body.stepper[i].speed=AlgoidCommand.StepperMotor[ptrData].velocity;
-                        body.stepper[i].step=AlgoidCommand.StepperMotor[ptrData].step;
-                        body.stepper[i].rotation=AlgoidCommand.StepperMotor[ptrData].rotation;
                         body.stepper[i].time=AlgoidCommand.StepperMotor[ptrData].time;
+                        body.stepper[i].step=AlgoidCommand.StepperMotor[ptrData].step;
+                        body.stepper[i].angle=AlgoidCommand.StepperMotor[ptrData].angle;
+                        body.stepper[i].rotation=AlgoidCommand.StepperMotor[ptrData].rotation;
             }
         }
 
@@ -705,14 +727,14 @@ int runStepperAction(void){
                         ID = AlgoidCommand.StepperMotor[ptrData].motor;
                         if(ID >= 0){
                             
-                            // Effectue l'action sur la roue
-                            if(body.stepper[ID].step <=0 && body.stepper[ID].rotation<=0){                                
-                                sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"step\" ou \"rotation\" pour l'action sur le moteur pas à pas %d\n", ID);
+                            // Effectue l'action sur le moteur pas à pas
+                            if(body.stepper[ID].time<=0 && body.stepper[ID].step <=0 && body.stepper[ID].rotation<=0 && body.stepper[ID].angle<=0){                                
+                                sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\" ou \"step\" ou \"rotation\" ou \"angle\"pour l'action sur le moteur pas à pas %d\n", ID);
 
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
                                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
-//                               setAsyncMotorAction(myTaskId, ID, body.stepper[ID].speed, INFINITE, NULL);
-                                setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
+                                setAsyncStepperAction(myTaskId, ID, body.stepper[ID].speed, INFINITE, NULL);
+//                                setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
                                 printf("TO ADD - > DEMMARAGE DU MOTEUR EN INFINI\n");
 
                                 // Défini l'état de laction comme "en cours" pour message de réponse
@@ -722,14 +744,23 @@ int runStepperAction(void){
                             }else
                             {
                                 if(body.stepper[ID].step > 0){
-//                                       setAsyncMotorAction(myTaskId, ID, body.stepper[ID].speed, CENTIMETER, body.motor[ID].cm);
+                                    setAsyncStepperAction(myTaskId, ID, body.stepper[ID].speed, STEP, body.stepper[ID].step);
                                     printf("TO ADD - > DEMMARAGE DU MOTEUR EN PAS\n");
-                                    setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
+//                                    setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
                                 }
                                 else{
-//                                       setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
-                                    printf("TO ADD - > DEMMARAGE DU MOTEUR EN TOUR\n");
-                                    setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
+                                    if(body.stepper[ID].angle > 0){
+                                       setAsyncStepperAction(myTaskId, ID, body.motor[ID].speed, STEP, body.stepper[ID].angle);
+                                        printf("TO ADD - > DEMMARAGE DU MOTEUR EN ANGLE\n");
+//                                    setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
+                                    }else
+                                    {
+                                        if(body.stepper[ID].rotation > 0){
+                                            setAsyncStepperAction(myTaskId, ID, body.motor[ID].speed, STEP, body.stepper[ID].rotation * 2048);
+                                            printf("TO ADD - > DEMMARAGE DU MOTEUR EN TOUR\n");
+//                                    setStepperStepAction(ID, BUGGY_FORWARD, body.stepper[ID].step);
+                                    }
+                                }
                                 }
                             }
                         }
@@ -2051,6 +2082,17 @@ void resetConfig(void){
                 body.motor[i].speed=0;
                 body.motor[i].time=0;
                 sysConfig.motor[i].inverted=0;
+	}
+
+        for(i=0;i<NBSTEPPER;i++){
+		body.stepper[i].angle=0;
+		body.stepper[i].rotation=0;
+		body.stepper[i].speed=0;
+		body.stepper[i].step=0;
+		body.stepper[i].time=0;
+                sysConfig.stepper[i].inverted=0;
+                sysConfig.stepper[i].ratio=64;
+                sysConfig.stepper[i].stepsPerRot=32;
 	}
         
         for(i=0;i<NBSONAR;i++){

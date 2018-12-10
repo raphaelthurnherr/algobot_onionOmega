@@ -83,6 +83,8 @@ void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleratio
 unsigned char getMotorPower(unsigned char motorNr);											// Retourne la velocit� actuelle d'un moteur
 
 int setStepperStepAction(int motorNumber, int direction, int stepCount);      // Effectue une action sur le moteur pas à pas (direction, nombre de pas)
+int setStepperSpeed(int motorNumber, int speed);                              // Configuration de la vitesse du moteur pas à pas
+
 
 void setServoPosition(unsigned char smName, char position);
 void setLedPower(unsigned char ledID, unsigned char power);
@@ -373,11 +375,14 @@ void checkDCmotorPower(void){
 int setStepperStepAction(int motorNumber, int direction, int stepCount){
     unsigned char ctrlData = 0;
     
+//    if(stepCount<=0)
+//        ctrlData = 
+    
     switch(direction){
             case BUGGY_FORWARD :	ctrlData = 0x80; break;
             case BUGGY_BACK :           ctrlData = 0x81; break;
 
-            case BUGGY_STOP : 		ctrlData = 0x00; break;
+            case BUGGY_STOP : 		ctrlData = 0x20; break;
             default :		     	break;
     }
 
@@ -386,7 +391,17 @@ int setStepperStepAction(int motorNumber, int direction, int stepCount){
 
     
     return (0);
-}   
+} 
+
+// -------------------------------------------------------------------
+// SETSTEPPERSPEED
+// Configuration de la vitesse du moteur pas à pas
+// - Numéro de moteur
+// - vitesse 0..100%
+// -------------------------------------------------------------------
+int setStepperSpeed(int motorNumber, int speed){
+    return (1);
+}                           
 
 // -------------------------------------------------------------------
 // GETMOTORPOWER
@@ -588,6 +603,9 @@ int resetHardware(void){
     // Etat initial des sorties PWM LED
     for(i=0;i<NBPWM;i++)
         setPwmPower(i,0);
-    
+
+    // Etat initial des Moteur pas à pas
+//DEBUG //    for(i=0;i<NBPWM;i++)
+//        setPwmPower(i,0);    
     return 0;
 }

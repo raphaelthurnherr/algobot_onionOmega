@@ -172,6 +172,7 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                                 AlgoidMessageRX.StepperMotor[i].motor= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_MOTOR, &i);
 
                                                 AlgoidMessageRX.StepperMotor[i].velocity= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_VELOCITY, &i);
+                                                AlgoidMessageRX.StepperMotor[i].angle= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ANGLE, &i);
                                                 AlgoidMessageRX.StepperMotor[i].step= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_STEP, &i);
                                                 AlgoidMessageRX.StepperMotor[i].rotation= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_ROTATION, &i);
                                                 AlgoidMessageRX.StepperMotor[i].time= jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_TIME, &i);

@@ -333,6 +333,7 @@ void sendResponse(int msgId, char * msgTo, unsigned char msgType, unsigned char 
 	switch(msgParam){
 		case STOP : strcpy(ackParam, "stop"); break;
 		case MOTORS : strcpy(ackParam, "motor"); break;
+                case STEPPER : strcpy(ackParam, "stepper"); break;
 		case pPWM : strcpy(ackParam, "pwm"); break;
                 case pSERVO : strcpy(ackParam, "servo"); break;
 		case MOVE : strcpy(ackParam, "move"); break;

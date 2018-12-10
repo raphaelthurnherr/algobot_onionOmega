@@ -19,6 +19,7 @@
 #define INFINITE          2
 #define STEP              3
 #define ROTATION          4
+#define ANGLE             5
 
 #define CMPP		  0.248             // For 57 pulses per rotation and wheel diameter 45mm
 

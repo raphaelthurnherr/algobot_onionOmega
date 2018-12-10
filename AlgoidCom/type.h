@@ -61,7 +61,8 @@ struct m_stepper{
     	int speed;
 	int direction;
 	int step;
-        char rotation;
+        int rotation;
+        int angle;
         int time;
 };
 
@@ -85,6 +86,12 @@ struct m_AppConf{
 
 struct m_MotConfig{
 	char inverted;
+};
+
+struct m_StepperConfig{
+	char inverted;
+        int  ratio;
+        int  stepsPerRot;
 };
 
 struct m_LedConfig{
@@ -140,6 +147,7 @@ typedef struct tConfig{
         struct m_AppConf config;  
         struct m_MotConfig motor[NBMOTOR];
         struct m_LedConfig led[NBLED];
+        struct m_StepperConfig stepper[NBSTEPPER];
 }t_sysConfig;
 
 #ifdef __cplusplus

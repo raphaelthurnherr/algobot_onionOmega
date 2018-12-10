@@ -86,6 +86,7 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 				sendMqttReport(endOfTask, reportBuffer);                                                // Envoie le message sur le canal MQTT "Report"
 			}
 		}
+                
 		// D�fini le "nouveau" sens de rotation � applique au moteur ainsi que la consigne de vitesse
 		if(setMotorDirection(motorNb, myDirection)){							// Sens de rotation
 			setMotorSpeed(motorNb, veloc);									// Vitesse

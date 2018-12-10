@@ -7,6 +7,7 @@
       <itemPath>algobotManager.sh.h</itemPath>
       <itemPath>asyncTools/asyncLED.h</itemPath>
       <itemPath>asyncTools/asyncMOTOR.h</itemPath>
+      <itemPath>asyncTools/asyncSTEPPER.h</itemPath>
       <itemPath>asyncTools/asyncTools.h</itemPath>
       <itemPath>AlgoidCom/type.h</itemPath>
     </logicalFolder>
@@ -105,6 +106,7 @@
         <itemPath>hwControl/hwManager.h</itemPath>
       </logicalFolder>
       <itemPath>algobot_main.c</itemPath>
+      <itemPath>asyncTools/asyncSTEPPER.c</itemPath>
       <itemPath>configManager.c</itemPath>
       <itemPath>configManager.h</itemPath>
       <itemPath>timerManager.c</itemPath>
@@ -351,6 +353,10 @@
       <item path="asyncTools/asyncSERVO.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="asyncTools/asyncSERVO.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncSTEPPER.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncSTEPPER.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="asyncTools/asyncTools.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -625,6 +631,10 @@
       </item>
       <item path="asyncTools/asyncSERVO.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="asyncTools/asyncSTEPPER.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncSTEPPER.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="asyncTools/asyncTools.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="asyncTools/asyncTools.h" ex="false" tool="3" flavor2="0">
@@ -889,6 +899,10 @@
       <item path="asyncTools/asyncSERVO.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="asyncTools/asyncSERVO.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncSTEPPER.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncSTEPPER.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="asyncTools/asyncTools.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -1156,6 +1170,10 @@
       <item path="asyncTools/asyncSERVO.c" ex="false" tool="0" flavor2="9">
       </item>
       <item path="asyncTools/asyncSERVO.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncSTEPPER.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="asyncTools/asyncSTEPPER.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="asyncTools/asyncTools.c" ex="false" tool="0" flavor2="9">
       </item>

@@ -60,6 +60,7 @@ struct mStepper{
 	int velocity;
 	int step;
 	int rotation;
+        int angle;
         int time;
         char invert[25];
 };
@@ -85,6 +86,13 @@ struct mMotConfig{
 	char inverted[25];
 };
 
+struct mStepperConfig{
+        int id;
+	char inverted[25];
+        int  ratio;
+        int  stepsPerRot;
+};
+
 struct mLedConfig{
         int id;
 	char state[25];
@@ -95,9 +103,11 @@ struct mLedConfig{
 struct mConfig{
         int motValueCnt;
         int ledValueCnt;
+        int stepperValueCnt;
 	struct mStream stream;
         struct mAppConf config;
         struct mMotConfig motor[10];
+        struct mStepperConfig stepper[10];
         struct mLedConfig led[10];
 };
 
