@@ -373,10 +373,8 @@ void checkDCmotorPower(void){
 // -------------------------------------------------------------------
 
 int setStepperStepAction(int motorNumber, int direction, int stepCount){
-    unsigned char ctrlData = 0;
     
-//    if(stepCount<=0)
-//        ctrlData = 
+    unsigned char ctrlData = 0;
     
     switch(direction){
             case BUGGY_FORWARD :	ctrlData = 0x80; break;

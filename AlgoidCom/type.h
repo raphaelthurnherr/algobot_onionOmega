@@ -51,8 +51,8 @@ struct m_motor{
 	int distance;
 	int speed;
 	int direction;
-        char accel;
-        char decel;
+        int accel;
+        int decel;
         int cm;
         int time;
 };
@@ -91,7 +91,7 @@ struct m_MotConfig{
 struct m_StepperConfig{
 	char inverted;
         int  ratio;
-        int  stepsPerRot;
+        int  stepPerRot;
 };
 
 struct m_LedConfig{

@@ -65,6 +65,12 @@
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_ID "{'MsgData'{'MsgValue'[{'motor'[*{'motor'"
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT "{'MsgData'{'MsgValue'[{'motor'[*{'inverted'"
 
+#define KEY_MESSAGE_VALUE_CFG_STEPPER "{'MsgData'{'MsgValue'[*{'stepper'"
+#define KEY_MESSAGE_VALUE_CFG_STEPPER_ID "{'MsgData'{'MsgValue'[{'stepper'[*{'motor'"
+#define KEY_MESSAGE_VALUE_CFG_STEPPER_INVERT "{'MsgData'{'MsgValue'[{'stepper'[*{'inverted'"
+#define KEY_MESSAGE_VALUE_CFG_STEPPER_RATIO "{'MsgData'{'MsgValue'[{'stepper'[*{'ratio'"
+#define KEY_MESSAGE_VALUE_CFG_STEPPER_STEPS "{'MsgData'{'MsgValue'[{'stepper'[*{'steps'"
+
 #define KEY_MESSAGE_VALUE_CFG_LED "{'MsgData'{'MsgValue'[*{'led'"
 #define KEY_MESSAGE_VALUE_CFG_LED_ID "{'MsgData'{'MsgValue'[{'led'[*{'led'"
 #define KEY_MESSAGE_VALUE_CFG_LED_STATE "{'MsgData'{'MsgValue'[{'led'[*{'state'"
@@ -291,6 +297,23 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                                     for(i_dev=0; i_dev < nbOfdeviceInConf; i_dev++){                 
                                                         AlgoidMessageRX.Config.motor[i_dev].id=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_ID, &i_dev); 
                                                         jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT, AlgoidMessageRX.Config.motor[i_dev].inverted, 15, &i_dev ); 
+                                                    }
+                                                }
+                                                
+                                                // Stepper motor Setting
+                                                jRead((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STEPPER, &cfg_device_list );
+
+                                                // RECHERCHE DATA DE TYPE ARRAY
+                                                if(cfg_device_list.dataType == JREAD_ARRAY ){
+                                                    // Get the number of motors in array
+                                                    nbOfdeviceInConf=cfg_device_list.elements;
+                                                    AlgoidMessageRX.Config.stepperValueCnt=nbOfdeviceInConf;
+                                                    
+                                                    for(i_dev=0; i_dev < nbOfdeviceInConf; i_dev++){                 
+                                                        AlgoidMessageRX.Config.stepper[i_dev].id=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STEPPER_ID, &i_dev); 
+                                                        jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STEPPER_INVERT, AlgoidMessageRX.Config.stepper[i_dev].inverted, 15, &i_dev ); 
+                                                        AlgoidMessageRX.Config.stepper[i_dev].ratio=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STEPPER_RATIO, &i_dev); 
+                                                        AlgoidMessageRX.Config.stepper[i_dev].stepsPerRot=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STEPPER_STEPS, &i_dev); 
                                                     }
                                                 }
                                                 

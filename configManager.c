@@ -22,6 +22,8 @@
 #define FILE_KEY_CONFIG_STEPPER "{'stepper'"
 #define FILE_KEY_CONFIG_STEPPER_ID "{'stepper'[*{'motor'"
 #define FILE_KEY_CONFIG_STEPPER_INVERT "{'stepper'[*{'inverted'"
+#define FILE_KEY_CONFIG_STEPPER_RATIO "{'stepper'[*{'ratio'"
+#define FILE_KEY_CONFIG_STEPPER_STEPS"{'stepper'[*{'steps'"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -123,10 +125,10 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
 
         // EXTRACT MOTOR SETTINGS FROM CONFIG    
 
-              // Reset motor data config before reading
-              for(i=0;i<NBMOTOR;i++){
-                Config->motor[i].inverted=-1;
-              }
+            // Reset motor data config before reading
+            for(i=0;i<NBMOTOR;i++){
+              Config->motor[i].inverted=-1;
+            }
 
         // Motor Setting
             jRead((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR, &cfg_devices_list );
@@ -156,6 +158,8 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
         // Reset motor data config before reading
         for(i=0;i<NBSTEPPER;i++){
           Config->stepper[i].inverted=-1;
+          Config->stepper[i].ratio=-1;
+          Config->stepper[i].stepPerRot=-1;
         }
             
         // Stepper motor Settings
@@ -170,7 +174,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                     deviceId=-1;
                     deviceId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_ID, &i); 
 
-                    if(deviceId >= 0 && deviceId < NBMOTOR){
+                    if(deviceId >= 0 && deviceId < NBSTEPPER){
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_INVERT, dataValue, 15, &i );
                         if(!strcmp(dataValue, "on")){
                             Config->stepper[deviceId].inverted = 1;
@@ -178,7 +182,8 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                             if(!strcmp(dataValue, "off")){
                                 Config->stepper[deviceId].inverted = 0;
                             }
-
+                        Config->stepper[deviceId].ratio = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_RATIO, &i); 
+                        Config->stepper[deviceId].stepPerRot =jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_STEPS, &i); 
                     }
                 }
             }            
@@ -254,8 +259,6 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
             else 
                 if(Config->dataStream.onEvent == 1)
                     jwObj_string("onEvent", "on");                
-                
-
             jwEnd();
 
         // CREATE JSON CONFIG FOR MOTOR            
@@ -276,12 +279,14 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
             jwObj_array("stepper");
                 for(i=0;i<NBSTEPPER;i++){
                     jwArr_object();
-                        jwObj_int( "stepper", i);
+                        jwObj_int( "motor", i);
                         if(Config->stepper[i].inverted == 0)
                             jwObj_string("inverted", "off");
                         else 
-                            if(Config->motor[i].inverted == 1)
+                            if(Config->stepper[i].inverted == 1)
                                 jwObj_string("inverted", "on");
+                        jwObj_int( "ratio", Config->stepper[i].ratio);
+                        jwObj_int( "steps", Config->stepper[i].stepPerRot);
                     jwEnd();
                 } 
             jwEnd();            

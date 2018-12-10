@@ -238,8 +238,7 @@ int PCA9629_StepperMotorControl(int motorNumber, int data){
 	unsigned char motorAddress = 0;
         
         motorAddress = PCA9629 + motorNumber;
-        
-        printf ("\n************** CTRL  driverAd: %2x   data: %2x *****************\n", motorAddress, data);
+
         // Configuration du registre dans le sens horaire
         err += i2c_write(0, motorAddress, 0x1A, data & 0x00FF);           // Défini le nombre de rotation dans le registre LOW    
         return(err);
