@@ -93,10 +93,10 @@ extern void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCy
 extern void PCA9685_setServoPos(unsigned char smAddr, char position);
 extern void PCA9685_setLedPower(unsigned char smAddr, unsigned char power);
 
-extern int PCA9629_StepperMotorControl(int motorNumber, int data);         //Configuration du registre "PAS" du driver moteur
+extern int PCA9629_StepperMotorControl(int motorNumber, int data);              //Configuration du registre "PAS" du driver moteur
 extern int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount);         //Configuration du registre "PAS" du driver moteur
-extern int PCA9629_StepperMotorSetRotation(int motorNumber, int rotationCount); //Configuration du registre "ROTATION" du driver moteur
-
+extern int PCA9629_StepperMotorMode(int motorNumber, int data);                 // Mode action continue ou unique
+extern int PCA9629_StepperMotorPulseWidth(int motorNumber, int data);           // Registre de configuration de la largeur d'impulsion moteur pour les sens CW et CCW
 //extern void setDCmotorPower(unsigned char motorAdr, unsigned char power);
 
 extern int EFM8BB_readSonarDistance(void);					// Get distance in mm from the EFM8BB microcontroller

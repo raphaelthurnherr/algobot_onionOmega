@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.5.2 beta"
+#define FIRMWARE_VERSION "1.6.0"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -738,7 +738,6 @@ int runStepperAction(void){
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
                                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
                                 setAsyncStepperAction(myTaskId, ID, body.stepper[ID].speed, INFINITE, NULL);
-                                printf("TO ADD - > DEMMARAGE DU MOTEUR EN INFINI\n");
 
                                 // Défini l'état de laction comme "en cours" pour message de réponse
                                 AlgoidResponse[0].responseType = EVENT_ACTION_RUN;
@@ -777,7 +776,7 @@ int runStepperAction(void){
             
             AlgoidResponse[0].responseType = EVENT_ACTION_ERROR;
             sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, MOTORS, 1);               // Envoie un message EVENT error
-            sprintf(reportBuffer, "ERREUR: Aucun moteur d�fini ou inexistant pour le message #%d\n", AlgoidCommand.msgID);
+            sprintf(reportBuffer, "ERREUR: Aucun moteur défini ou inexistant pour le message #%d\n", AlgoidCommand.msgID);
             printf(reportBuffer);                                                             // Affichage du message dans le shell
             sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"
         }
@@ -1158,7 +1157,7 @@ int createBuggyTask(int MsgId, int actionCount){
 		}
 	}
 
-	sprintf(reportBuffer, "ERREUR: Table de t�ches pleine\n");
+	sprintf(reportBuffer, "ERREUR: Table de tâches pleine\n");
         printf(reportBuffer);
 	sendMqttReport(actionID, reportBuffer);
 	return(0);

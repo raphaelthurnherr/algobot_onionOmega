@@ -58,25 +58,24 @@ int setAsyncStepperAction(int actionNumber, int motorNb, int veloc, char unit, i
 	// Valeur en retour >0 signifie que l'action "en retour" � �t� �cras�e
 	switch(unit){                                          
 		case  MILLISECOND:  setTimerResult=setTimer(value, &endStepperAction, actionNumber, motorNb, STEPMOTOR);
-                                    steps = 65536; break;
-		case  STEP:  setTimerResult=setTimer(50, &checkStepperStatus, actionNumber, motorNb, STEPMOTOR);
-                             steps = value; break;
+                                    steps = -1; break;
+                                    
+		case  STEP:         setTimerResult=setTimer(50, &checkStepperStatus, actionNumber, motorNb, STEPMOTOR);
+                                    steps = value; break;
                              
-                case  ANGLE:  setTimerResult=setTimer(50, &checkStepperStatus, actionNumber, motorNb, STEPMOTOR);
-                              // Conversion de l'angle donné par l'utilisateur en nombre de pas
-                              double resolution = 360.0 / (sysConfig.stepper[motorNb].ratio * sysConfig.stepper[motorNb].stepPerRot);
-                              steps = value / resolution; break;
+                case  ANGLE:        setTimerResult=setTimer(50, &checkStepperStatus, actionNumber, motorNb, STEPMOTOR);
+                                    // Conversion de l'angle donné par l'utilisateur en nombre de pas
+                                    double resolution = 360.0 / (sysConfig.stepper[motorNb].ratio * sysConfig.stepper[motorNb].stepPerRot);
+                                    steps = value / resolution; break;
                               
-		case  ROTATION:  setTimerResult=setTimer(50, &checkStepperStatus, actionNumber, motorNb, STEPMOTOR);
-                                // Conversion du nombre de tours donné par l'utilisateur en nombre de pas
-                                 steps = value * sysConfig.stepper[motorNb].ratio * sysConfig.stepper[motorNb].stepPerRot; break;
-                                 
-//		case  CENTIMETER:   //motorNb = getOrganNumber(motorNb);
-//                                    body.encoder[motorNb].startEncoderValue=getMotorPulses(motorNb)*CMPP;
-//                                    body.encoder[motorNb].stopEncoderValue = body.encoder[motorNb].startEncoderValue+ value;
-//                                    setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, motorNb, STEPMOTOR); break;// D�marre un timer pour contr�le de distance chaque 35mS
-                                   
-                case  INFINITE:     setTimerResult=setTimer(500, &dummyStepperAction, actionNumber, motorNb, STEPMOTOR); break;
+		case  ROTATION:     setTimerResult=setTimer(50, &checkStepperStatus, actionNumber, motorNb, STEPMOTOR);
+                                    // Conversion du nombre de tours donné par l'utilisateur en nombre de pas
+                                    steps = value * sysConfig.stepper[motorNb].ratio * sysConfig.stepper[motorNb].stepPerRot; break;
+
+                case  INFINITE:     setTimerResult=setTimer(100, &dummyStepperAction, actionNumber, motorNb, STEPMOTOR);
+                                    steps = -1;
+                                    
+                                    break;
 		default: printf("\n!!! ERROR Function [setAsyncStepperAction] -> unknown mode");break;
 	}
 
@@ -192,7 +191,6 @@ int checkStepperStatus(int actionNumber, int encoderName){
 }
 
 int dummyStepperAction(int actionNumber, int encoderName){
-    setTimer(500, &dummyStepperAction, actionNumber, encoderName, MOTOR);
-//setStepperStepAction(motorNb, body.stepper[encoderName].speed,  body.stepper[encoderName].step );
+    setTimer(0, &dummyStepperAction, actionNumber, encoderName, STEPPER);
     return 0;
 }

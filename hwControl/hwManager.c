@@ -302,8 +302,8 @@ int setMotorDirection(int motorName, int direction){
 		case BUGGY_FORWARD :	set_i2c_command_queue(&MCP2308_DCmotorSetRotation, motorAdress, MCW); break;
 		case BUGGY_BACK :       set_i2c_command_queue(&MCP2308_DCmotorSetRotation, motorAdress, MCCW); break;
 
-		case BUGGY_STOP : 		break;
-		default :		     	break;
+		case BUGGY_STOP : 	break;
+		default :		break;
 	}
 	return(1);
 }
@@ -375,7 +375,8 @@ void checkDCmotorPower(void){
 int setStepperStepAction(int motorNumber, int direction, int stepCount){
     
     unsigned char ctrlData = 0;
-    
+    unsigned char PMAmode = 0;
+        
     switch(direction){
             case BUGGY_FORWARD :	ctrlData = 0x80; break;
             case BUGGY_BACK :           ctrlData = 0x81; break;
@@ -384,6 +385,19 @@ int setStepperStepAction(int motorNumber, int direction, int stepCount){
             default :		     	break;
     }
 
+    if(stepCount<=0)
+        // Configuration du driver pour une rotation continue
+       PMAmode = 0x00;
+    else
+        // Configuration du driver pour une action unique
+        PMAmode = 0x01;
+    
+    // Reset le registre de contronle
+    // (Indispensable pour une nouvelle action après une action infinie)
+    set_i2c_command_queue(&PCA9629_StepperMotorControl, motorNumber, 0x00);
+    
+    // Assignation du mode action continu ou unique
+    set_i2c_command_queue(&PCA9629_StepperMotorMode, motorNumber, PMAmode);
     set_i2c_command_queue(&PCA9629_StepperMotorSetStep, motorNumber, stepCount);
     set_i2c_command_queue(&PCA9629_StepperMotorControl, motorNumber, ctrlData);
 
@@ -398,6 +412,24 @@ int setStepperStepAction(int motorNumber, int direction, int stepCount){
 // - vitesse 0..100%
 // -------------------------------------------------------------------
 int setStepperSpeed(int motorNumber, int speed){
+        int regData;
+    
+    	// V�rification ratio max et min comprise entre 0..100%
+	if(speed > 100)
+		speed = 100;
+	if (speed<0)
+		speed = 1;
+
+        // Periode minimum (2mS) + vitesse en % (max 22.5mS)
+        regData = 0x029A + ((100-speed) * 75);
+       
+        printf("\n\n\n REG DATA: %4x speed: %d\n\n\n", regData, speed);
+        
+	if(motorNumber >= 0)
+		set_i2c_command_queue(&PCA9629_StepperMotorPulseWidth, motorNumber, regData);
+	else
+		printf("\n function [setStepperSpeed] : undefine motor #%d", motorNumber);
+         
     return (1);
 }                           
 
@@ -448,9 +480,6 @@ void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPerc
 // approch�e par le gestionnaire d'acceleration.
 // ---------------------------------------------------------------------------
 int setMotorSpeed(int motorName, int ratio){
-	//char motorSlot;
-	//motorSlot = getOrganNumber(motorName);
-
 	// V�rification ratio max et min comprise entre 0..100%
 	if(ratio > 100)
 		ratio = 100;

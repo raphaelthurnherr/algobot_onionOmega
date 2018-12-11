@@ -24,11 +24,10 @@ int EFM8BB_getBoardType(void);                                  // Get the type 
 
 void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
 
-int PCA9629_StepperMotorControl(int motorNumber, int data);         //Configuration du registre "PAS" du driver moteur
+int PCA9629_StepperMotorControl(int motorNumber, int data);              //Configuration du registre "PAS" du driver moteur
 int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount);         //Configuration du registre "PAS" du driver moteur
-int PCA9629_StepperMotorSetRotation(int motorNumber, int rotationCount); //Configuration du registre "ROTATION" du driver moteur
-
-
+int PCA9629_StepperMotorMode(int motorNumber, int data);                 // Mode action continue ou unique
+int PCA9629_StepperMotorPulseWidth(int motorNumber, int data);           // Définition de la largeur d'impulstion
 
 int BH1745_getRGBvalue(unsigned char sensorNb, int color);                   // Get the value for specified color
 
@@ -149,11 +148,12 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
         // le bit n�n�ssaire
 	//	SELECTION DU MOTEUR No 0
 	if(motorAdr==PCA_DCM0){
-		// D�sactive la commande du moteur
+		// Désactive la commande du moteur
 		// avant de changer de sens de rotation
 		MCP2308_GPIO_STATE &= 0xF9;
 
                 i2c_write(0, MCP2308, 0x0A, MCP2308_GPIO_STATE);
+                
 		// S�l�ction du sens de rotation du moteur ou OFF
 		switch(direction){
 			case MCW 	 :  MCP2308_GPIO_STATE |= 0x02; break;
@@ -209,27 +209,6 @@ int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount){
 }
 
 //================================================================================
-// STEPPERMOTORSETSTEP
-// Configuration du registre du nombre de rotation du driver
-//================================================================================
-int PCA9629_StepperMotorSetRotation(int motorNumber, int rotationCount){
-   	unsigned char err=0;
-	unsigned char motorAddress = 0;
-        
-        motorAddress = PCA9629 + motorNumber;
-/*
-        // Configuration du registre de nombre de rotation sens horaire
-        err += i2c_write(0, motorAddress, 0x1E, rotationCount&0x00FF);           // Défini le nombre de rotation dans le registre LOW
-        err += i2c_write(0, motorAddress, 0x1F, (rotationCount&0xFF00)>>8);    // Défini le nombre de rotation dans le registre HIGH
-
-        // Configuration du registre de nombre de rotation sens anti-horaire
-        err += i2c_write(0, motorAddress, 0x20, rotationCount&0x00FF);           // Défini le nombre de rotation dans le registre LOW
-        err += i2c_write(0, motorAddress, 0x21, (rotationCount&0xFF00)>>8);    // Défini le nombre de rotation dans le registre HIGH       
-        */
-        return(err);
-}
-
-//================================================================================
 // STEPPERMOTORCONTROL
 // Registre de commande du driver de moteur
 //================================================================================
@@ -244,6 +223,42 @@ int PCA9629_StepperMotorControl(int motorNumber, int data){
         return(err);
 }
 
+//================================================================================
+// STEPPERMOTORMODE
+// Registre de commande du mode du driver
+// Mode action continue ou mode action unique
+//================================================================================
+int PCA9629_StepperMotorMode(int motorNumber, int data){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+
+        // Configuration du registre dans le sens horaire
+        err += i2c_write(0, motorAddress, 0x0F, data & 0x00FF);           // Défini le nombre de rotation dans le registre LOW    
+        return(err);
+}
+
+//================================================================================
+// STEPPERMOTORPULSEWIDTH
+// Registre de configuration de la largeur d'impulsion moteur pour les sens CW et CCW
+// Comprise entre 2mS (500Hz) et 22.5mS(44Hz) pour bon fonctionnement du mnoteur
+//================================================================================
+int PCA9629_StepperMotorPulseWidth(int motorNumber, int data){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+
+        
+        // Configuration du registre dans le sens horaire
+        err+= i2c_write(0, PCA9629, 0x16, data & 0x00FF);         // CWPWL - Vitesse / Largeur d'impulsion pour CW
+        err+= i2c_write(0, PCA9629, 0x17, (data & 0xFF00)>>8);    // CWPWH
+        
+        err+= i2c_write(0, PCA9629, 0x18, data & 0x00FF);         // CCWPWL - Vitesse / Largeur d'impulsion pour CCW
+        err+= i2c_write(0, PCA9629, 0x19, (data & 0xFF00)>>8);    // CCWPWH
+        return(err);
+}
 
 //================================================================================
 // SETSERVOPOS
@@ -446,17 +461,17 @@ unsigned char configStepMotorDriver(void){
     err+= i2c_write(0, PCA9629, 0x0C, 0x00);    // OP_STAT_TO
     err+= i2c_write(0, PCA9629, 0x0D, 0x00);    // RUCNTL
     err+= i2c_write(0, PCA9629, 0x0E, 0x00);    // RDCNTL
-    err+= i2c_write(0, PCA9629, 0x0F, 0x01);    // PMA - Action unique
-    err+= i2c_write(0, PCA9629, 0x10, 0x05);    // LOOPDLY_CW
-    err+= i2c_write(0, PCA9629, 0x11, 0x05);    // LOOPDLY_CCW
+    err+= i2c_write(0, PCA9629, 0x0F, 0x01);    // PMA - 0x01 Action unique, 0x00 action continue
+    err+= i2c_write(0, PCA9629, 0x10, 0x05);    // LOOPDLY_CW - Pour un delais de 20ms d'inversion de sens
+    err+= i2c_write(0, PCA9629, 0x11, 0x05);    // LOOPDLY_CCW Pour un delais de 20ms d'inversion de sens
     err+= i2c_write(0, PCA9629, 0x12, 0xFF);    // CWSCOUNTL - Nombre de pas CW
     err+= i2c_write(0, PCA9629, 0x13, 0xFF);    // CWSCOUNTH
     err+= i2c_write(0, PCA9629, 0x14, 0xFF);    // CCWSCOUNTL - Nombre de pas CCW
     err+= i2c_write(0, PCA9629, 0x15, 0xFF);    // CCWSCOUNTH
-    err+= i2c_write(0, PCA9629, 0x16, 0x9A);    // CWPWL 
+    err+= i2c_write(0, PCA9629, 0x16, 0x9A);    // CWPWL - Vitesse / Largeur d'impulsion pour CW
     err+= i2c_write(0, PCA9629, 0x17, 0x02);    // CWPWH
-    err+= i2c_write(0, PCA9629, 0x18, 0x9A);    // CCWPWL
-    err+= i2c_write(0, PCA9629, 0x19, 0x02);    // CCWPWL
+    err+= i2c_write(0, PCA9629, 0x18, 0x9A);    // CCWPWL - Vitesse / Largeur d'impulsion pour CCW
+    err+= i2c_write(0, PCA9629, 0x19, 0x02);    // CCWPWH
     err+= i2c_write(0, PCA9629, 0x1A, 0x00);    // MCNTL - Registre contrôle moteur
     err+= i2c_write(0, PCA9629, 0x1B, 0xE2);    // SUBA1
     err+= i2c_write(0, PCA9629, 0x1C, 0xE4);    // SUBA2
