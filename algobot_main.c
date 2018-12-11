@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.0"
+#define FIRMWARE_VERSION "1.6.1"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -117,7 +117,6 @@ int main(int argc, char *argv[]) {
 // Cr�ation de la t�che pour la gestion hardware
 	if(InitHwManager()) printf ("#[CORE] Creation tâche hardware : ERREUR\n");
         else {
-            resetHardware();            // Reset les peripheriques hardware                    
             printf ("#[CORE] Demarrage tâche hardware: OK\n");
         }
 
@@ -135,6 +134,7 @@ int main(int argc, char *argv[]) {
 
 	// ----------- DEBUT DE LA BOUCLE PRINCIPALE ----------
         resetConfig();
+        resetHardware(&sysConfig);            // Reset les peripheriques hardware selon configuration initiale                   
         
 	while(1){
         
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
         if(sysConfig.config.reset>0){
             // Reset configuration to default value
             resetConfig();
-            resetHardware();
+            resetHardware(&sysConfig);
             systemDataStreamCounter=0;
         }
             
@@ -463,7 +463,7 @@ int processAlgoidCommand(void){
 
                                 // CONFIG COMMAND FOR SAVE
                                     if(!strcmp(AlgoidCommand.Config.config.save, "true"))
-                                        SaveConfig(&sysConfig, "algobot.cfg");
+                                        SaveConfig(&sysConfig, "kehops.cfg");
 
                                 // CONFIG COMMAND FOR RESET
                                     if(!strcmp(AlgoidCommand.Config.config.reset, "true"))
@@ -2153,11 +2153,11 @@ void resetConfig(void){
         
                 
         // Load config data
-        char configStatus = LoadConfig(&sysConfig, "algobot.cfg");
+        char configStatus = LoadConfig(&sysConfig, "kehops.cfg");
         if(configStatus<0){
-            printf("#[CORE] Load configuration file from \"algobot.cfg\": ERROR\n");
+            printf("#[CORE] Load configuration file from \"kehops.cfg\": ERROR\n");
         }else
-            printf("#[CORE] Load configuration file from \"algobot.cfg\": OK\n");
+            printf("#[CORE] Load configuration file from \"kehops.cfg\": OK\n");
             
         
         

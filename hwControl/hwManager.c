@@ -12,6 +12,7 @@
 #include "pthread.h"
 #include <unistd.h>
 #include <stdio.h>
+#include "type.h"
 #include "hwManager.h"
 
 #ifdef I2CSIMU
@@ -23,6 +24,7 @@
 #endif
 
 #include "../buggy_descriptor.h"
+#include "type.h"
 
 // Thread Messager
 pthread_t th_hwManager;
@@ -97,7 +99,7 @@ int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd);
 int getHWversion(void);                                                 // Get the hardware board version
 int getMcuFirmware(void);                                              // Get the hardware microcontroller version
 
-int resetHardware(void);
+int resetHardware(t_sysConfig * Config);
 // ------------------------------------------
 // Programme principale TIMER
 // ------------------------------------------
@@ -609,7 +611,7 @@ unsigned char getOrganI2Cregister(char organType, unsigned char organName){
 // Applique un etat initial aux moteurs, LEDS, PWM, etc...
 // -------------------------------------------------------------------
 
-int resetHardware(void){
+int resetHardware(t_sysConfig * Config){
     int i;
     
     // Etat initial des moteur
@@ -624,13 +626,17 @@ int resetHardware(void){
         setServoPosition(i, 0);
 
     // Etat initial des LED       
-    for(i=0;i<NBLED;i++)
-        setLedPower(i, 0);
-    
+    for(i=0;i<NBLED;i++){
+        if(Config->led[i].state)
+            setLedPower(i, Config->led[i].power);
+        else
+            setLedPower(i, 0);
+    }
     // Etat initial des sorties PWM LED
-    for(i=0;i<NBPWM;i++)
+    for(i=0;i<NBPWM;i++){
         setPwmPower(i,0);
-
+    }
+    
     // Etat initial des Moteur pas à pas
 //DEBUG //    for(i=0;i<NBPWM;i++)
 //        setPwmPower(i,0);    

@@ -240,7 +240,6 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
     char buffer[MAX_MQTT_BUFF];
     unsigned int buflen= MAX_MQTT_BUFF;
     int i;
-    
     // CREATE JSON STRING FOR CONFIGURATION
 	jwOpen( buffer, buflen, JW_OBJECT, JW_PRETTY );		// start root object  
         // CREATE JSON CONFIG FOR STREAM        

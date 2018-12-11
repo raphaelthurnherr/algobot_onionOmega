@@ -39,7 +39,7 @@ extern void setPwmPower(unsigned char ID, unsigned char power);
 extern int setStepperStepAction(int motorNumber, int direction, int stepCount);      // Effectue une action sur le moteur pas à pas (direction, nombre de pas)
 extern int setStepperSpeed(int motorNumber, int speed);     // Configuration de la vitesse du moteur pas à pas
 
-extern int resetHardware(void);                         // Reset les peripherique hardware (Moteur, LED, PWM, etc...)
+extern int resetHardware(t_sysConfig * Config);                         // Reset les peripherique hardware (Moteur, LED, PWM, etc...)
 
 //extern char getOrganNumber(int organName);		// Retourne le num�ro du moteur 0..xx selon le nom d'organe sp�cifi�
 
