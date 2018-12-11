@@ -23,6 +23,7 @@ int EFM8BB_getFirmwareVersion(void);                            // Get the MCU f
 int EFM8BB_getBoardType(void);                                  // Get the type of the board.
 
 void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
+void PCA9685_setServoPos(unsigned char smAddr, char position);
 
 int PCA9629_StepperMotorControl(int motorNumber, int data);              //Configuration du registre "PAS" du driver moteur
 int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount);         //Configuration du registre "PAS" du driver moteur

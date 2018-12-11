@@ -5,9 +5,12 @@
 #include "../buggy_descriptor.h"
 
 
+unsigned char buggyBoardInit(void);                             // Initialisation of the board (PWM Driver, GPIO driver, etc..)
+
 unsigned char configPWMdevice(void);                            // Configuration of the PCA9685 for 50Hz operation
 unsigned char configGPIOdevice(void);                           // Configuration IO mode of the MCP28003
 unsigned char configRGBdevice(void);                            // Configuration mode of the BH1745NUC RGB sensor
+unsigned char configStepMotorDriver(void);                           // Configuration du contrôleur de moteur pas à pas
 
 char MCP2308_ReadGPIO(unsigned char input);                     // Get the selected input value on device
 int EFM8BB_readSonarDistance(void);				// Get distance in mm from the EFM8BB microcontroller
@@ -18,9 +21,21 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb);
 int EFM8BB_clearWheelDistance(unsigned char wheelNb);
 int EFM8BB_getFirmwareVersion(void);                            // Get the MCU firmware version
 int EFM8BB_getBoardType(void);                                  // Get the type of the board.
-int BH1745_getRGBvalue(unsigned char sensorNb, int color);                              // Get the value for specified color
+
+void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
+
+int PCA9629_StepperMotorControl(int motorNumber, int data);              //Configuration du registre "PAS" du driver moteur
+int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount);         //Configuration du registre "PAS" du driver moteur
+int PCA9629_StepperMotorMode(int motorNumber, int data);                 // Mode action continue ou unique
+int PCA9629_StepperMotorPulseWidth(int motorNumber, int data);           // Définition de la largeur d'impulstion
+
+int BH1745_getRGBvalue(unsigned char sensorNb, int color);                   // Get the value for specified color
+
+int I2C_readDeviceReg(unsigned char deviceAd, unsigned char registerAdr);    // Get the value for selected register on device
+int I2C_writeDeviceReg(unsigned char deviceAd, unsigned char registerAdr, unsigned char data);    // Get the value for selected register on device
 
 unsigned char motorDCadr[2]={PCA_DCM0, PCA_DCM1};		// Valeur de la puissance moteur
+
 unsigned int pulses0, pulses1;
 
 //================================================================================
@@ -92,7 +107,65 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
     printf(" #SIMU-> DC motor rotation adress: 0x%2x with direction: %d\n", motorAdr, direction);
 }
 
+//================================================================================
+// STEPPERMOTORSETSTEP
+// Paramètrage du nombre de pas dans les registres du driver moteur pour CW et CCW
+//================================================================================
 
+int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+        
+        printf(" #SIMU-> STEP motor rotation adress: 0x%2x with step: %d\n", motorAddress, stepCount);
+	return(err);
+}
+
+//================================================================================
+// STEPPERMOTORCONTROL
+// Registre de commande du driver de moteur
+//================================================================================
+int PCA9629_StepperMotorControl(int motorNumber, int data){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+
+        printf(" #SIMU-> STEP motor CONTROL adress: 0x%2x with register data: %d\n", motorAddress, data);
+        return(err);
+}
+
+//================================================================================
+// STEPPERMOTORMODE
+// Registre de commande du mode du driver
+// Mode action continue ou mode action unique
+//================================================================================
+int PCA9629_StepperMotorMode(int motorNumber, int data){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+
+        printf(" #SIMU-> STEP motor MODE adress: 0x%2x with register data: %d\n", motorAddress, data);
+        
+        return(err);
+}
+
+//================================================================================
+// STEPPERMOTORPULSEWIDTH
+// Registre de configuration de la largeur d'impulsion moteur pour les sens CW et CCW
+// Comprise entre 2mS (500Hz) et 22.5mS(44Hz) pour bon fonctionnement du mnoteur
+//================================================================================
+int PCA9629_StepperMotorPulseWidth(int motorNumber, int data){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+
+        printf(" #SIMU-> STEP motor Pulse width adress: 0x%2x with register data: %d\n", motorAddress, data);
+        return(err);
+}
 //================================================================================
 // SETSERVOPOS
 // D�fini la position a appliquer au servomoteur
@@ -100,7 +173,7 @@ void MCP2308_DCmotorSetRotation(unsigned char motorAdr, unsigned char direction)
 // position= Angle de positionnement en degr� du servomoteur (de 0..100%)
 //================================================================================
 
-void PCA9685_setServoPos(unsigned char smAddr, unsigned char position){
+void PCA9685_setServoPos(unsigned char smAddr, char position){
     printf(" #SIMU-> SERVO motor adress: 0x%2x with position: %d\n", smAddr, position);
 }
 
