@@ -41,6 +41,10 @@ struct s_colorSensor{
         int clear;
 };
 
+struct s_stepper{
+	unsigned char isRunning;
+};
+
 typedef struct tmeasures{
 	unsigned char din[NBDIN];
 	int ain[NBAIN];
@@ -55,8 +59,12 @@ typedef struct tHWversion{
         int HWrevision;
 }t_HWversion;
 
+typedef struct motors{
+	struct s_stepper stepper[NBSTEPPER];
+}t_motors;
 
 t_measure sensor;
+t_motors motor;
 t_HWversion BoardInfo;
 
 int i2c_command_queuing[50][3];
@@ -86,6 +94,7 @@ unsigned char getMotorPower(unsigned char motorNr);											// Retourne la vel
 
 int setStepperStepAction(int motorNumber, int direction, int stepCount);      // Effectue une action sur le moteur pas à pas (direction, nombre de pas)
 int setStepperSpeed(int motorNumber, int speed);                              // Configuration de la vitesse du moteur pas à pas
+int getStepperState(int motorNumber);                              // Récupère l'état actuel du moteur pas à pas (run/off)
 
 
 void setServoPosition(unsigned char smName, char position);
@@ -167,7 +176,9 @@ void *hwTask (void * arg){
                         case 36 : sensor.RGBC[RGBC_SENS_1].red = BH1745_getRGBvalue(RGBC_SENS_1, RED) ;
                                   sensor.RGBC[RGBC_SENS_1].green = BH1745_getRGBvalue(RGBC_SENS_1, GREEN) ;
                                   sensor.RGBC[RGBC_SENS_1].blue = BH1745_getRGBvalue(RGBC_SENS_1, BLUE) ;
-                                  sensor.RGBC[RGBC_SENS_1].clear = BH1745_getRGBvalue(RGBC_SENS_1, CLEAR) ; break;                              
+                                  sensor.RGBC[RGBC_SENS_1].clear = BH1745_getRGBvalue(RGBC_SENS_1, CLEAR) ; break;
+                        
+                        case 40 : motor.stepper[STEPPER_0].isRunning = PCA9629_ReadMotorState(STEPPER_0) & 0x80; break;
                                 
 			default: 
                             if(i2c_command_queuing[0][CALLBACK]!=0)processCommandQueue(); break;
@@ -425,7 +436,7 @@ int setStepperSpeed(int motorNumber, int speed){
         // Periode minimum (2mS) + vitesse en % (max 22.5mS)
         regData = 0x029A + ((100-speed) * 75);
        
-        printf("\n\n\n REG DATA: %4x speed: %d\n\n\n", regData, speed);
+//        printf("\n\n\n REG DATA: %4x speed: %d\n\n\n", regData, speed);
         
 	if(motorNumber >= 0)
 		set_i2c_command_queue(&PCA9629_StepperMotorPulseWidth, motorNumber, regData);
@@ -436,6 +447,14 @@ int setStepperSpeed(int motorNumber, int speed){
 }                           
 
 // -------------------------------------------------------------------
+// GETSTEPPERSTATE
+// Récupère l'état actuel du moteur pas à pas (run/off)
+// - Numéro de moteur
+// -------------------------------------------------------------------
+int getStepperState(int motorNumber){
+    return motor.stepper[motorNumber].isRunning;
+}                              
+//-----------------------------------------------------------------
 // GETMOTORPOWER
 // Retourne l'�tat actuelle de la puissance du moteur selectionn�
 // -------------------------------------------------------------------

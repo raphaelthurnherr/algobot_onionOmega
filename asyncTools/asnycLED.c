@@ -136,7 +136,7 @@ int checkBlinkLedCount(int actionNumber, int ledName){
             if(blinkCount >= body.led[ledName].blinkCount-1){
                 body.led[ledName].state=LEDtoggleState[ledName];      // Update the actual state of led
                 endLedAction(actionNumber, ledName);
-                blinkCount=0;                                   // Reset le compteur
+                    blinkCount=0;                                     // Reset le compteur
             }
             else{
                     setTimer(body.led[ledName].blinkTime, &checkBlinkLedCount, actionNumber, ledName, LED);                    

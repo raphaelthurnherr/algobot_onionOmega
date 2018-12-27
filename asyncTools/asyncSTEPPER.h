@@ -16,8 +16,8 @@
 
 int setAsyncStepperAction(int actionNumber, int motorNb, int veloc, char unit, int value);
 int endStepperAction(int actionNumber, int motorNb);
-int checkStepperStatus(int actionNumber, int encoderName);
-int dummyStepperAction(int actionNumber, int encoderName);
+int checkStepperStatus(int actionNumber, int motorName);
+int dummyStepperAction(int actionNumber, int motorName);
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.1"
+#define FIRMWARE_VERSION "1.6.1b"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -1696,6 +1696,10 @@ void distanceEventCheck(void){
 				if(distWarningSended[i]==0){													// N'envoie l' event qu'une seule fois
 					AlgoidResponse[i].DISTresponse.id=i;
 					AlgoidResponse[i].value=body.distance[i].value;
+
+                                        if(body.distance[i].event_enable) strcpy(AlgoidResponse[i].DISTresponse.event_state, "on");
+                                        else strcpy(AlgoidResponse[i].DISTresponse.event_state, "off");
+                                        
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DISTANCE, NBSONAR);
 					distWarningSended[i]=1;
                                         
@@ -1708,6 +1712,10 @@ void distanceEventCheck(void){
 			else if (distWarningSended[i]==1){													// Mesure de distance revenu dans la plage
 					AlgoidResponse[i].DISTresponse.id=i;							// Et n'envoie qu'une seule fois le message
 					AlgoidResponse[i].value=body.distance[i].value;
+
+                                        if(body.distance[i].event_enable) strcpy(AlgoidResponse[i].DISTresponse.event_state, "on");
+                                        else strcpy(AlgoidResponse[i].DISTresponse.event_state, "off");
+                                        
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DISTANCE, NBSONAR);
 					distWarningSended[i]=0;
                                         
@@ -1768,7 +1776,8 @@ void batteryEventCheck(void){
 			// Envoie un �venement Fin de niveau bas (+50mV Hysterese)
 			else if (battWarningSended[i]==1 && body.battery[i].value > (body.battery[i].event_low + body.battery[i].event_hysteresis)){				// Mesure tension dans la plage
 					AlgoidResponse[i].BATTesponse.id=i;											// n'envoie qu'une seule fois apr�s
-					AlgoidResponse[i].value=body.battery[i].value;											// une hysterese de 50mV
+					AlgoidResponse[i].value=body.battery[i].value;
+                                        // une hysterese de 50mV
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BATTERY, 1);
 					battWarningSended[i]=0;
                                         
@@ -1801,6 +1810,10 @@ void DINEventCheck(void){
 		if(body.proximity[i].event_enable && (oldDinValue[i] != body.proximity[i].state)){
 			AlgoidResponse[ptrBuff].DINresponse.id=i;
 			AlgoidResponse[ptrBuff].value=body.proximity[i].state;
+
+                        if(body.proximity[i].event_enable) strcpy(AlgoidResponse[ptrBuff].DINresponse.event_state, "on");
+                        else strcpy(AlgoidResponse[ptrBuff].DINresponse.event_state, "off");     
+                        
 			ptrBuff++;
 			//printf("CHANGEMENT DIN%d, ETAT:%d\n", i, body.proximity[i].state);
 			DINevent++;
@@ -1839,6 +1852,10 @@ void BUTTONEventCheck(void){
 		if(body.button[i].event_enable && (oldBtnValue[i] != body.button[i].state)){
 			AlgoidResponse[ptrBuff].BTNresponse.id=i;
 			AlgoidResponse[ptrBuff].value=body.button[i].state;
+
+                        if(body.button[i].event_enable) strcpy(AlgoidResponse[ptrBuff].BTNresponse.event_state, "on");
+                        else strcpy(AlgoidResponse[ptrBuff].BTNresponse.event_state, "off");
+                        
 			ptrBuff++;
 //			printf("CHANGEMENT BOUTON %d, ETAT:%d\n", i, body.button[i].state);
 			BTNevent++;
@@ -1896,7 +1913,7 @@ void COLOREventCheck(void){
 
 			if(body.rgb[i].red.value > body.rgb[i].red.event_high) redHighDetected = 1;
 			else redHighDetected = 0;
-
+                        
 			// Evaluation des alarmes � envoyer
 			if((redLowDetected && !red_event_low_disable) || (redHighDetected && !red_event_high_disable)){				// Mesure tension hors plage
 				if(RGB_red_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT

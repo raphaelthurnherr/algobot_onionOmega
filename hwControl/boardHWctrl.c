@@ -29,8 +29,8 @@ int PCA9629_StepperMotorControl(int motorNumber, int data);              //Confi
 int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount);         //Configuration du registre "PAS" du driver moteur
 int PCA9629_StepperMotorMode(int motorNumber, int data);                 // Mode action continue ou unique
 int PCA9629_StepperMotorPulseWidth(int motorNumber, int data);           // Définition de la largeur d'impulstion
-
-int BH1745_getRGBvalue(unsigned char sensorNb, int color);                   // Get the value for specified color
+int PCA9629_ReadMotorState(int motorNumber);                             // Lecture du registre de contrôle du moteur
+int BH1745_getRGBvalue(unsigned char sensorNb, int color);               // Get the value for specified color
 
 int I2C_readDeviceReg(unsigned char deviceAd, unsigned char registerAdr);    // Get the value for selected register on device
 int I2C_writeDeviceReg(unsigned char deviceAd, unsigned char registerAdr, unsigned char data);    // Get the value for selected register on device
@@ -222,6 +222,30 @@ int PCA9629_StepperMotorControl(int motorNumber, int data){
         // Configuration du registre dans le sens horaire
         err += i2c_write(0, motorAddress, 0x1A, data & 0x00FF);           // Défini le nombre de rotation dans le registre LOW    
         return(err);
+}
+
+//================================================================================
+// READMOTORSTATE
+// Lecture de l'état actuel du moteur (run/stop)
+//================================================================================
+int PCA9629_ReadMotorState(int motorNumber){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        int regState = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+
+        // LEcture du registre de controle du driver moteur
+        //err += i2c_write(0, motorAddress, 0x1A, data & 0x00FF);           // Défini le nombre de rotation dans le registre LOW    
+        err += i2c_readByte(0, motorAddress, 0x1A, &regState);
+        //printf("\nRegister motor State: %d\n", regState);
+        
+        if(!err){    
+            return regState;
+	}else{
+            printf("PCA9629_ReadMotorState() -> Read error\n");
+            return -1;
+        }
 }
 
 //================================================================================

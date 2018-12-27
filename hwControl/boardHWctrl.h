@@ -60,29 +60,6 @@
 
 #endif
 
-#ifdef BOARD_BETA
-    #define  MCP2308               	0x20	// Device address for GPIO controller
-    #define  EFM8BB               	0x0A	// Device address for EFM8BB microcontroller
-    #define  PCA9685               	0x40 	// Device address for PWM controller
-    #define PCA_PWM_ALL_ADR			0xFC	// PCA9685 all call address
-
-    #define PCA_DCM0				0x08	// PCA9685 Output 0 address (Motor 0 speed pwm)
-    #define PCA_DCM1				0x0C	// PCA9685 Output 1 address (Motor 1 speed pwm)
-
-    #define PCA_LED0				0x10	// PCA9685 Output 2 address (Led 0 pwm)
-    #define PCA_LED1				0x14	// PCA9685 Output 3 address (Led 1 pwm)
-    #define PCA_LED2				0x18	// PCA9685 Output 4 address (Led 2 pwm)
-
-    #define PCA_SRM0				0x3C	// PCA9685 Output 13 address (Servomotor 0 pwm)
-    #define PCA_SRM1				0x40	// PCA9685 Output 14 address (Servomotor 1 pwm)
-    #define PCA_SRM2				0x44	// PCA9685 Output 15 address (Servomotor 2 pwm)
-
-    #define MCW 			0
-    #define MCCW			1
-    #define MSTOP 			2
-#endif
-
-
 extern unsigned char buggyBoardInit(void);
 extern unsigned char motorDCadr[2];                                             // Valeur de la puissance moteur
 
@@ -97,6 +74,7 @@ extern int PCA9629_StepperMotorControl(int motorNumber, int data);              
 extern int PCA9629_StepperMotorSetStep(int motorNumber, int stepCount);         //Configuration du registre "PAS" du driver moteur
 extern int PCA9629_StepperMotorMode(int motorNumber, int data);                 // Mode action continue ou unique
 extern int PCA9629_StepperMotorPulseWidth(int motorNumber, int data);           // Registre de configuration de la largeur d'impulsion moteur pour les sens CW et CCW
+extern int PCA9629_ReadMotorState(int motorNumber);                             // Lecture du registre de contrôle du moteur
 //extern void setDCmotorPower(unsigned char motorAdr, unsigned char power);
 
 extern int EFM8BB_readSonarDistance(void);					// Get distance in mm from the EFM8BB microcontroller
