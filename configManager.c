@@ -19,6 +19,11 @@
 #define FILE_KEY_CONFIG_MOTOR_ID "{'motor'[*{'motor'"
 #define FILE_KEY_CONFIG_MOTOR_INVERT "{'motor'[*{'inverted'"
 
+#define FILE_KEY_CONFIG_WHEEL "{'wheel'"
+#define FILE_KEY_CONFIG_WHEEL_ID "{'wheel'[*{'wheel'"
+#define FILE_KEY_CONFIG_WHEEL_PULSES "{'wheel'[*{'pulses'"
+#define FILE_KEY_CONFIG_WHEEL_DIAMETER "{'wheel'[*{'diameter'"
+
 #define FILE_KEY_CONFIG_STEPPER "{'stepper'"
 #define FILE_KEY_CONFIG_STEPPER_ID "{'stepper'[*{'motor'"
 #define FILE_KEY_CONFIG_STEPPER_INVERT "{'stepper'[*{'inverted'"
@@ -28,6 +33,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "type.h"
 #include "libs/lib_json/jRead.h"
@@ -124,7 +130,6 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                 }
 
         // EXTRACT MOTOR SETTINGS FROM CONFIG    
-
             // Reset motor data config before reading
             for(i=0;i<NBMOTOR;i++){
               Config->motor[i].inverted=-1;
@@ -154,8 +159,38 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                     }
                 }
             }
+            
+        // EXTRACT WHEEL SETTINGS FROM CONFIG    
+            // Reset motor data config before reading
+            for(i=0;i<NBMOTOR;i++){
+              Config->wheel[i].diameter=-1;
+              Config->wheel[i].pulsePerRot=-1;
+              Config->wheel[deviceId]._MMPP=-1;
+            }
 
-        // Reset motor data config before reading
+        // Wheel Setting
+            jRead((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL, &cfg_devices_list );
+
+            // RECHERCHE DATA DE TYPE ARRAY
+            if(cfg_devices_list.dataType == JREAD_ARRAY ){
+                // Get the number of motors in array
+                nbOfDeviceInConf=cfg_devices_list.elements;
+
+                for(i=0; i < nbOfDeviceInConf; i++){ 
+                    deviceId=-1;
+                    deviceId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_ID, &i); 
+
+                    if(deviceId >= 0 && deviceId < NBMOTOR){
+                        Config->wheel[deviceId].diameter=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_DIAMETER, &i);
+                        Config->wheel[deviceId].pulsePerRot=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_PULSES, &i);
+                        Config->wheel[deviceId]._MMPP = (Config->wheel[deviceId].diameter * 3.1415926535897932384) / Config->wheel[deviceId].pulsePerRot;
+                    }
+                }
+            }
+            
+        // EXTRACT STEPPER MOPTOR SETTINGS FROM CONFIG
+        
+            // Reset motor data config before reading
         for(i=0;i<NBSTEPPER;i++){
           Config->stepper[i].inverted=-1;
           Config->stepper[i].ratio=-1;
@@ -273,6 +308,17 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
                     jwEnd();
                 } 
             jwEnd();
+            
+        // CREATE JSON CONFIG FOR WHEEL SETTING            
+            jwObj_array("wheel");
+                for(i=0;i<NBMOTOR;i++){
+                    jwArr_object();
+                        jwObj_int( "wheel", i);
+                        jwObj_int( "diameter", Config->wheel[i].diameter);
+                        jwObj_int( "pulses", Config->wheel[i].pulsePerRot);
+                    jwEnd();
+                } 
+            jwEnd();            
             
         // CREATE JSON CONFIG FOR STEPPER MOTOR            
             jwObj_array("stepper");

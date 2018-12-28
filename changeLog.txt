@@ -1,0 +1,27 @@
+Version 1.6.2 - 28.12.2018
+--------------------------
+
+- Add possibility to change wheel and encoder settings from configuration message
+  More info http://kehops.io/doku.php?id=communication:mqttmessage#configuration_kehops
+
+- Internet status is working (ping the kehops cloud server)
+
+- Change read sequence for motor frequency et distance from EFM8 IC
+  Now, left and right wheel are reading in same time for distance and later
+  left and right wheel are reading in same time for speed.
+
+Version 1.6.1b - 27.12.2018
+---------------------------
+
+- Stepper motor send event "END" when there are positionned
+- FIX "clear" event state for DIN, BUTTON, SONAR, etc on event topic
+
+Version 1.6.1  - 11.12.2018
+---------------------------
+- Update of "Hardware" source file for simulator distribution
+- Adding default leds state at startup from configuration file
+
+Version 1.6.0  - 11.12.2018
+---------------------------
+- Update of "Hardware" source file for simulator distribution
+- Add full support for Stepper motor (configuration file, JSON message, events, etc...)

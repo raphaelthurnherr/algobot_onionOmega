@@ -86,6 +86,12 @@ struct mMotConfig{
 	char inverted[25];
 };
 
+struct mWheelConfig{
+	int id;
+	int diameter;
+	int pulsesPerRot;
+};
+
 struct mStepperConfig{
         int id;
 	char inverted[25];
@@ -104,9 +110,11 @@ struct mConfig{
         int motValueCnt;
         int ledValueCnt;
         int stepperValueCnt;
+        int wheelValueCnt;
 	struct mStream stream;
         struct mAppConf config;
         struct mMotConfig motor[10];
+        struct mWheelConfig wheel[10];
         struct mStepperConfig stepper[10];
         struct mLedConfig led[10];
 };

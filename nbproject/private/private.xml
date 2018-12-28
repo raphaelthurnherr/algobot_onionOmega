@@ -7,10 +7,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/boardHWctrl.h</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/boardHWsimu.c</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/boardHWsimu.h</file>
+            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/hwManager.c</file>
+            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/asyncTools/asyncMOTOR.c</file>
             <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/algobot_main.c</file>
+            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/changeLog.txt</file>
             <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/boardHWctrl.c</file>
         </group>
     </open-files>

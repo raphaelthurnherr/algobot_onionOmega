@@ -536,7 +536,7 @@ int EFM8BB_readSonarDistance(void){
         err+=i2c_readByte(0, EFM8BB, SON0+1, &mmMSB);
         
 	if(!err){              
-                SonarDistance_mm=mmLSB + (mmMSB<<8);
+                SonarDistance_mm=((mmMSB<<8) & 0xFF00) + mmLSB;
                 return SonarDistance_mm;
 	}else{
             printf("EFM8BB_readSonarDistance() -> Read error\n");
@@ -562,7 +562,7 @@ int EFM8BB_readBatteryVoltage(void){
         err=i2c_readByte(0, EFM8BB, VOLT0, &mVLSB);
         err+=i2c_readByte(0, EFM8BB, VOLT0+1, &mVMSB);
 	if(!err){
-                batteryVoltage_mV=mVLSB + (mVMSB<<8);
+                batteryVoltage_mV=((mVMSB<<8) & 0xFF00) + mVLSB;
 		return batteryVoltage_mV;
 	}else{
             printf("EFM8BB_readBatteryVoltage() -> Read error\n");
@@ -577,15 +577,21 @@ int EFM8BB_readBatteryVoltage(void){
 // -------------------------------------------------------------------
 int EFM8BB_readFrequency(unsigned char wheelNb){
 	unsigned char err, regAddr;
-	unsigned int freq;
+	unsigned int freqLSB=0;
+        unsigned int freqMSB=0;
+        int frequency = 0;
 
-	if(wheelNb==0) regAddr = ENC_FREQ0;
+	if(wheelNb==MOTOR_ENCODER_LEFT) regAddr = ENC_FREQ0;
 	else regAddr = ENC_FREQ1;
 
-	freq=0;							// RAZ de la variable
-        err=i2c_readByte(0, EFM8BB, regAddr, &freq);
+							// RAZ de la variable
+        err += i2c_readByte(0, EFM8BB, regAddr, &freqLSB);
+        //err += i2c_readByte(0, EFM8BB, regAddr+1, &freqMSB);
+        
+        //frequency = (freqMSB<<8) + freqLSB;
+        
 	if(!err){    
-		return freq;
+		return freqLSB;
 	}else{
             printf("EFM8BB_readFrequency() -> Read error\n");
             return -1;
@@ -613,9 +619,10 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb){
 	pulseCount=0;							// RAZ de la variable
 
         err=i2c_readByte(0, EFM8BB, regAddr, &pcLSB);
+        usleep(1000);
         err+=i2c_readByte(0, EFM8BB, regAddr+1, &pcMSB);
         
-        pulseCount=pcLSB + (pcMSB<<8);
+        pulseCount = ((pcMSB<<8) & 0xFF00) + pcLSB;
                 
 	if(!err){
 		return pulseCount;

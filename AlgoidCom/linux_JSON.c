@@ -65,6 +65,11 @@
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_ID "{'MsgData'{'MsgValue'[{'motor'[*{'motor'"
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT "{'MsgData'{'MsgValue'[{'motor'[*{'inverted'"
 
+#define KEY_MESSAGE_VALUE_CFG_WHEEL "{'MsgData'{'MsgValue'[*{'wheel'"
+#define KEY_MESSAGE_VALUE_CFG_WHEEL_ID "{'MsgData'{'MsgValue'[{'wheel'[*{'wheel'"
+#define KEY_MESSAGE_VALUE_CFG_WHEEL_DIAMETER "{'MsgData'{'MsgValue'[{'wheel'[*{'diameter'"
+#define KEY_MESSAGE_VALUE_CFG_WHEEL_PULSES "{'MsgData'{'MsgValue'[{'wheel'[*{'pulses'"
+
 #define KEY_MESSAGE_VALUE_CFG_STEPPER "{'MsgData'{'MsgValue'[*{'stepper'"
 #define KEY_MESSAGE_VALUE_CFG_STEPPER_ID "{'MsgData'{'MsgValue'[{'stepper'[*{'motor'"
 #define KEY_MESSAGE_VALUE_CFG_STEPPER_INVERT "{'MsgData'{'MsgValue'[{'stepper'[*{'inverted'"
@@ -299,6 +304,22 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                                         jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT, AlgoidMessageRX.Config.motor[i_dev].inverted, 15, &i_dev ); 
                                                     }
                                                 }
+
+                                            // Wheel Setting
+                                                jRead((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_WHEEL, &cfg_device_list );
+
+                                                // RECHERCHE DATA DE TYPE ARRAY
+                                                if(cfg_device_list.dataType == JREAD_ARRAY ){
+                                                    // Get the number of motors in array
+                                                    nbOfdeviceInConf=cfg_device_list.elements;
+                                                    AlgoidMessageRX.Config.wheelValueCnt=nbOfdeviceInConf;
+                                                    
+                                                    for(i_dev=0; i_dev < nbOfdeviceInConf; i_dev++){                 
+                                                        AlgoidMessageRX.Config.wheel[i_dev].id=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_WHEEL_ID, &i_dev); 
+                                                        AlgoidMessageRX.Config.wheel[i_dev].diameter=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_WHEEL_DIAMETER, &i_dev); 
+                                                        AlgoidMessageRX.Config.wheel[i_dev].pulsesPerRot=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_WHEEL_PULSES, &i_dev);
+                                                    }
+                                                }                                                
                                                 
                                                 // Stepper motor Setting
                                                 jRead((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_STEPPER, &cfg_device_list );
@@ -734,6 +755,34 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                                                     } 
                                                                                                                 jwEnd();
                                                                                                             }
+                                                                                                            
+                                                                                                        // CREATE JSON CONFIG FOR WHEEL  
+                                                                                                            if(AlgoidResponse[i].CONFIGresponse.wheelValueCnt > 0){
+                                                                                                                jwObj_array("wheel");
+                                                                                                                    for(j=0;j<AlgoidResponse[i].CONFIGresponse.wheelValueCnt;j++){
+                                                                                                                        jwArr_object();
+                                                                                                                            jwObj_int( "wheel", AlgoidResponse[i].CONFIGresponse.wheel[j].id);
+                                                                                                                            jwObj_int("diameter", AlgoidResponse[i].CONFIGresponse.wheel[j].diameter);
+                                                                                                                            jwObj_int("pulses", AlgoidResponse[i].CONFIGresponse.wheel[j].pulsesPerRot);
+                                                                                                                        jwEnd();
+                                                                                                                    } 
+                                                                                                                jwEnd();
+                                                                                                            }         
+
+                                                                                                        // CREATE JSON CONFIG FOR STEPPER  
+                                                                                                            if(AlgoidResponse[i].CONFIGresponse.stepperValueCnt > 0){
+                                                                                                                jwObj_array("stepper");
+                                                                                                                    for(j=0;j<AlgoidResponse[i].CONFIGresponse.wheelValueCnt;j++){
+                                                                                                                        jwArr_object();
+                                                                                                                            jwObj_int( "motor", AlgoidResponse[i].CONFIGresponse.stepper[j].id);
+                                                                                                                            jwObj_string("inverted", AlgoidResponse[i].CONFIGresponse.stepper[j].inverted);
+                                                                                                                            jwObj_int("ratio", AlgoidResponse[i].CONFIGresponse.stepper[j].ratio);
+                                                                                                                            jwObj_int("steps", AlgoidResponse[i].CONFIGresponse.stepper[j].stepsPerRot);
+                                                                                                                        jwEnd();
+                                                                                                                    } 
+                                                                                                                jwEnd();
+                                                                                                            }                                                                                                              
+                  
                                                                                                             
                                                                                                         // CREATE JSON CONFIG FOR LED
                                                                                                             if(AlgoidResponse[i].CONFIGresponse.ledValueCnt > 0){

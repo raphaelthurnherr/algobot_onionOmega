@@ -100,6 +100,11 @@ struct m_LedConfig{
         char isServoMode;
 };
 
+struct m_WheelConfig{
+        int  pulsePerRot;
+        int  diameter;
+        float _MMPP;
+};
 
 struct m_color{
         int value;
@@ -146,6 +151,7 @@ typedef struct tConfig{
 	struct m_dataStream dataStream;   
         struct m_AppConf config;  
         struct m_MotConfig motor[NBMOTOR];
+        struct m_WheelConfig wheel[NBMOTOR];
         struct m_LedConfig led[NBLED];
         struct m_StepperConfig stepper[NBSTEPPER];
 }t_sysConfig;

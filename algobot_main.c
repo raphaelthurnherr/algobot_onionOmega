@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.1b"
+#define FIRMWARE_VERSION "1.6.2"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -73,6 +73,7 @@ int getLedSetting(int name);
 
 int runUpdateCommand(int type);
 void runRestartCommand(void);
+int runCloudTestCommand(void);
 
 void resetConfig(void);
 
@@ -135,6 +136,13 @@ int main(int argc, char *argv[]) {
 	// ----------- DEBUT DE LA BOUCLE PRINCIPALE ----------
         resetConfig();
         resetHardware(&sysConfig);            // Reset les peripheriques hardware selon configuration initiale                   
+
+        // Check internet connectivity
+        if(runCloudTestCommand())
+            printf ("#[CORE] Connexion au serveur cloud OK\n");
+        else 
+            printf ("#[CORE] Connexion au serveur cloud ERREUR !\n");
+            
         
 	while(1){
         
@@ -144,6 +152,7 @@ int main(int argc, char *argv[]) {
             resetConfig();
             resetHardware(&sysConfig);
             systemDataStreamCounter=0;
+            runCloudTestCommand();
         }
             
         // Controle periodique de l'envoie du flux de donnees des capteurs (status)
@@ -204,9 +213,11 @@ int main(int argc, char *argv[]) {
 
                         for(i=0;i<NBMOTOR;i++){
                             
-                            body.motor[i].speed= (getMotorFrequency(i)*CMPP) * body.motor[i].direction;
+                            // Convert millimeter per pulse to centimeter per pulse and calculation of distance
+                            body.motor[i].speed= (getMotorFrequency(i) * (sysConfig.wheel[i]._MMPP / 10)) * body.motor[i].direction;
                             //printf("\n----- SPEED #%d:  %d -----\n",i, body.motor[i].speed);
-                            body.motor[i].distance=getMotorPulses(i)*CMPP;
+                            body.motor[i].distance = getMotorPulses(i) * (sysConfig.wheel[i]._MMPP / 10);
+                            printf("\n----- DISTANCE #%d:  %d -----\n",i, body.motor[i].distance);
                         }
 
 			DINEventCheck();										// Cont�le de l'�tat des entr�es num�rique
@@ -412,6 +423,23 @@ int processAlgoidCommand(void){
                                         else
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].id=-1;
                                     }
+
+                                // CONFIG COMMAND FOR WHEEL SETTING
+                                    for(i=0;i<AlgoidCommand.Config.wheelValueCnt; i++){
+                                        AlgoidResponse[valCnt].CONFIGresponse.wheelValueCnt=AlgoidCommand.Config.wheelValueCnt;
+                                        // Check if motor exist...
+                                        if(AlgoidCommand.Config.wheel[i].id >= 0 && AlgoidCommand.Config.wheel[i].id <NBMOTOR){
+                                            // Save config for motor inversion
+                                                sysConfig.wheel[AlgoidCommand.Config.wheel[i].id].diameter = AlgoidCommand.Config.wheel[i].diameter;
+                                                sysConfig.wheel[AlgoidCommand.Config.wheel[i].id].pulsePerRot = AlgoidCommand.Config.wheel[i].pulsesPerRot;
+                                                // Calculation of value for centimeter for each pulse
+                                                sysConfig.wheel[AlgoidCommand.Config.wheel[i].id]._MMPP = (sysConfig.wheel[AlgoidCommand.Config.wheel[i].id].diameter * 3.1415926535897932384)/sysConfig.wheel[AlgoidCommand.Config.wheel[i].id].pulsePerRot;
+
+                                            AlgoidResponse[valCnt].CONFIGresponse.wheel[i].id = AlgoidCommand.Config.wheel[i].id;
+                                        }
+                                        else
+                                            AlgoidResponse[valCnt].CONFIGresponse.wheel[i].id=-1;
+                                    }                                    
                                     
                                 // CONFIG COMMAND FOR STEPPER SETTING
                                     for(i=0;i<AlgoidCommand.Config.stepperValueCnt; i++){
@@ -507,7 +535,7 @@ int processAlgoidCommand(void){
                                     char message[100];
                                     
                                     switch(updateResult){
-                                        case 1 :  strcpy(AlgoidResponse[0].SYSCMDresponse.application, "connection error"); break;
+                                        case 1 :   strcpy(AlgoidResponse[0].SYSCMDresponse.application, "connection error"); break;
                                         case 10 :  strcpy(AlgoidResponse[0].SYSCMDresponse.application, "update available"); break;
                                         case 11 :  strcpy(AlgoidResponse[0].SYSCMDresponse.application, "no update"); break;
                                         default:   
@@ -2081,8 +2109,19 @@ void runRestartCommand(void){
 
         sendMqttReport(AlgoidCommand.msgID, "WARNING ! APPLICATION WILL RESTART ");// Envoie le message sur le canal MQTT "Report"   
         status=system("sh /root/algobotManager.sh restart");
-    
     printf ("---------- End of bash script ------------\n");
+}
+
+int runCloudTestCommand(void){
+    int status=0;
+        sendMqttReport(AlgoidCommand.msgID, "Try to ping cloud server on vps596769.ovh.net...");// Envoie le message sur le canal MQTT "Report"   
+        status=system("ping -q -c 2 -t 1000 vps596769.ovh.net");
+        printf("------------- ping status on vps596769.ovh.net: %d\n", status);
+        if(status != 0)
+            sysInfo.wan_online = 0;
+        else sysInfo.wan_online = 1;
+   
+    return sysInfo.wan_online;
 }
 
 void resetConfig(void){

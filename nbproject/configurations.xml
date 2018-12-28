@@ -123,6 +123,7 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <itemPath>hwControl/changeLog.txt</itemPath>
     <itemPath>toDo</itemPath>
   </logicalFolder>
   <sourceRootList>
@@ -373,6 +374,8 @@
       <item path="hwControl/boardHWsimu.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="hwControl/boardHWsimu.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hwControl/changeLog.txt" ex="false" tool="3" flavor2="0">
       </item>
       <item path="hwControl/hwManager.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -651,6 +654,8 @@
       </item>
       <item path="hwControl/boardHWsimu.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="hwControl/changeLog.txt" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="hwControl/hwManager.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="hwControl/hwManager.h" ex="false" tool="3" flavor2="0">
@@ -919,6 +924,8 @@
       <item path="hwControl/boardHWsimu.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="hwControl/boardHWsimu.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hwControl/changeLog.txt" ex="false" tool="3" flavor2="0">
       </item>
       <item path="hwControl/hwManager.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -1190,6 +1197,8 @@
       <item path="hwControl/boardHWsimu.c" ex="false" tool="0" flavor2="9">
       </item>
       <item path="hwControl/boardHWsimu.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hwControl/changeLog.txt" ex="false" tool="3" flavor2="0">
       </item>
       <item path="hwControl/hwManager.c" ex="false" tool="0" flavor2="9">
       </item>

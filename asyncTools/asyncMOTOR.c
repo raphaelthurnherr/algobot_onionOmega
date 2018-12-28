@@ -58,7 +58,7 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 	switch(unit){
 		case  MILLISECOND:  setTimerResult=setTimer(value, &endWheelAction, actionNumber, motorNb, MOTOR); break;
 		case  CENTIMETER:   //motorNb = getOrganNumber(motorNb);
-                                    body.encoder[motorNb].startEncoderValue=getMotorPulses(motorNb)*CMPP;
+                                    body.encoder[motorNb].startEncoderValue=getMotorPulses(motorNb)*(sysConfig.wheel[motorNb]._MMPP/10); // (/10 = Convert millimeter per pulse to centimeter per pulse)
                                     body.encoder[motorNb].stopEncoderValue = body.encoder[motorNb].startEncoderValue+ value;
                                     setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, motorNb, MOTOR); break;// D�marre un timer pour contr�le de distance chaque 35mS
                                    
@@ -162,7 +162,7 @@ int checkMotorEncoder(int actionNumber, int encoderName){
 	distance = getMotorPulses(encoderName);
 
 	if(distance >=0){
-		distance = (distance*CMPP);
+		distance = distance * (sysConfig.wheel[encoderName]._MMPP/10);
     	usleep(2200);
 	}else  printf("\n ERROR: I2CBUS READ\n");
 	//printf("\n Encodeur #%d -> START %.2f cm  STOP %.2f cm", encoderNumber, startEncoderValue[encoderNumber], stopEncoderValue[encoderNumber]);
