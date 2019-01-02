@@ -47,7 +47,8 @@ typedef enum msgparam{
 
 struct m2wd{
 	int motor;
-	int velocity;
+	int speed;
+        int velocity;
 	int time;
 	int cm;
 	int accel;

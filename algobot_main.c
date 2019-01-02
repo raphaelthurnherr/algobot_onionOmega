@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.2"
+#define FIRMWARE_VERSION "1.6.2a"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -214,12 +214,18 @@ int main(int argc, char *argv[]) {
                         for(i=0;i<NBMOTOR;i++){
                             
                             // Convert millimeter per pulse to centimeter per pulse and calculation of distance
-                            body.motor[i].speed= (getMotorFrequency(i) * (sysConfig.wheel[i]._MMPP / 10)) * body.motor[i].direction;
-                            //printf("\n----- SPEED #%d:  %d -----\n",i, body.motor[i].speed);
-                            body.motor[i].distance = getMotorPulses(i) * (sysConfig.wheel[i]._MMPP / 10);
-                            printf("\n----- DISTANCE #%d:  %d -----\n",i, body.motor[i].distance);
+                            body.motor[i].speed_cmS = (float)(getMotorFrequency(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
+                            body.motor[i].distance_cm = (float)(getMotorPulses(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
+                            //printf("\n----- SPEED #: %d -----\n", body.motor[i].speed_cmS);
+                            //printf("\n----- DISTANCE #%d:  %2f -----\n",i, body.motor[i].distance_cm);
                         }
 
+                       //printf("\n----- SPEED #: %d  -  %d -----\n", body.motor[0].speed_cmS, body.motor[1].speed_cmS);
+                        
+                       int setpoint = PID_speedControl(body.motor[0].speed_cmS, body.motor[0].velocity);
+                       printf("\n----- PID TEST # SetPointSpeed: %d  Speed: %d   PID_Power: %d -----\n", body.motor[0].velocity, body.motor[0].speed_cmS, setpoint);
+                       setMotorSpeed(0, setpoint);
+                       
 			DINEventCheck();										// Cont�le de l'�tat des entr�es num�rique
 															// G�n�re un �venement si changement d'�tat d�tect�
 
@@ -636,7 +642,7 @@ int runMotorAction(void){
             ptrData=getWDvalue(i);
             if(ptrData>=0){
                 actionCount++;
-                        body.motor[i].speed=AlgoidCommand.DCmotor[ptrData].velocity;
+                        body.motor[i].velocity=AlgoidCommand.DCmotor[ptrData].velocity;
                         body.motor[i].accel=AlgoidCommand.DCmotor[ptrData].accel;
                         body.motor[i].decel=AlgoidCommand.DCmotor[ptrData].decel;
                         body.motor[i].cm=AlgoidCommand.DCmotor[ptrData].cm;
@@ -676,7 +682,7 @@ int runMotorAction(void){
 
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
                                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
-                                setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, INFINITE, NULL);
+                                setAsyncMotorAction(myTaskId, ID, body.motor[ID].velocity, INFINITE, NULL);
 
                                 // Défini l'état de laction comme "en cours" pour message de réponse
                                 AlgoidResponse[0].responseType = EVENT_ACTION_RUN;
@@ -685,9 +691,9 @@ int runMotorAction(void){
                             }else
                             {
                                 if(body.motor[ID].cm > 0)
-                                        setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, CENTIMETER, body.motor[ID].cm);
+                                        setAsyncMotorAction(myTaskId, ID, body.motor[ID].velocity, CENTIMETER, body.motor[ID].cm);
                                 else{
-                                        setAsyncMotorAction(myTaskId, ID, body.motor[ID].speed, MILLISECOND, body.motor[ID].time);
+                                        setAsyncMotorAction(myTaskId, ID, body.motor[ID].velocity, MILLISECOND, body.motor[ID].time);
                                 }
                             }
                         }
@@ -1272,8 +1278,8 @@ int makeStatusRequest(int msgType){
         
 	for(i=0;i<NBMOTOR;i++){
 		AlgoidResponse[ptrData].MOTresponse.motor=i;
-		AlgoidResponse[ptrData].MOTresponse.velocity=body.motor[i].speed;
-		AlgoidResponse[ptrData].MOTresponse.cm=body.motor[i].distance;
+		AlgoidResponse[ptrData].MOTresponse.speed=body.motor[i].speed_cmS;
+		AlgoidResponse[ptrData].MOTresponse.cm=body.motor[i].distance_cm;
 		ptrData++;
 	}
         
@@ -1674,7 +1680,7 @@ int makeMotorRequest(void){
 		if(AlgoidCommand.DCmotor[i].motor < NBMOTOR){
                     
 			AlgoidResponse[i].MOTresponse.velocity = body.motor[temp].cm;
-                        AlgoidResponse[i].MOTresponse.velocity = body.motor[temp].speed;
+                        AlgoidResponse[i].MOTresponse.velocity = body.motor[temp].velocity;
                         AlgoidResponse[i].responseType=RESP_STD_MESSAGE;
                         
 			
@@ -2148,8 +2154,8 @@ void resetConfig(void){
             
 		body.motor[i].accel=0;        // ATTENTION, BUG SEGFAULT !!!!!
                 body.motor[i].decel=0;
-                body.motor[i].distance=0;
-                body.motor[i].speed=0;
+                body.motor[i].distance_cm=0;
+                body.motor[i].velocity=0;
                 body.motor[i].time=0;
                 body.motor[i].cm=0;
              

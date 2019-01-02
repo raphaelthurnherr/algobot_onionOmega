@@ -603,7 +603,7 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                     for(j=0;j<NBMOTOR;j++){
                                                                                         jwArr_object();
                                                                                             jwObj_int("cm",round((AlgoidResponse[i].MOTresponse.cm)));
-                                                                                            jwObj_int("speed",round((AlgoidResponse[i].MOTresponse.velocity)));
+                                                                                            jwObj_int("speed",round((AlgoidResponse[i].MOTresponse.speed)));
                                                                                         jwEnd();           
                                                                                         i++;
                                                                                     }

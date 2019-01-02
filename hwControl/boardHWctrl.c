@@ -552,7 +552,7 @@ int EFM8BB_readSonarDistance(void){
 // ou -1 si erreur de lecture
 // -------------------------------------------------------------------
 int EFM8BB_readBatteryVoltage(void){
-	unsigned char err;
+	unsigned char err =0;
 	unsigned int batteryVoltage_mV;
         unsigned int mVMSB;
         unsigned int mVLSB;
@@ -576,22 +576,25 @@ int EFM8BB_readBatteryVoltage(void){
 // ou -1 si erreur de lecture
 // -------------------------------------------------------------------
 int EFM8BB_readFrequency(unsigned char wheelNb){
-	unsigned char err, regAddr;
-	unsigned int freqLSB=0;
-        unsigned int freqMSB=0;
+	unsigned char err = 0, regAddr = 0;
+	int freqLSB=0;
+        int freqMSB=0;
         int frequency = 0;
 
-	if(wheelNb==MOTOR_ENCODER_LEFT) regAddr = ENC_FREQ0;
+	if(wheelNb == MOTOR_ENCODER_LEFT) regAddr = ENC_FREQ0;
 	else regAddr = ENC_FREQ1;
 
-							// RAZ de la variable
+	// RAZ de la variable
         err += i2c_readByte(0, EFM8BB, regAddr, &freqLSB);
         //err += i2c_readByte(0, EFM8BB, regAddr+1, &freqMSB);
         
-        //frequency = (freqMSB<<8) + freqLSB;
+        //frequency = ((freqMSB<<8) && 0xFF00 )+ freqLSB;
+        
+        frequency = freqLSB;
         
 	if(!err){    
-		return freqLSB;
+            //printf("EFM8BB_readFrequency() -> %d\n", frequency);
+		return frequency;
 	}else{
             printf("EFM8BB_readFrequency() -> Read error\n");
             return -1;
@@ -605,9 +608,9 @@ int EFM8BB_readFrequency(unsigned char wheelNb){
 // -------------------------------------------------------------------
 int EFM8BB_readPulseCounter(unsigned char wheelNb){
 	unsigned char err=0, regAddr=0;
-	unsigned int pulseCount;
-        unsigned int pcMSB=0;
-        unsigned int pcLSB=0;
+	int pulseCount;
+        int pcMSB=0;
+        int pcLSB=0;
 
 	if(wheelNb==0) {
 		regAddr = ENC_CNT0;
@@ -639,7 +642,7 @@ int EFM8BB_readPulseCounter(unsigned char wheelNb){
 // -------------------------------------------------------------------
 int EFM8BB_clearWheelDistance(unsigned char wheelNb){
 	unsigned char err, regAddr;
-	unsigned int pulseCount;
+	int pulseCount;
 
 	if(wheelNb==0) {
 		regAddr = ENC_CNT0_RESET;
@@ -649,7 +652,7 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb){
 	}
 
 	pulseCount=0;							// RAZ de la variable
-        err=i2c_readByte(0, EFM8BB, regAddr, &pulseCount);
+        err +=i2c_readByte(0, EFM8BB, regAddr, &pulseCount);
 	if(!err){
 		return pulseCount;
 	}else{

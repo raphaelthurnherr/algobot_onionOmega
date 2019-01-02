@@ -7,11 +7,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/hwManager.c</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/asyncTools/asyncMOTOR.c</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/algobot_main.c</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/changeLog.txt</file>
-            <file>file:/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/hwControl/boardHWctrl.c</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/changeLog.txt</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/algobot_main.c</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/tools.h</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/AlgoidCom/type.h</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/tools.c</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/hwControl/hwManager.h</file>
         </group>
     </open-files>
 </project-private>

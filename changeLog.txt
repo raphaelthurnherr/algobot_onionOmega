@@ -1,3 +1,10 @@
+Version 1.6.2a - 02.01.2019
+NOT WORKING ...
+--------------------------
+
+- Rework motors speed functions and variables
+- Add test function for PID regulator...
+
 Version 1.6.2 - 28.12.2018
 --------------------------
 

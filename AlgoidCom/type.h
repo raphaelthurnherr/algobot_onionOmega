@@ -48,8 +48,9 @@ struct m_counter{
 };
 
 struct m_motor{
-	int distance;
-	int speed;
+	int distance_cm;
+        int speed_cmS;
+	int velocity;
 	int direction;
         int accel;
         int decel;

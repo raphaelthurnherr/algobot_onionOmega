@@ -10,4 +10,7 @@
 
 // Fonction getch non blocante
 int mygetch(void);
+
+int PID_speedControl(int currentSpeed, int setPoint);
+
 #endif /* TOOLS_H_ */

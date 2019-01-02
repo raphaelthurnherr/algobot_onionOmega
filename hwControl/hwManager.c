@@ -140,9 +140,9 @@ void *hwTask (void * arg){
                                 //printf("Pulses right: %d\n\n",sensor.counter[MOTOR_ENCODER_RIGHT].pulseFromStartup);
                                 break;
 			case 10	: 
-                                //sensor.counter[MOTOR_ENCODER_LEFT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_LEFT); 
-                                //sensor.counter[MOTOR_ENCODER_RIGHT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_RIGHT);
-                                //printf("Speed left [cm/s]: %d - ",sensor.counter[MOTOR_ENCODER_LEFT].frequency);
+                                sensor.counter[MOTOR_ENCODER_LEFT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_LEFT); 
+                                sensor.counter[MOTOR_ENCODER_RIGHT].frequency = EFM8BB_readFrequency(MOTOR_ENCODER_RIGHT);
+                                //printf("Speed left [cm/s]: %d - ",sensor.counter[MOTOR_ENCODER_LEFT].frequency) ;
                                 //printf("Speed right [cm/s]: %d\n\n",sensor.counter[MOTOR_ENCODER_RIGHT].frequency);
                                 break;
                                           
@@ -261,10 +261,10 @@ char getButtonInput(unsigned char buttonNumber){
 }
 
 int getMotorFrequency(unsigned char motorNb){
-	char freq;
+	int freq;
         
 	freq = sensor.counter[motorNb].frequency;
-        
+        //printf("\n----- FREQ #%d: %d -----\n",motorNb, freq);
 	return freq;
 }
 
