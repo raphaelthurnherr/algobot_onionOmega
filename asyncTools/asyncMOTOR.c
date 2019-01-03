@@ -87,12 +87,12 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 			}
 		}
                 
-		// D�fini le "nouveau" sens de rotation � applique au moteur ainsi que la consigne de vitesse
-		if(setMotorDirection(motorNb, myDirection)){							// Sens de rotation
+		// Défini le "nouveau" sens de rotation à applique au moteur ainsi que la consigne de vitesse
+		if(setMotorDirection(motorNb, myDirection)){                                                            // Sens de rotation
 			setMotorSpeed(motorNb, veloc);									// Vitesse
 
 			// Envoie de message ALGOID et SHELL
-			sprintf(reportBuffer, "Start wheel %d with velocity %d for time %d\n", motorNb, veloc, value);
+			sprintf(reportBuffer, "Start wheel %d with power %d for time %d\n", motorNb, veloc, value);
 			printf(reportBuffer);
 			sendMqttReport(actionNumber, reportBuffer);
 		}

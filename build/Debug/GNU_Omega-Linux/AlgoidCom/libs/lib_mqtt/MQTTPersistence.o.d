@@ -1,5 +1,5 @@
 build/Debug/GNU_Omega-Linux/AlgoidCom/libs/lib_mqtt/MQTTPersistence.o: \
- AlgoidCom/libs/lib_mqtt/MQTTPersistence.c \
+ AlgoidCom/libs/lib_mqtt/MQTTPersistence.c buildNumber.h \
  AlgoidCom/libs/lib_mqtt/MQTTPersistence.h \
  AlgoidCom/libs/lib_mqtt/Clients.h AlgoidCom/libs/lib_mqtt/LinkedList.h \
  AlgoidCom/libs/lib_mqtt/MQTTClientPersistence.h \
@@ -11,6 +11,8 @@ build/Debug/GNU_Omega-Linux/AlgoidCom/libs/lib_mqtt/MQTTPersistence.o: \
  AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.h \
  AlgoidCom/libs/lib_mqtt/Messages.h AlgoidCom/libs/lib_mqtt/Heap.h \
  AlgoidCom/libs/lib_mqtt/StackTrace.h AlgoidCom/libs/lib_mqtt/Thread.h
+
+buildNumber.h:
 
 AlgoidCom/libs/lib_mqtt/MQTTPersistence.h:
 

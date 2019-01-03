@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.2a"
+#define FIRMWARE_VERSION "1.6.2b"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "buildNumber.h"
 
 #include "buggy_descriptor.h"
 #include "messagesManager.h"
@@ -101,10 +102,9 @@ int main(int argc, char *argv[]) {
         
         getStartupArg(argc, argv);
         
-        sprintf(&welcomeMessage[0], "ALGOBOT V%s Build date: %s\n", FIRMWARE_VERSION, __DATE__);		// Formattage du message avec le Nom du client buggy
+        sprintf(&welcomeMessage[0], "KEHOPS V%s - %s - build #%d\n", FIRMWARE_VERSION, __DATE__ , BUILD_CODE);		// Formattage du message avec le Nom du client buggy
         printf(welcomeMessage);
         printf ("------------------------------------\n");
-        
         
 // Cr�ation de la t�che pour la gestion de la messagerie avec ALGOID
 	if(InitMessager()) printf ("#[CORE] Creation t�che messagerie : ERREUR\n");
@@ -142,8 +142,7 @@ int main(int argc, char *argv[]) {
             printf ("#[CORE] Connexion au serveur cloud OK\n");
         else 
             printf ("#[CORE] Connexion au serveur cloud ERREUR !\n");
-            
-        
+ 
 	while(1){
         
         // Check if reset was triggered by user
@@ -220,12 +219,10 @@ int main(int argc, char *argv[]) {
                             //printf("\n----- DISTANCE #%d:  %2f -----\n",i, body.motor[i].distance_cm);
                         }
 
-                       //printf("\n----- SPEED #: %d  -  %d -----\n", body.motor[0].speed_cmS, body.motor[1].speed_cmS);
-                        
-                       int setpoint = PID_speedControl(body.motor[0].speed_cmS, body.motor[0].velocity);
-                       printf("\n----- PID TEST # SetPointSpeed: %d  Speed: %d   PID_Power: %d -----\n", body.motor[0].velocity, body.motor[0].speed_cmS, setpoint);
-                       setMotorSpeed(0, setpoint);
-                       
+                       int setpoint;
+                       setpoint = PID_speedControl(body.motor[0].speed_cmS, body.motor[0].velocity);
+                       setMotorSpeed(0, setpoint);                      
+                                              
 			DINEventCheck();										// Cont�le de l'�tat des entr�es num�rique
 															// G�n�re un �venement si changement d'�tat d�tect�
 
@@ -423,7 +420,10 @@ int processAlgoidCommand(void){
                                                     sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=0;
                                                     strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].inverted, "off");
                                             }
-
+                                            // Save config for motor minimum PWM power
+                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].minPower=AlgoidCommand.Config.motor[i].minPower;
+                                            
+                                            AlgoidResponse[valCnt].CONFIGresponse.motor[i].minPower = AlgoidCommand.Config.motor[i].minPower;
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].id = AlgoidCommand.Config.motor[i].id;
                                         }
                                         else
@@ -905,7 +905,7 @@ int runLedAction(void){
                                             AlgoidResponse[0].responseType=EVENT_ACTION_RUN;
                                             sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, pLED, 1);                         // Envoie un message ALGOID de fin de t�che pour l'action �cras�
                                         }
-            /*
+            /*   BUG SEGFAULT
                                         if(Count<=0){
                                             Count=1;
                                             sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"count\"  pour l'action sur la LED %d\n", ID);
@@ -915,7 +915,7 @@ int runLedAction(void){
             */
                                         // Creation d'un timer effectu� sans erreur, ni ecrasement d'une ancienne action
                                          setAsyncLedAction(myTaskId, ID, BLINK, time, Count);
-;                                    }
+                                     }
 
                                     // Mode on ou off
                                     else{
@@ -2131,8 +2131,8 @@ int runCloudTestCommand(void){
 }
 
 void resetConfig(void){
-    int i =0;
-        
+    int i;
+      
     	// Init body membre
 	for(i=0;i<NBAIN;i++){
 		body.battery[i].event_enable=DEFAULT_EVENT_STATE;
@@ -2141,40 +2141,42 @@ void resetConfig(void){
 	}
 
 	for(i=0;i<NBDIN;i++){
-		body.proximity[i].em_stop=0;
 		body.proximity[i].event_enable=DEFAULT_EVENT_STATE;
 	}
-        
+
+    
         for(i=0;i<NBBTN;i++){
-		body.button[i].em_stop=0;
 		body.button[i].event_enable=DEFAULT_EVENT_STATE;
 	}
-         
+  /*  
         for(i=0;i<NBMOTOR;i++){
             
-		body.motor[i].accel=0;        // ATTENTION, BUG SEGFAULT !!!!!
-                body.motor[i].decel=0;
-                body.motor[i].distance_cm=0;
+		body.motor[i].accel=100;        
+                body.motor[i].decel=100;
+                body.motor[i].distance_cm=0;           // ATTENTION, BUG SEGFAULT !!!!!
                 body.motor[i].velocity=0;
                 body.motor[i].time=0;
                 body.motor[i].cm=0;
              
                 sysConfig.motor[i].inverted=0;
+                sysConfig.motor[i].minPower=0;
 	}
     
 
         for(i=0;i<NBSTEPPER;i++){
+            
 		body.stepper[i].angle=0;        // ATTENTION, BUG SEGFAULT !!!!!
 		body.stepper[i].rotation=0;
            	body.stepper[i].step=0;
 		body.stepper[i].speed=0;
 		body.stepper[i].time=0;
-                
+               
                 sysConfig.stepper[i].inverted=0;
                 sysConfig.stepper[i].ratio=64;
                 sysConfig.stepper[i].stepPerRot=32;
 	}
-        
+*/
+
         for(i=0;i<NBSONAR;i++){
 		body.distance[i].event_enable=DEFAULT_EVENT_STATE;
                 body.distance[i].event_high=100;
@@ -2225,7 +2227,6 @@ void resetConfig(void){
         
         
         sendMqttReport(AlgoidCommand.msgID, "WARNING ! Configuration reset");// Envoie le message sur le canal MQTT "Report"  
-        
 }
 
 int getStartupArg(int count, char *arg[]){

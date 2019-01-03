@@ -104,202 +104,202 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/algobot_onionomega: ${OBJECTFILES}
 ${OBJECTDIR}/AlgoidCom/libs/lib_json/jRead.o: AlgoidCom/libs/lib_json/jRead.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_json
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_json/jRead.o AlgoidCom/libs/lib_json/jRead.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_json/jRead.o AlgoidCom/libs/lib_json/jRead.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_json/jWrite.o: AlgoidCom/libs/lib_json/jWrite.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_json
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_json/jWrite.o AlgoidCom/libs/lib_json/jWrite.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_json/jWrite.o AlgoidCom/libs/lib_json/jWrite.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Clients.o: AlgoidCom/libs/lib_mqtt/Clients.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Clients.o AlgoidCom/libs/lib_mqtt/Clients.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Clients.o AlgoidCom/libs/lib_mqtt/Clients.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Heap.o: AlgoidCom/libs/lib_mqtt/Heap.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Heap.o AlgoidCom/libs/lib_mqtt/Heap.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Heap.o AlgoidCom/libs/lib_mqtt/Heap.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/LinkedList.o: AlgoidCom/libs/lib_mqtt/LinkedList.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/LinkedList.o AlgoidCom/libs/lib_mqtt/LinkedList.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/LinkedList.o AlgoidCom/libs/lib_mqtt/LinkedList.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Log.o: AlgoidCom/libs/lib_mqtt/Log.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Log.o AlgoidCom/libs/lib_mqtt/Log.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Log.o AlgoidCom/libs/lib_mqtt/Log.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTClient.o: AlgoidCom/libs/lib_mqtt/MQTTClient.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTClient.o AlgoidCom/libs/lib_mqtt/MQTTClient.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTClient.o AlgoidCom/libs/lib_mqtt/MQTTClient.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPacket.o: AlgoidCom/libs/lib_mqtt/MQTTPacket.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPacket.o AlgoidCom/libs/lib_mqtt/MQTTPacket.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPacket.o AlgoidCom/libs/lib_mqtt/MQTTPacket.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPacketOut.o: AlgoidCom/libs/lib_mqtt/MQTTPacketOut.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPacketOut.o AlgoidCom/libs/lib_mqtt/MQTTPacketOut.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPacketOut.o AlgoidCom/libs/lib_mqtt/MQTTPacketOut.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPersistence.o: AlgoidCom/libs/lib_mqtt/MQTTPersistence.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPersistence.o AlgoidCom/libs/lib_mqtt/MQTTPersistence.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPersistence.o AlgoidCom/libs/lib_mqtt/MQTTPersistence.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.o: AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.o AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.o AlgoidCom/libs/lib_mqtt/MQTTPersistenceDefault.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.o: AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.o AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.o AlgoidCom/libs/lib_mqtt/MQTTProtocolClient.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.o: AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.o AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.o AlgoidCom/libs/lib_mqtt/MQTTProtocolOut.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Messages.o: AlgoidCom/libs/lib_mqtt/Messages.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Messages.o AlgoidCom/libs/lib_mqtt/Messages.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Messages.o AlgoidCom/libs/lib_mqtt/Messages.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/SSLSocket.o: AlgoidCom/libs/lib_mqtt/SSLSocket.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/SSLSocket.o AlgoidCom/libs/lib_mqtt/SSLSocket.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/SSLSocket.o AlgoidCom/libs/lib_mqtt/SSLSocket.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Socket.o: AlgoidCom/libs/lib_mqtt/Socket.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Socket.o AlgoidCom/libs/lib_mqtt/Socket.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Socket.o AlgoidCom/libs/lib_mqtt/Socket.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/SocketBuffer.o: AlgoidCom/libs/lib_mqtt/SocketBuffer.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/SocketBuffer.o AlgoidCom/libs/lib_mqtt/SocketBuffer.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/SocketBuffer.o AlgoidCom/libs/lib_mqtt/SocketBuffer.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/StackTrace.o: AlgoidCom/libs/lib_mqtt/StackTrace.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/StackTrace.o AlgoidCom/libs/lib_mqtt/StackTrace.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/StackTrace.o AlgoidCom/libs/lib_mqtt/StackTrace.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Thread.o: AlgoidCom/libs/lib_mqtt/Thread.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Thread.o AlgoidCom/libs/lib_mqtt/Thread.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Thread.o AlgoidCom/libs/lib_mqtt/Thread.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Tree.o: AlgoidCom/libs/lib_mqtt/Tree.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Tree.o AlgoidCom/libs/lib_mqtt/Tree.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/Tree.o AlgoidCom/libs/lib_mqtt/Tree.c
 
 ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/utf-8.o: AlgoidCom/libs/lib_mqtt/utf-8.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/utf-8.o AlgoidCom/libs/lib_mqtt/utf-8.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/libs/lib_mqtt/utf-8.o AlgoidCom/libs/lib_mqtt/utf-8.c
 
 ${OBJECTDIR}/AlgoidCom/linux_JSON.o: AlgoidCom/linux_JSON.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/linux_JSON.o AlgoidCom/linux_JSON.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/linux_JSON.o AlgoidCom/linux_JSON.c
 
 ${OBJECTDIR}/AlgoidCom/messagesManager.o: AlgoidCom/messagesManager.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/messagesManager.o AlgoidCom/messagesManager.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/messagesManager.o AlgoidCom/messagesManager.c
 
 ${OBJECTDIR}/AlgoidCom/mqttProtocol.o: AlgoidCom/mqttProtocol.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/mqttProtocol.o AlgoidCom/mqttProtocol.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/mqttProtocol.o AlgoidCom/mqttProtocol.c
 
 ${OBJECTDIR}/AlgoidCom/udpPublish.o: AlgoidCom/udpPublish.c
 	${MKDIR} -p ${OBJECTDIR}/AlgoidCom
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/udpPublish.o AlgoidCom/udpPublish.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/AlgoidCom/udpPublish.o AlgoidCom/udpPublish.c
 
 ${OBJECTDIR}/algobot_main.o: algobot_main.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/algobot_main.o algobot_main.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/algobot_main.o algobot_main.c
 
 ${OBJECTDIR}/asyncTools/asnycLED.o: asyncTools/asnycLED.c
 	${MKDIR} -p ${OBJECTDIR}/asyncTools
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asnycLED.o asyncTools/asnycLED.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asnycLED.o asyncTools/asnycLED.c
 
 ${OBJECTDIR}/asyncTools/asyncMOTOR.o: asyncTools/asyncMOTOR.c
 	${MKDIR} -p ${OBJECTDIR}/asyncTools
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncMOTOR.o asyncTools/asyncMOTOR.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncMOTOR.o asyncTools/asyncMOTOR.c
 
 ${OBJECTDIR}/asyncTools/asyncPWM.o: asyncTools/asyncPWM.c
 	${MKDIR} -p ${OBJECTDIR}/asyncTools
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncPWM.o asyncTools/asyncPWM.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncPWM.o asyncTools/asyncPWM.c
 
 ${OBJECTDIR}/asyncTools/asyncSERVO.o: asyncTools/asyncSERVO.c
 	${MKDIR} -p ${OBJECTDIR}/asyncTools
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncSERVO.o asyncTools/asyncSERVO.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncSERVO.o asyncTools/asyncSERVO.c
 
 ${OBJECTDIR}/asyncTools/asyncSTEPPER.o: asyncTools/asyncSTEPPER.c
 	${MKDIR} -p ${OBJECTDIR}/asyncTools
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncSTEPPER.o asyncTools/asyncSTEPPER.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncSTEPPER.o asyncTools/asyncSTEPPER.c
 
 ${OBJECTDIR}/asyncTools/asyncTools.o: asyncTools/asyncTools.c
 	${MKDIR} -p ${OBJECTDIR}/asyncTools
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncTools.o asyncTools/asyncTools.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/asyncTools/asyncTools.o asyncTools/asyncTools.c
 
 ${OBJECTDIR}/configManager.o: configManager.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/configManager.o configManager.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/configManager.o configManager.c
 
 ${OBJECTDIR}/hwControl/boardHWctrl.o: hwControl/boardHWctrl.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/boardHWctrl.o hwControl/boardHWctrl.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/boardHWctrl.o hwControl/boardHWctrl.c
 
 ${OBJECTDIR}/hwControl/boardHWsimu.o: hwControl/boardHWsimu.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/boardHWsimu.o hwControl/boardHWsimu.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/boardHWsimu.o hwControl/boardHWsimu.c
 
 ${OBJECTDIR}/hwControl/hwManager.o: hwControl/hwManager.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/hwManager.o hwControl/hwManager.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/hwManager.o hwControl/hwManager.c
 
 ${OBJECTDIR}/hwControl/libs/i2c/onion-i2c.o: hwControl/libs/i2c/onion-i2c.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl/libs/i2c
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/libs/i2c/onion-i2c.o hwControl/libs/i2c/onion-i2c.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/libs/i2c/onion-i2c.o hwControl/libs/i2c/onion-i2c.c
 
 ${OBJECTDIR}/hwControl/libs/onion-debug/onion-debug.o: hwControl/libs/onion-debug/onion-debug.c
 	${MKDIR} -p ${OBJECTDIR}/hwControl/libs/onion-debug
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/libs/onion-debug/onion-debug.o hwControl/libs/onion-debug/onion-debug.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/hwControl/libs/onion-debug/onion-debug.o hwControl/libs/onion-debug/onion-debug.c
 
 ${OBJECTDIR}/timerManager.o: timerManager.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/timerManager.o timerManager.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/timerManager.o timerManager.c
 
 ${OBJECTDIR}/tools.o: tools.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tools.o tools.c
+	$(COMPILE.c) -g -IhwControl/libs/i2c -IhwControl/libs/onion-debug -IAlgoidCom/libs/lib_json -IAlgoidCom/libs/lib_mqtt -IAlgoidCom -IhwControl -IasyncTools -include buildNumber.h -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/tools.o tools.c
 
 # Subprojects
 .build-subprojects:

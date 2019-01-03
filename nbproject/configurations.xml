@@ -150,6 +150,9 @@
             <pElem>hwControl</pElem>
             <pElem>asyncTools</pElem>
           </incDir>
+          <incFile>
+            <pElem>buildNumber.h</pElem>
+          </incFile>
           <commandLine>-pthread -lm</commandLine>
         </cTool>
         <linkerTool>

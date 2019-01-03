@@ -18,6 +18,7 @@
 #define FILE_KEY_CONFIG_MOTOR "{'motor'"
 #define FILE_KEY_CONFIG_MOTOR_ID "{'motor'[*{'motor'"
 #define FILE_KEY_CONFIG_MOTOR_INVERT "{'motor'[*{'inverted'"
+#define FILE_KEY_CONFIG_MOTOR_MINPWM "{'motor'[*{'pwmMin'"
 
 #define FILE_KEY_CONFIG_WHEEL "{'wheel'"
 #define FILE_KEY_CONFIG_WHEEL_ID "{'wheel'[*{'wheel'"
@@ -132,7 +133,8 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
         // EXTRACT MOTOR SETTINGS FROM CONFIG    
             // Reset motor data config before reading
             for(i=0;i<NBMOTOR;i++){
-              Config->motor[i].inverted=-1;
+              Config->motor[i].inverted = -1;
+              Config->motor[i].minPower = 0;
             }
 
         // Motor Setting
@@ -149,13 +151,14 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
 
                     if(deviceId >= 0 && deviceId < NBMOTOR){
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_INVERT, dataValue, 15, &i );
+                        Config->motor[deviceId].minPower = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINPWM, &i); 
                         if(!strcmp(dataValue, "on")){
                             Config->motor[deviceId].inverted = 1;
                         }else
                             if(!strcmp(dataValue, "off")){
                                 Config->motor[deviceId].inverted = 0;
                             }
-
+                        //printf("\n****CFG MOTOR #%d: %d\n",deviceId, Config->motor[deviceId].minPower);
                     }
                 }
             }
@@ -165,7 +168,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
             for(i=0;i<NBMOTOR;i++){
               Config->wheel[i].diameter=-1;
               Config->wheel[i].pulsePerRot=-1;
-              Config->wheel[deviceId]._MMPP=-1;
+              Config->wheel[i]._MMPP=-1;
             }
 
         // Wheel Setting
@@ -305,6 +308,7 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
                         else 
                             if(Config->motor[i].inverted == 1)
                                 jwObj_string("inverted", "on");
+                        jwObj_int( "pwmMin", Config->motor[i].minPower);
                     jwEnd();
                 } 
             jwEnd();

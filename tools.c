@@ -22,22 +22,22 @@ int PID_speedControl(int currentSpeed, int setPoint);
 // PID_SPEEDCPMTROL, Fonction PID pour gestion vitesse du moteur
 // -------------------------------------------------------------------
 int PID_speedControl(int currentSpeed, int setPoint){
-    float Kp = 1;
-    float Ki = 0.5;
-    float Kd = 1.5;
+    float Kp = 0.1;
+    float Ki = 0.1;
+    float Kd = 1;
     
     static int lastSpeed;
     int output=0;
-    int outputMin=20;
+    int outputMin=0;
     int outputMax=100;
-    float loopTimeDT = 1; //100mS loopTime
+    float loopTimeDT = 1.0; //100mS loopTime
     float error;
     static float sumError;
     float newSum;
     float dErrorLoopTime;
-    
+     
     error = setPoint - currentSpeed;
-    newSum = sumError + error * loopTimeDT;
+    newSum = (sumError + error) * loopTimeDT;
     dErrorLoopTime = (lastSpeed - currentSpeed) / loopTimeDT;
     lastSpeed = currentSpeed;
     
@@ -51,6 +51,8 @@ int PID_speedControl(int currentSpeed, int setPoint){
         else 
             sumError =  newSum;
             
+    
+    printf("\n----- SPEED #: %d  -  SETPOINT    %d    -  OUT %d  -----\n", currentSpeed, setPoint, output);
     
     return output;
 }

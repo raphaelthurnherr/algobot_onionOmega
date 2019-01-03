@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include "type.h"
 #include "hwManager.h"
+#include "../algobot_main.h"
+#include <math.h>
 
 #ifdef I2CSIMU
 #include "boardHWsimu.h"
@@ -504,14 +506,34 @@ void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPerc
 // approch�e par le gestionnaire d'acceleration.
 // ---------------------------------------------------------------------------
 int setMotorSpeed(int motorName, int ratio){
+    
+        float dutyCycle;
+        unsigned char test;
+        int MinPower = 0;                 // % minimum pour fonctionnement du moteur 
+        
+        MinPower = sysConfig.motor[motorName].minPower;
+        
 	// V�rification ratio max et min comprise entre 0..100%
 	if(ratio > 100)
 		ratio = 100;
 	if (ratio<0)
 		ratio = 0;
 
+        // "Re-défini" une échelle de dutycycle en fonction des caractéristiques du moteur
+        // (Applique un dutycycle min si > 0)
+        
+        if(ratio != 0)
+            dutyCycle = MinPower + (100-(float)MinPower)/100 * (float)ratio;
+        else
+            dutyCycle = 0;      
+
+        test=round(dutyCycle);
+        
+        //printf("[setMotorSpeed()] Setpoint: %d  MotorPWM min: %d   Real PWM setpoint; %.2f   New PWM Setpoint: %d\n",ratio ,MinPower ,dutyCycle , test );
+        ratio=test;
+        
 	if(motorName >= 0)
-		motorDCtargetPower[motorName]=ratio;
+		motorDCtargetPower[motorName]=dutyCycle;
 	else
 		printf("\n function [setMotorSpeed] : undefine motor #%d", motorName);
 

@@ -121,12 +121,8 @@ void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle){
 	unsigned char PowerLow;
 	unsigned char PowerHigh;
 
-	// D�fini un dutycylce de maximum 100%
-	if(dutyCycle>100)
-		dutyCycle=100;
-
 	// Conversion du dutyclycle en valeur � appliquer au contr�leur PWM
-	power = ((409500/100)*dutyCycle)/100;
+	power = ((4096)*dutyCycle)/100;
 	PowerLow = power&0x00FF;;
 	PowerHigh = (power&0x0F00) >>8;
 
@@ -363,6 +359,7 @@ unsigned char configPWMdevice(void){
 	// Prescaler pour op�ration 50Hz
 
         err+= i2c_write(0, PCA9685, 0xFE, 0x81);
+        //err+= i2c_write(0, PCA9685, 0xFE, 0x00);
 
 	// Registre MODE 2, sorties non invers�es
 

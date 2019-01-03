@@ -22,7 +22,6 @@ extern "C" {
 struct m_prox{
 	int state;
 	int event_enable;
-	int em_stop;
 };
 
 struct m_dist{
@@ -87,6 +86,7 @@ struct m_AppConf{
 
 struct m_MotConfig{
 	char inverted;
+        int  minPower;
 };
 
 struct m_StepperConfig{

@@ -85,6 +85,7 @@ struct mAppConf{
 struct mMotConfig{
         int id;
 	char inverted[25];
+        int  minPower;
 };
 
 struct mWheelConfig{
