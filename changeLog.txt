@@ -1,6 +1,12 @@
 Version 1.6.2b - 03.01.2019
 --------------------------
 
+- Move rescale in function "asyncMotor" for be adaptive to motor caracteristics
+  defined in config file
+
+Version 1.6.2b - 03.01.2019
+--------------------------
+
 - Add build number (runReomte.sh and buildNumber.sh)
 - Scale 0..100% is rework in function "setMotorSpeed" for be adaptive to motor caracteristics
   defined in config file

@@ -28,10 +28,8 @@ char getButtonInput(unsigned char buttonNumber);
 int getColorValue(unsigned char sensorID, unsigned char color);      // Retourne la valeur de la couleur d�finie sur le capteur d�fini
 
 extern int setMotorSpeed(int motorName, int ratio);
-extern void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent);
 extern int setMotorDirection(int motorName, int direction);
-extern void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
-extern unsigned char getMotorPower(unsigned char motorNr);			// Get the actual power of selected motor
+
 extern void setServoPosition(unsigned char smName, char position);
 extern void setLedPower(unsigned char ledID, unsigned char power);
 extern void setPwmPower(unsigned char ID, unsigned char power);

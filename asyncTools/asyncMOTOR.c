@@ -13,15 +13,27 @@
 #include "linux_json.h"
 #include "../algobot_main.h"
 #include "asyncTools.h"
+#include "hwManager.h"
+#include <math.h>
 
 char reportBuffer[256];
+
+unsigned char motorDCactualPower[2];				// Valeur de la puissance moteur
+unsigned char motorDCtargetPower[2]; 				// Valuer de consigne pour la puissance moteur
+unsigned char motorDCaccelValue[2]={25,25};			// Valeur d'acceleration des moteurs
+unsigned char motorDCdecelValue[2]={25,25};			// Valeur d'acceleration des moteurs
 
 int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value);
 int endWheelAction(int actionNumber, int motorNb);
 int checkMotorEncoder(int actionNumber, int encoderName);
 int dummyMotorAction(int actionNumber, int encoderName);
+
+int rescaleMotorPower(int motorName, int ratio);        // Redefinition de l'echelle % PWM en échelle utilisable par le moteur
+void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
+int motorSpeedSetpoint(int motorName, int ratio);  // Applique la consigne de vélocité pour un moteur donné
+void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent);		// D�fini l'acc�leration/deceleration d'un moteur
 // -------------------------------------------------------------------
-// SETASYNCMOTORLACTION
+// SETASYNCMOTORACTION
 // Effectue l'action sur une roue sp�cifi�e
 // - D�marrage du timer avec definition de fonction call-back, et no d'action
 // - D�marrage du mouvement de la roue sp�cifi�e
@@ -31,7 +43,8 @@ int dummyMotorAction(int actionNumber, int encoderName);
 int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value){
 	int myDirection;
 	int setTimerResult;
-	int endOfTask;           
+	int endOfTask;  
+        int motorPWM;
         
 	if(veloc == 0){
 		myDirection=BUGGY_STOP;
@@ -89,7 +102,12 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
                 
 		// Défini le "nouveau" sens de rotation à applique au moteur ainsi que la consigne de vitesse
 		if(setMotorDirection(motorNb, myDirection)){                                                            // Sens de rotation
-			setMotorSpeed(motorNb, veloc);									// Vitesse
+                    
+                        motorPWM = rescaleMotorPower(motorNb, veloc);                                                   // Mise à l'échelle d'un % "utilisateur" en PWM % utilisable par le moteur
+                        motorSpeedSetpoint(motorNb, motorPWM);                                                          // Vitesse
+                        
+                        //printf("\n[setAsyncMotorAction()] New PWM Setpoint: %d\n", motorPWM );  
+
 
 			// Envoie de message ALGOID et SHELL
 			sprintf(reportBuffer, "Start wheel %d with power %d for time %d\n", motorNb, veloc, value);
@@ -117,7 +135,8 @@ int endWheelAction(int actionNumber, int motorNb){
 	//printf("Action number: %d - End of timer for wheel No: %d\n",actionNumber , motorNb);
 
 	// Stop le moteur
-	setMotorSpeed(motorNb, 0);
+	//setMotorSpeed(motorNb, 0);
+        motorSpeedSetpoint(motorNb, 0);
         body.motor[motorNb].direction = BUGGY_STOP;
         
 	// Retire l'action de la table et v�rification si toute les actions sont effectu�es
@@ -155,9 +174,6 @@ int endWheelAction(int actionNumber, int motorNb){
 
 int checkMotorEncoder(int actionNumber, int encoderName){
 	float distance;					// Variable de distance parcourue depuis le start
-	//unsigned char encoderNumber;
-
-	//encoderNumber = getOrganNumber(encoderName);
 
 	distance = getMotorPulses(encoderName);
 
@@ -167,10 +183,12 @@ int checkMotorEncoder(int actionNumber, int encoderName){
 	}else  printf("\n ERROR: I2CBUS READ\n");
 	//printf("\n Encodeur #%d -> START %.2f cm  STOP %.2f cm", encoderNumber, startEncoderValue[encoderNumber], stopEncoderValue[encoderNumber]);
 
-	if(distance >= body.encoder[encoderName].stopEncoderValue)
+	if(distance >= body.encoder[encoderName].stopEncoderValue){
 		endWheelAction(actionNumber, encoderName);
-	else
+        }
+	else{
 		setTimer(50, &checkMotorEncoder, actionNumber, encoderName, MOTOR);
+        }
 
 	return 0;
 }
@@ -178,4 +196,126 @@ int checkMotorEncoder(int actionNumber, int encoderName){
 int dummyMotorAction(int actionNumber, int encoderName){
         setTimer(0, &dummyMotorAction, actionNumber, encoderName, MOTOR);
     return 0;
+}
+
+
+
+// ----------------------------------------------------------------------
+// RESCALEMOTORPOWER
+// Redefini l'echelle donnée en % en une échelle utilisable
+// selon les caractéristique du motor (par ex. PWM minimum pour démarrage moteur)
+// donnés dans le fichier de configuration
+// -----------------------------------------------------------------------
+
+int rescaleMotorPower(int motorName, int ratio){
+        float dutyCycle;
+        int MinPower = 0;                 // % minimum pour fonctionnement du moteur 
+        int newRatio;
+        
+        MinPower = sysConfig.motor[motorName].minPower;
+        
+	// V�rification ratio max et min comprise entre 0..100%
+	if(ratio > 100)
+		ratio = 100;
+	if (ratio<0)
+		ratio = 0;
+
+        // "Re-défini" une échelle de dutycycle en fonction des caractéristiques du moteur
+        // (Applique un dutycycle min si > 0)
+        
+        if(ratio != 0)
+            dutyCycle = MinPower + (100-(float)MinPower)/100 * (float)ratio;
+        else
+            dutyCycle = 0;      
+
+        newRatio = round(dutyCycle);
+        
+        return newRatio;
+}
+
+// ------------------------------------------------------------------------------------
+// CHECKDCMOTORPOWER:
+// Fonction appel�e periodiquement pour la gestion de l'acceleration
+// D�cel�ration du moteur.
+// Elle va augmenter ou diminuer la velocite du moteur jusqu'a atteindre la consigne
+// ------------------------------------------------------------------------------------
+void checkDCmotorPower(void){
+	unsigned char i;
+	//unsigned char PowerToSet;
+
+	// Contr�le successivement la puissance sur chaque moteur et effectue une rampe d'acc�l�ration ou d�c�leration
+	for(i=0;i<2;i++){
+		//printf("Motor Nb: %d Adr: %2x ActualPower: %d   TargetPower: %d  \n",i, motorDCadr[i], motorDCactualPower[i], motorDCtargetPower[i]);
+		if(motorDCactualPower[i] < motorDCtargetPower[i]){
+			//PowerToSet=motorDCactualPower[i] + ((motorDCtargetPower[i]-motorDCactualPower[i])/100)*motorDCaccelValue[i];
+			//printf("Power to set: %d %",PowerToSet);
+
+			if(motorDCactualPower[i]+motorDCaccelValue[i]<=motorDCtargetPower[i])		// Contr�le que puissance apr�s acceleration ne d�passe pas la consigne
+				motorDCactualPower[i]+=motorDCaccelValue[i];						// Augmente la puissance moteur
+			else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
+
+                        setMotorSpeed(i, motorDCactualPower[i]);
+			//set_i2c_command_queue(&PCA9685_DCmotorSetSpeed, motorDCadr[i], motorDCactualPower[i]);
+			//PCA9685_DCmotorSetSpeed(motorDCadr[i], motorDCactualPower[i]);
+		}
+
+		if(motorDCactualPower[i]>motorDCtargetPower[i]){
+			if(motorDCactualPower[i]-motorDCdecelValue[i]>=motorDCtargetPower[i])		// Contr�le que puissance apr�s acceleration ne d�passe pas la consigne
+				motorDCactualPower[i]-=motorDCdecelValue[i];						// Diminue la puissance moteur
+			else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
+
+                        setMotorSpeed(i, motorDCactualPower[i]);
+			//set_i2c_command_queue(&PCA9685_DCmotorSetSpeed, motorDCadr[i], motorDCactualPower[i]);
+			//PCA9685_DCmotorSetSpeed(motorDCadr[i], motorDCactualPower[i]);
+
+			// Ouvre le pont en h de commande moteur
+			if(motorDCactualPower[i]==0)
+				setMotorDirection(i, BUGGY_STOP);
+		}
+                
+	}
+}
+
+// ---------------------------------------------------------------------------
+// motorSpeedSetpoint
+// Applique la consigne de v�locit� pour un moteur donn�
+// Cette consigne n'est pas appliqu�e directement sur les moteur mais sera progressivement
+// approchée par le gestionnaire d'acceleration.
+// ---------------------------------------------------------------------------
+int motorSpeedSetpoint(int motorName, int ratio){
+	if(motorName >= 0)
+		motorDCtargetPower[motorName]=ratio;
+	else
+		printf("\n function [motorSpeedSetpoint] : undefine motor #%d", motorName);
+        
+        return;
+}
+
+// -------------------------------------------------------------------
+// setMotorAccelDecel
+// D�fini les valeurs d'acceleration et decelaration du moteur
+// Valeur donn�e en % de ce qu'il reste pour atteindre la consigne
+// -------------------------------------------------------------------
+void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent){
+
+	//unsigned char motorSlot;
+	//motorSlot = getOrganNumber(motorNo);
+
+	// R�cup�ration de la valeur absolue de l'acceleration
+	if(accelPercent<0) accelPercent*=-1;
+	// D�fini un maximum de 100% d'acceleration
+	if(accelPercent>100)
+		accelPercent=100;
+
+	// R�cup�ration de la valeur absolue de la deceleration
+	if(decelPercent<0) decelPercent*=-1;
+	// D�fini un maximum de 100% de deceleration
+	if(decelPercent>100)
+		decelPercent=100;
+
+	// Ne modifie les valeurs d'acceleration et deceleration uniquement si "valable" (=>0)
+	if(accelPercent>0)
+		motorDCaccelValue[motorNo] = accelPercent;
+	if(decelPercent>0)
+		motorDCdecelValue[motorNo] = decelPercent;
 }

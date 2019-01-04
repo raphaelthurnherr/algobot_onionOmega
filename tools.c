@@ -24,13 +24,13 @@ int PID_speedControl(int currentSpeed, int setPoint);
 int PID_speedControl(int currentSpeed, int setPoint){
     float Kp = 0.1;
     float Ki = 0.1;
-    float Kd = 1;
+    float Kd = 0.5;
+    float loopTimeDT = 1.0; //100mS loopTime
     
     static int lastSpeed;
     int output=0;
     int outputMin=0;
     int outputMax=100;
-    float loopTimeDT = 1.0; //100mS loopTime
     float error;
     static float sumError;
     float newSum;

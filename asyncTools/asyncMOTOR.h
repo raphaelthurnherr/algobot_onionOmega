@@ -22,6 +22,8 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 int endWheelAction(int actionNumber, int motorNb);
 int checkMotorEncoder(int actionNumber, int encoderName);
 int dummyMotorAction(int actionNumber, int motorNb);
+void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
+int motorSpeedSetpoint(int motorName, int ratio);  // Applique la consigne de vélocité pour un moteur donné
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.2b"
+#define FIRMWARE_VERSION "1.6.2c"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -215,13 +215,14 @@ int main(int argc, char *argv[]) {
                             // Convert millimeter per pulse to centimeter per pulse and calculation of distance
                             body.motor[i].speed_cmS = (float)(getMotorFrequency(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
                             body.motor[i].distance_cm = (float)(getMotorPulses(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
-                            //printf("\n----- SPEED #: %d -----\n", body.motor[i].speed_cmS);
+//                            printf("\n----- SPEED #: %d -----\n", body.motor[i].speed_cmS);
                             //printf("\n----- DISTANCE #%d:  %2f -----\n",i, body.motor[i].distance_cm);
                         }
 
                        int setpoint;
                        setpoint = PID_speedControl(body.motor[0].speed_cmS, body.motor[0].velocity);
-                       setMotorSpeed(0, setpoint);                      
+                       setpoint = rescaleMotorPower(0, setpoint);
+                       motorSpeedSetpoint(0, setpoint);                      
                                               
 			DINEventCheck();										// Cont�le de l'�tat des entr�es num�rique
 															// G�n�re un �venement si changement d'�tat d�tect�

@@ -14,8 +14,6 @@
 #include <stdio.h>
 #include "type.h"
 #include "hwManager.h"
-#include "../algobot_main.h"
-#include <math.h>
 
 #ifdef I2CSIMU
 #include "boardHWsimu.h"
@@ -72,11 +70,6 @@ t_HWversion BoardInfo;
 int i2c_command_queuing[50][3];
 
 int timeCount_ms=0;
-unsigned char motorDCactualPower[2];				// Valeur de la puissance moteur
-unsigned char motorDCtargetPower[2]; 				// Valuer de consigne pour la puissance moteur
-unsigned char motorDCaccelValue[2]={25,25};			// Valeur d'acceleration des moteurs
-unsigned char motorDCdecelValue[2]={25,25};			// Valeur d'acceleration des moteurs
-
 
 int getMotorFrequency(unsigned char motorNb);	// Retourne la fr�quence actuelle mesuree sur l'encodeur
 int getMotorPulses(unsigned char motorName);		// Retourne le nombre d'impulsion d'encodeur moteur depuis le d�marrage
@@ -88,11 +81,8 @@ int getColorValue(unsigned char sensorID, unsigned char color);      // Retourne
 //char getOrganNumber(int organName);		// Retourne le num�ro du moteur 0..xx selon le nom d'organe sp�cifi�
 unsigned char getOrganI2Cregister(char organType, unsigned char organName); // Retourne l'adresse du registre correspondant au nom de l'organe
 
-extern int setMotorSpeed(int motorName, int ratio);
-void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent);		// D�fini l'acc�leration/deceleration d'un moteur
+int setMotorSpeed(int motorName, int ratio);
 int setMotorDirection(int motorName, int direction);
-void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
-unsigned char getMotorPower(unsigned char motorNr);											// Retourne la velocit� actuelle d'un moteur
 
 int setStepperStepAction(int motorNumber, int direction, int stepCount);      // Effectue une action sur le moteur pas à pas (direction, nombre de pas)
 int setStepperSpeed(int motorNumber, int speed);                              // Configuration de la vitesse du moteur pas à pas
@@ -169,8 +159,8 @@ void *hwTask (void * arg){
                                   //printf("Battery: %d\n",sensor.ain[BATT_0]);
                                 break;
                         
-                        case 30	: sensor.btn[BTN_0] = MCP2308_ReadGPIO(BTN_0) ;
-                                  sensor.btn[BTN_1] = MCP2308_ReadGPIO(BTN_1) ; 
+                        case 30	: sensor.btn[BTN_0] = MCP2308_ReadGPIO(BTN_0);
+                                  sensor.btn[BTN_1] = MCP2308_ReadGPIO(BTN_1); 
                                   break;
 
                         case 35	: sensor.RGBC[RGBC_SENS_0].red = BH1745_getRGBvalue(RGBC_SENS_0, RED) ;
@@ -342,47 +332,6 @@ int getMcuFirmware(void){
 	return(BoardInfo.mcuVersion);
 }
 
-
-// ------------------------------------------------------------------------------------
-// CHECKMOTORPOWER:
-// Fonction appel�e periodiquement pour la gestion de l'acceleration
-// D�cel�ration du moteur.
-// Elle va augmenter ou diminuer la velocite du moteur jusqu'a atteindre la consigne
-// ------------------------------------------------------------------------------------
-void checkDCmotorPower(void){
-	unsigned char i;
-	//unsigned char PowerToSet;
-
-	// Contr�le successivement la puissance sur chaque moteur et effectue une rampe d'acc�l�ration ou d�c�leration
-	for(i=0;i<2;i++){
-		//printf("Motor Nb: %d Adr: %2x ActualPower: %d   TargetPower: %d  \n",i, motorDCadr[i], motorDCactualPower[i], motorDCtargetPower[i]);
-		if(motorDCactualPower[i] < motorDCtargetPower[i]){
-			//PowerToSet=motorDCactualPower[i] + ((motorDCtargetPower[i]-motorDCactualPower[i])/100)*motorDCaccelValue[i];
-			//printf("Power to set: %d %",PowerToSet);
-
-			if(motorDCactualPower[i]+motorDCaccelValue[i]<=motorDCtargetPower[i])		// Contr�le que puissance apr�s acceleration ne d�passe pas la consigne
-				motorDCactualPower[i]+=motorDCaccelValue[i];						// Augmente la puissance moteur
-			else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
-
-			set_i2c_command_queue(&PCA9685_DCmotorSetSpeed, motorDCadr[i], motorDCactualPower[i]);
-			//PCA9685_DCmotorSetSpeed(motorDCadr[i], motorDCactualPower[i]);
-		}
-
-		if(motorDCactualPower[i]>motorDCtargetPower[i]){
-			if(motorDCactualPower[i]-motorDCdecelValue[i]>=motorDCtargetPower[i])		// Contr�le que puissance apr�s acceleration ne d�passe pas la consigne
-				motorDCactualPower[i]-=motorDCdecelValue[i];						// Diminue la puissance moteur
-			else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
-
-
-			set_i2c_command_queue(&PCA9685_DCmotorSetSpeed, motorDCadr[i], motorDCactualPower[i]);
-			//PCA9685_DCmotorSetSpeed(motorDCadr[i], motorDCactualPower[i]);
-
-			// Ouvre le pont en h de commande moteur
-			if(motorDCactualPower[i]==0)
-				setMotorDirection(i,BUGGY_STOP);
-		}
-	}
-}
 // -------------------------------------------------------------------
 // Effectue une action sur le moteur pas à pas (direction, nombre de pas)
 // - Numéro de moteur
@@ -459,6 +408,8 @@ int setStepperSpeed(int motorNumber, int speed){
 int getStepperState(int motorNumber){
     return motor.stepper[motorNumber].isRunning;
 }                              
+
+/*
 //-----------------------------------------------------------------
 // GETMOTORPOWER
 // Retourne l'�tat actuelle de la puissance du moteur selectionn�
@@ -467,8 +418,10 @@ int getStepperState(int motorNumber){
 unsigned char getMotorPower(unsigned char motorNr){
 	return motorDCactualPower[motorNr];
 }
+*/
 
 
+/*
 // -------------------------------------------------------------------
 // setMotorAccelDecel
 // D�fini les valeurs d'acceleration et decelaration du moteur
@@ -497,7 +450,7 @@ void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPerc
 	if(decelPercent>0)
 		motorDCdecelValue[motorNo] = decelPercent;
 }
-
+*/
 
 // ---------------------------------------------------------------------------
 // SETMOTORSPEED
@@ -506,37 +459,18 @@ void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPerc
 // approch�e par le gestionnaire d'acceleration.
 // ---------------------------------------------------------------------------
 int setMotorSpeed(int motorName, int ratio){
-    
-        float dutyCycle;
-        unsigned char test;
-        int MinPower = 0;                 // % minimum pour fonctionnement du moteur 
+    	unsigned char motorAdress;
+	motorAdress = getOrganI2Cregister(MOTOR, motorName);
         
-        MinPower = sysConfig.motor[motorName].minPower;
-        
-	// V�rification ratio max et min comprise entre 0..100%
+    	// V�rification ratio max et min comprise entre 0..100%
 	if(ratio > 100)
 		ratio = 100;
 	if (ratio<0)
 		ratio = 0;
-
-        // "Re-défini" une échelle de dutycycle en fonction des caractéristiques du moteur
-        // (Applique un dutycycle min si > 0)
         
-        if(ratio != 0)
-            dutyCycle = MinPower + (100-(float)MinPower)/100 * (float)ratio;
-        else
-            dutyCycle = 0;      
-
-        test=round(dutyCycle);
+        //NEW
+        set_i2c_command_queue(&PCA9685_DCmotorSetSpeed, motorAdress, ratio);
         
-        //printf("[setMotorSpeed()] Setpoint: %d  MotorPWM min: %d   Real PWM setpoint; %.2f   New PWM Setpoint: %d\n",ratio ,MinPower ,dutyCycle , test );
-        ratio=test;
-        
-	if(motorName >= 0)
-		motorDCtargetPower[motorName]=dutyCycle;
-	else
-		printf("\n function [setMotorSpeed] : undefine motor #%d", motorName);
-
 	return(1);
 }
 
@@ -661,7 +595,7 @@ int resetHardware(t_sysConfig * Config){
     // Etat initial des moteur
     for(i=0;i<NBMOTOR;i++){
         setMotorSpeed(i, 0);
-        setMotorAccelDecel(i, 25, 100);
+//        setMotorAccelDecel(i, 25, 100);
         setMotorDirection(i, BUGGY_FORWARD);
         EFM8BB_clearWheelDistance(i);
     }
@@ -683,7 +617,7 @@ int resetHardware(t_sysConfig * Config){
     }
     
     // Etat initial des Moteur pas à pas
-//DEBUG //    for(i=0;i<NBPWM;i++)
+    //DEBUG //    for(i=0;i<NBPWM;i++)
 //        setPwmPower(i,0);    
     return 0;
 }
