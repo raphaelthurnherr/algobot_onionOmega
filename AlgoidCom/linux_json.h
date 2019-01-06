@@ -53,7 +53,6 @@ struct m2wd{
 	int cm;
 	int accel;
 	int decel;
-        char invert[25];
 };
 
 struct mStepper{
@@ -63,7 +62,6 @@ struct mStepper{
 	int rotation;
         int angle;
         int time;
-        char invert[25];
 };
 
 struct mDin{
@@ -86,6 +84,7 @@ struct mMotConfig{
         int id;
 	char inverted[25];
         int  minPower;
+        int  maxRPM;
 };
 
 struct mWheelConfig{

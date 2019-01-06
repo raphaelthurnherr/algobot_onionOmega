@@ -19,6 +19,7 @@
 #define FILE_KEY_CONFIG_MOTOR_ID "{'motor'[*{'motor'"
 #define FILE_KEY_CONFIG_MOTOR_INVERT "{'motor'[*{'inverted'"
 #define FILE_KEY_CONFIG_MOTOR_MINPWM "{'motor'[*{'pwmMin'"
+#define FILE_KEY_CONFIG_MOTOR_MAXRPM "{'motor'[*{'rpmMax'"
 
 #define FILE_KEY_CONFIG_WHEEL "{'wheel'"
 #define FILE_KEY_CONFIG_WHEEL_ID "{'wheel'[*{'wheel'"
@@ -135,6 +136,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
             for(i=0;i<NBMOTOR;i++){
               Config->motor[i].inverted = -1;
               Config->motor[i].minPower = 0;
+              Config->motor[i].maxRPM = 500;
             }
 
         // Motor Setting
@@ -152,6 +154,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                     if(deviceId >= 0 && deviceId < NBMOTOR){
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_INVERT, dataValue, 15, &i );
                         Config->motor[deviceId].minPower = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINPWM, &i); 
+                        Config->motor[deviceId].maxRPM = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MAXRPM, &i); 
                         if(!strcmp(dataValue, "on")){
                             Config->motor[deviceId].inverted = 1;
                         }else
@@ -187,6 +190,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                         Config->wheel[deviceId].diameter=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_DIAMETER, &i);
                         Config->wheel[deviceId].pulsePerRot=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_PULSES, &i);
                         Config->wheel[deviceId]._MMPP = (Config->wheel[deviceId].diameter * 3.1415926535897932384) / Config->wheel[deviceId].pulsePerRot;
+                        Config->wheel[deviceId]._MAXSPEED_CMSEC = ((float)Config->motor[deviceId].maxRPM /60) *  ((Config->wheel[deviceId].diameter * 3.1415926535897932384)/10);
                     }
                 }
             }
@@ -309,6 +313,7 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
                             if(Config->motor[i].inverted == 1)
                                 jwObj_string("inverted", "on");
                         jwObj_int( "pwmMin", Config->motor[i].minPower);
+                        jwObj_int( "rpmMax", Config->motor[i].maxRPM);
                     jwEnd();
                 } 
             jwEnd();

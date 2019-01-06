@@ -11,28 +11,40 @@
 #include <string.h>
 #include <unistd.h>
 #include <termios.h>
+#include <math.h>
 
 #include "tools.h"
 
 int mygetch();  // Fonction getch non blocante
 int PID_speedControl(int currentSpeed, int setPoint);
+int speed_to_percent(float maxSpeed, float speed_cmS);
+
+// -------------------------------------------------------------------
+// SPEED_TO_PERCENT, Fonction de conversion de la vitesse mesurée en %
+// de la vitesse max
+// -------------------------------------------------------------------
+int speed_to_percent(float maxSpeed, float speed_cmS){
+    
+    int result = 100 - (round((speed_cmS - maxSpeed)/maxSpeed * 100) * -1);
+    return result;
+}
 
 
 // -------------------------------------------------------------------
 // PID_SPEEDCPMTROL, Fonction PID pour gestion vitesse du moteur
 // -------------------------------------------------------------------
 int PID_speedControl(int currentSpeed, int setPoint){
-    float Kp = 0.1;
-    float Ki = 0.1;
-    float Kd = 0.5;
-    float loopTimeDT = 1.0; //100mS loopTime
+    float Kp = 0.5;    
+    float Ki = 0.01;
+    float Kd = 0.00;
+    float loopTimeDT = 1; 
     
     static int lastSpeed;
     int output=0;
     int outputMin=0;
     int outputMax=100;
     float error;
-    static float sumError;
+    static float sumError=0;
     float newSum;
     float dErrorLoopTime;
      
@@ -52,7 +64,7 @@ int PID_speedControl(int currentSpeed, int setPoint){
             sumError =  newSum;
             
     
-    printf("\n----- SPEED #: %d  -  SETPOINT    %d    -  OUT %d  -----\n", currentSpeed, setPoint, output);
+    printf("\n----- PID ADJUST  -  SETPOINT    %d    -  NEW SETPOINT %d  -----\n", setPoint, output);
     
     return output;
 }

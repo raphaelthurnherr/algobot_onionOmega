@@ -122,7 +122,7 @@ void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle){
 	unsigned char PowerHigh;
 
 	// Conversion du dutyclycle en valeur � appliquer au contr�leur PWM
-	power = ((4096)*dutyCycle)/100;
+	power = (4095*dutyCycle)/100;
 	PowerLow = power&0x00FF;;
 	PowerHigh = (power&0x0F00) >>8;
 

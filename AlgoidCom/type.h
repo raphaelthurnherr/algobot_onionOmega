@@ -87,6 +87,7 @@ struct m_AppConf{
 struct m_MotConfig{
 	char inverted;
         int  minPower;
+        int  maxRPM;
 };
 
 struct m_StepperConfig{
@@ -105,6 +106,7 @@ struct m_WheelConfig{
         int  pulsePerRot;
         int  diameter;
         float _MMPP;
+        float _MAXSPEED_CMSEC;
 };
 
 struct m_color{

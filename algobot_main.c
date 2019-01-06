@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
             printf ("#[CORE] Connexion au serveur cloud OK\n");
         else 
             printf ("#[CORE] Connexion au serveur cloud ERREUR !\n");
- 
+         
 	while(1){
         
         // Check if reset was triggered by user
@@ -218,12 +218,12 @@ int main(int argc, char *argv[]) {
 //                            printf("\n----- SPEED #: %d -----\n", body.motor[i].speed_cmS);
                             //printf("\n----- DISTANCE #%d:  %2f -----\n",i, body.motor[i].distance_cm);
                         }
-
+/*
                        int setpoint;
                        setpoint = PID_speedControl(body.motor[0].speed_cmS, body.motor[0].velocity);
                        setpoint = rescaleMotorPower(0, setpoint);
                        motorSpeedSetpoint(0, setpoint);                      
-                                              
+                        */                      
 			DINEventCheck();										// Cont�le de l'�tat des entr�es num�rique
 															// G�n�re un �venement si changement d'�tat d�tect�
 
@@ -423,6 +423,9 @@ int processAlgoidCommand(void){
                                             }
                                             // Save config for motor minimum PWM power
                                             sysConfig.motor[AlgoidCommand.Config.motor[i].id].minPower=AlgoidCommand.Config.motor[i].minPower;
+
+                                            // Save config for motor Max RPM
+                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].maxRPM=AlgoidCommand.Config.motor[i].maxRPM;
                                             
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].minPower = AlgoidCommand.Config.motor[i].minPower;
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].id = AlgoidCommand.Config.motor[i].id;

@@ -12,5 +12,6 @@
 int mygetch(void);
 
 int PID_speedControl(int currentSpeed, int setPoint);
+int speed_to_percent(float maxSpeed, float speed_cmS);
 
 #endif /* TOOLS_H_ */

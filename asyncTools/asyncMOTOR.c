@@ -15,6 +15,7 @@
 #include "asyncTools.h"
 #include "hwManager.h"
 #include <math.h>
+#include <../tools.h>
 
 char reportBuffer[256];
 
@@ -208,29 +209,30 @@ int dummyMotorAction(int actionNumber, int encoderName){
 // -----------------------------------------------------------------------
 
 int rescaleMotorPower(int motorName, int ratio){
-        float dutyCycle;
+        int dutyCycle;
         int MinPower = 0;                 // % minimum pour fonctionnement du moteur 
         int newRatio;
         
         MinPower = sysConfig.motor[motorName].minPower;
         
-	// V�rification ratio max et min comprise entre 0..100%
-	if(ratio > 100)
-		ratio = 100;
-	if (ratio<0)
-		ratio = 0;
-
         // "Re-défini" une échelle de dutycycle en fonction des caractéristiques du moteur
         // (Applique un dutycycle min si > 0)
         
         if(ratio != 0)
-            dutyCycle = MinPower + (100-(float)MinPower)/100 * (float)ratio;
+            //dutyCycle = MinPower + (100-(float)MinPower)/100 * (float)ratio;
+            dutyCycle = MinPower + ratio;
         else
-            dutyCycle = 0;      
-
-        newRatio = round(dutyCycle);
+            dutyCycle = 0;     
         
-        return newRatio;
+        	// V�rification ratio max et min comprise entre 0..100%
+	if(dutyCycle > 100)
+		ratio = 100;
+	if (dutyCycle<0)
+		dutyCycle = 0;
+
+        //newRatio = round(dutyCycle);
+        
+        return dutyCycle;
 }
 
 // ------------------------------------------------------------------------------------
@@ -240,39 +242,55 @@ int rescaleMotorPower(int motorName, int ratio){
 // Elle va augmenter ou diminuer la velocite du moteur jusqu'a atteindre la consigne
 // ------------------------------------------------------------------------------------
 void checkDCmotorPower(void){
-	unsigned char i;
+	unsigned char ii;
+        int setpoint;
+        int actualSpeedPercent;
+        
 	//unsigned char PowerToSet;
 
 	// Contr�le successivement la puissance sur chaque moteur et effectue une rampe d'acc�l�ration ou d�c�leration
-	for(i=0;i<2;i++){
-		//printf("Motor Nb: %d Adr: %2x ActualPower: %d   TargetPower: %d  \n",i, motorDCadr[i], motorDCactualPower[i], motorDCtargetPower[i]);
-		if(motorDCactualPower[i] < motorDCtargetPower[i]){
-			//PowerToSet=motorDCactualPower[i] + ((motorDCtargetPower[i]-motorDCactualPower[i])/100)*motorDCaccelValue[i];
-			//printf("Power to set: %d %",PowerToSet);
+	for(ii=0;ii<NBMOTOR;ii++){
+            
+            // Converti la consigne donnée en % en consigne  CM/SEC
+            
+            setpoint=(body.motor[0].velocity);
+            actualSpeedPercent = speed_to_percent((float)sysConfig.wheel[0]._MAXSPEED_CMSEC, (float)body.motor[0].speed_cmS);
+            
+            setpoint = 20 + PID_speedControl(actualSpeedPercent, body.motor[0].velocity);
+            
+            //setpoint = rescaleMotorPower(0, setpoint);
+            printf("\n-----------\nMOTOR #%d    SETPOINT: %d percent   ACTUAL : %d percent    %d CM/SEC     PWM OUT %d\n",0, body.motor[0].velocity, actualSpeedPercent, body.motor[0].speed_cmS, setpoint);
+            setMotorSpeed(0, setpoint);  
+            
+            /*
+            //printf("Motor Nb: %d Adr: %2x ActualPower: %d   TargetPower: %d  \n",i, motorDCadr[i], motorDCactualPower[i], motorDCtargetPower[i]);
+            if(motorDCactualPower[i] < motorDCtargetPower[i]){
+                    //PowerToSet=motorDCactualPower[i] + ((motorDCtargetPower[i]-motorDCactualPower[i])/100)*motorDCaccelValue[i];
+                    //printf("Power to set: %d %",PowerToSet);
 
-			if(motorDCactualPower[i]+motorDCaccelValue[i]<=motorDCtargetPower[i])		// Contr�le que puissance apr�s acceleration ne d�passe pas la consigne
-				motorDCactualPower[i]+=motorDCaccelValue[i];						// Augmente la puissance moteur
-			else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
+                    if(motorDCactualPower[i]+motorDCaccelValue[i]<=motorDCtargetPower[i])		// Contr�le que puissance apr�s acceleration ne d�passe pas la consigne
+                            motorDCactualPower[i]+=motorDCaccelValue[i];						// Augmente la puissance moteur
+                    else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
 
-                        setMotorSpeed(i, motorDCactualPower[i]);
-			//set_i2c_command_queue(&PCA9685_DCmotorSetSpeed, motorDCadr[i], motorDCactualPower[i]);
-			//PCA9685_DCmotorSetSpeed(motorDCadr[i], motorDCactualPower[i]);
-		}
+                    setMotorSpeed(i, motorDCactualPower[i]);
+                    //set_i2c_command_queue(&PCA9685_DCmotorSetSpeed, motorDCadr[i], motorDCactualPower[i]);
+                    //PCA9685_DCmotorSetSpeed(motorDCadr[i], motorDCactualPower[i]);
+            }
 
-		if(motorDCactualPower[i]>motorDCtargetPower[i]){
-			if(motorDCactualPower[i]-motorDCdecelValue[i]>=motorDCtargetPower[i])		// Contr�le que puissance apr�s acceleration ne d�passe pas la consigne
-				motorDCactualPower[i]-=motorDCdecelValue[i];						// Diminue la puissance moteur
-			else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
+            if(motorDCactualPower[i]>motorDCtargetPower[i]){
+                    if(motorDCactualPower[i]-motorDCdecelValue[i]>=motorDCtargetPower[i])		// Contr�le que puissance apr�s acceleration ne d�passe pas la consigne
+                            motorDCactualPower[i]-=motorDCdecelValue[i];						// Diminue la puissance moteur
+                    else motorDCactualPower[i]=motorDCtargetPower[i];						// Attribue la puissance de consigne
 
-                        setMotorSpeed(i, motorDCactualPower[i]);
-			//set_i2c_command_queue(&PCA9685_DCmotorSetSpeed, motorDCadr[i], motorDCactualPower[i]);
-			//PCA9685_DCmotorSetSpeed(motorDCadr[i], motorDCactualPower[i]);
+                    setMotorSpeed(i, motorDCactualPower[i]);
+                    //set_i2c_command_queue(&PCA9685_DCmotorSetSpeed, motorDCadr[i], motorDCactualPower[i]);
+                    //PCA9685_DCmotorSetSpeed(motorDCadr[i], motorDCactualPower[i]);
 
-			// Ouvre le pont en h de commande moteur
-			if(motorDCactualPower[i]==0)
-				setMotorDirection(i, BUGGY_STOP);
-		}
-                
+                    // Ouvre le pont en h de commande moteur
+                    if(motorDCactualPower[i]==0)
+                            setMotorDirection(i, BUGGY_STOP);
+            }
+                */
 	}
 }
 
