@@ -20,6 +20,10 @@
 #define FILE_KEY_CONFIG_MOTOR_INVERT "{'motor'[*{'inverted'"
 #define FILE_KEY_CONFIG_MOTOR_MINPWM "{'motor'[*{'pwmMin'"
 #define FILE_KEY_CONFIG_MOTOR_MAXRPM "{'motor'[*{'rpmMax'"
+#define FILE_KEY_CONFIG_MOTOR_PIDEN  "{'motor'[*{'rpmRegulator'{'state'"
+#define FILE_KEY_CONFIG_MOTOR_PIDkp  "{'motor'[*{'rpmRegulator'{'PID_Kp'"
+#define FILE_KEY_CONFIG_MOTOR_PIDki  "{'motor'[*{'rpmRegulator'{'PID_Ki'"
+#define FILE_KEY_CONFIG_MOTOR_PIDkd  "{'motor'[*{'rpmRegulator'{'PID_Kd'"
 
 #define FILE_KEY_CONFIG_WHEEL "{'wheel'"
 #define FILE_KEY_CONFIG_WHEEL_ID "{'wheel'[*{'wheel'"
@@ -110,7 +114,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
         if(srcDataBuffer != NULL){
         // EXTRACT STREAM SETTINGS FROM CONFIG
             // Load data for stream TIME
-            Config->dataStream.time_ms= jRead_long((char *) srcDataBuffer, FILE_KEY_CONFIG_STREAM_TIME, &i);
+            Config->dataStream.time_ms= jRead_int((char *) srcDataBuffer, FILE_KEY_CONFIG_STREAM_TIME, &i);
 
             // Load data for stream STATE
             jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_STREAM_STATE, dataValue, 15, &i );
@@ -149,18 +153,29 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
 
                 for(i=0; i < nbOfDeviceInConf; i++){ 
                     deviceId=-1;
-                    deviceId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_ID, &i); 
+                    deviceId=jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_ID, &i); 
 
                     if(deviceId >= 0 && deviceId < NBMOTOR){
+                        Config->motor[deviceId].minPower = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINPWM, &i); 
+                        Config->motor[deviceId].maxRPM = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MAXRPM, &i); 
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_INVERT, dataValue, 15, &i );
-                        Config->motor[deviceId].minPower = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINPWM, &i); 
-                        Config->motor[deviceId].maxRPM = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MAXRPM, &i); 
                         if(!strcmp(dataValue, "on")){
                             Config->motor[deviceId].inverted = 1;
                         }else
                             if(!strcmp(dataValue, "off")){
                                 Config->motor[deviceId].inverted = 0;
                             }
+                        // RECUPERATION DES PARAMETRE DU REGULATOR PID
+                        jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDEN, dataValue, 15, &i );
+                        if(!strcmp(dataValue, "on")){
+                            Config->motor[deviceId].rpmRegulator.PIDstate = 1;
+                        }else
+                            if(!strcmp(dataValue, "off")){
+                                Config->motor[deviceId].rpmRegulator.PIDstate = 0;
+                            }                        
+                        Config->motor[deviceId].rpmRegulator.PID_Kp = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkp, &i); 
+                        Config->motor[deviceId].rpmRegulator.PID_Ki = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDki, &i); 
+                        Config->motor[deviceId].rpmRegulator.PID_Kd = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkd, &i); 
                         //printf("\n****CFG MOTOR #%d: %d\n",deviceId, Config->motor[deviceId].minPower);
                     }
                 }
@@ -250,7 +265,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                     deviceId=-1;
                     deviceId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_ID, &i); 
 
-                    Config->led[deviceId].power = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_POWER, &i);                     
+                    Config->led[deviceId].power = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_POWER, &i);                     
 
                     if(deviceId >= 0 && deviceId < NBLED){
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_STATE, dataValue, 15, &i );
@@ -314,6 +329,16 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
                                 jwObj_string("inverted", "on");
                         jwObj_int( "pwmMin", Config->motor[i].minPower);
                         jwObj_int( "rpmMax", Config->motor[i].maxRPM);
+                        jwObj_object("motor");
+                            if(Config->motor[i].rpmRegulator.PIDstate == 0)
+                                jwObj_string("state", "off");
+                            else 
+                                if(Config->motor[i].rpmRegulator.PIDstate == 1)
+                                    jwObj_string("state", "on");
+                            jwObj_double( "PID_Kp", Config->motor[i].rpmRegulator.PID_Kp);
+                            jwObj_double( "PID_Ki", Config->motor[i].rpmRegulator.PID_Ki);
+                            jwObj_double( "PID_Kd", Config->motor[i].rpmRegulator.PID_Kd);
+                        jwEnd();
                     jwEnd();
                 } 
             jwEnd();

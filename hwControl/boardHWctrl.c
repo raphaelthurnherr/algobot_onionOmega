@@ -126,8 +126,8 @@ void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle){
 	PowerLow = power&0x00FF;;
 	PowerHigh = (power&0x0F00) >>8;
 
-	i2c_write(0, PCA9685, motorAdr, PowerLow);
-        i2c_write(0, PCA9685, motorAdr+1, PowerHigh);
+	//i2c_write(0, PCA9685, motorAdr, PowerLow);
+        //i2c_write(0, PCA9685, motorAdr+1, PowerHigh);
 }
 
 

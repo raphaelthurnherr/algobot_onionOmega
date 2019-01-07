@@ -13,6 +13,8 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
+        <gdb_signals>
+        </gdb_signals>
         <gdb_options>
           <DebugOptions>
           </DebugOptions>
@@ -33,10 +35,10 @@
 sh -c "/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/runRemote.sh"
 </runcommandpicklistitem>
           <runcommandpicklistitem>sh -c "/home/raph/NetBeansProjects/algobot_onionOmega/runRemote.sh" sh -c "/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/runRemote.sh" </runcommandpicklistitem>
-          <runcommandpicklistitem>sh -c "/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/runRemote.sh"</runcommandpicklistitem>
           <runcommandpicklistitem>sh -c "/home/raph/NetBeansProjects/algobot_onionOmega/runRemote.sh" sh -c "/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/runRemote.sh"</runcommandpicklistitem>
+          <runcommandpicklistitem>sh -c "/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/runRemote.sh"</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>sh -c "/home/raph/NetBeansProjects/algobot_onionOmega/runRemote.sh" sh -c "/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/runRemote.sh"</runcommand>
+        <runcommand>sh -c "/home/raph-pnp/Documents/dev/embedded_soft/algobot_onion/algobot_onionOmega/runRemote.sh"</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

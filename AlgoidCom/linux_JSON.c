@@ -66,6 +66,10 @@
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT "{'MsgData'{'MsgValue'[{'motor'[*{'inverted'"
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_MINPWM "{'MsgData'{'MsgValue'[{'motor'[*{'pwmMin'"
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_MAXRPM "{'MsgData'{'MsgValue'[{'motor'[*{'rpmMax'"
+#define KEY_MESSAGE_VALUE_CFG_MOTOR_PIDREG "{'MsgData'{'MsgValue'[{'motor'[*{'rpmRegulator'{'state'"
+#define KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKP "{'MsgData'{'MsgValue'[{'motor'[*{'rpmRegulator'{'PID_Kp'"
+#define KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKI "{'MsgData'{'MsgValue'[{'motor'[*{'rpmRegulator'{'PID_Ki'"
+#define KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKD "{'MsgData'{'MsgValue'[{'motor'[*{'rpmRegulator'{'PID_Kd'"
 
 #define KEY_MESSAGE_VALUE_CFG_WHEEL "{'MsgData'{'MsgValue'[*{'wheel'"
 #define KEY_MESSAGE_VALUE_CFG_WHEEL_ID "{'MsgData'{'MsgValue'[{'wheel'[*{'wheel'"
@@ -306,6 +310,11 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                                         AlgoidMessageRX.Config.motor[i_dev].minPower=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_MINPWM, &i_dev); 
                                                         AlgoidMessageRX.Config.motor[i_dev].maxRPM=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_MAXRPM, &i_dev); 
                                                         jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT, AlgoidMessageRX.Config.motor[i_dev].inverted, 15, &i_dev ); 
+                                                        jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDREG, AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PIDstate, 15, &i_dev ); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Kp=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKP, &i_dev); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Ki=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKI, &i_dev); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Kd=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKD, &i_dev); 
+                                                        
                                                     }
                                                 }
 

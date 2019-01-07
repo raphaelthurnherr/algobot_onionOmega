@@ -143,6 +143,13 @@ int main(int argc, char *argv[]) {
         else 
             printf ("#[CORE] Connexion au serveur cloud ERREUR !\n");
          
+        float a= 1.234;
+        float b= 2.345;
+        float c= 3.458;
+        for(i=0;i<NBMOTOR;i++){
+            printf("\n ---------  Motor %d PID state: %d    Kp: %.2f   Ki: %.2f   Kd: %.2f\n", i, sysConfig.motor[i].rpmRegulator.PIDstate, sysConfig.motor[i].rpmRegulator.PID_Kp, sysConfig.motor[i].rpmRegulator.PID_Ki, sysConfig.motor[i].rpmRegulator.PID_Kd);
+        }
+        
 	while(1){
         
         // Check if reset was triggered by user
@@ -427,8 +434,25 @@ int processAlgoidCommand(void){
                                             // Save config for motor Max RPM
                                             sysConfig.motor[AlgoidCommand.Config.motor[i].id].maxRPM=AlgoidCommand.Config.motor[i].maxRPM;
                                             
+                                            // Save config for motor PID regulator
+                                            if(!strcmp(AlgoidCommand.Config.motor[i].rpmRegulator.PIDstate, "on")){
+                                                sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PIDstate=1;
+                                                strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PIDstate, "on");
+                                            }
+                                            else if(!strcmp(AlgoidCommand.Config.motor[i].rpmRegulator.PIDstate, "off")){
+                                                    sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PIDstate=0;
+                                                    strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PIDstate, "off");
+                                            }
+                                            
+                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PID_Kp=AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kp;
+                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PID_Ki=AlgoidCommand.Config.motor[i].rpmRegulator.PID_Ki;
+                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PID_Kd=AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kd;
+                                            
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].minPower = AlgoidCommand.Config.motor[i].minPower;
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].id = AlgoidCommand.Config.motor[i].id;
+                                            AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PID_Kp = AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kp;
+                                            AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PID_Ki = AlgoidCommand.Config.motor[i].rpmRegulator.PID_Ki;
+                                            AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PID_Kd = AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kd;
                                         }
                                         else
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].id=-1;
@@ -2136,13 +2160,14 @@ int runCloudTestCommand(void){
 
 void resetConfig(void){
     int i;
-      
+    /*  
     	// Init body membre
 	for(i=0;i<NBAIN;i++){
 		body.battery[i].event_enable=DEFAULT_EVENT_STATE;
 		body.battery[i].event_high=65535;
 		body.battery[i].event_low=0;
 	}
+    
 
 	for(i=0;i<NBDIN;i++){
 		body.proximity[i].event_enable=DEFAULT_EVENT_STATE;
@@ -2152,7 +2177,7 @@ void resetConfig(void){
         for(i=0;i<NBBTN;i++){
 		body.button[i].event_enable=DEFAULT_EVENT_STATE;
 	}
-  /*  
+    
         for(i=0;i<NBMOTOR;i++){
             
 		body.motor[i].accel=100;        
@@ -2179,7 +2204,6 @@ void resetConfig(void){
                 sysConfig.stepper[i].ratio=64;
                 sysConfig.stepper[i].stepPerRot=32;
 	}
-*/
 
         for(i=0;i<NBSONAR;i++){
 		body.distance[i].event_enable=DEFAULT_EVENT_STATE;
@@ -2188,6 +2212,7 @@ void resetConfig(void){
                 body.distance[i].event_hysteresis=0;
                 body.distance[i].value=-1;
 	}
+        
       
         
         for(i=0;i<NBRGBC;i++){
@@ -2209,7 +2234,7 @@ void resetConfig(void){
 		body.rgb[i].clear.event_low=0;
 		body.rgb[i].clear.event_high=65535;
 	}
-
+*/
         sysInfo.startUpTime=0;
         
         // ------------ Initialisation de la configuration systeme

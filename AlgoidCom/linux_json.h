@@ -80,11 +80,19 @@ struct mAppConf{
         char save[25];
 };
 
+struct mPIDConfig{
+        char PIDstate[25];
+        float PID_Ki;
+        float PID_Kp;
+        float PID_Kd;
+};
+
 struct mMotConfig{
         int id;
 	char inverted[25];
         int  minPower;
         int  maxRPM;
+        struct mPIDConfig rpmRegulator;
 };
 
 struct mWheelConfig{

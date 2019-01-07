@@ -84,10 +84,18 @@ struct m_AppConf{
 	int reset;
 };
 
+struct m_PIDConfig{
+        char PIDstate;
+        float PID_Ki;
+        float PID_Kp;
+        float PID_Kd;
+};
+
 struct m_MotConfig{
 	char inverted;
         int  minPower;
         int  maxRPM;
+        struct m_PIDConfig rpmRegulator;
 };
 
 struct m_StepperConfig{
