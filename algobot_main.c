@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.2c"
+#define FIRMWARE_VERSION "1.6.2d"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -142,14 +142,7 @@ int main(int argc, char *argv[]) {
             printf ("#[CORE] Connexion au serveur cloud OK\n");
         else 
             printf ("#[CORE] Connexion au serveur cloud ERREUR !\n");
-         
-        float a= 1.234;
-        float b= 2.345;
-        float c= 3.458;
-        for(i=0;i<NBMOTOR;i++){
-            printf("\n ---------  Motor %d PID state: %d    Kp: %.2f   Ki: %.2f   Kd: %.2f\n", i, sysConfig.motor[i].rpmRegulator.PIDstate, sysConfig.motor[i].rpmRegulator.PID_Kp, sysConfig.motor[i].rpmRegulator.PID_Ki, sysConfig.motor[i].rpmRegulator.PID_Kd);
-        }
-        
+                 
 	while(1){
         
         // Check if reset was triggered by user
@@ -737,7 +730,7 @@ int runMotorAction(void){
             
             AlgoidResponse[0].responseType = EVENT_ACTION_ERROR;
             sendResponse(myTaskId, AlgoidMessageRX.msgFrom, EVENT, MOTORS, 1);               // Envoie un message EVENT error
-            sprintf(reportBuffer, "ERREUR: Aucun moteur d�fini ou inexistant pour le message #%d\n", AlgoidCommand.msgID);
+            sprintf(reportBuffer, "ERREUR: Aucun moteur defini ou inexistant pour le message #%d\n", AlgoidCommand.msgID);
             printf(reportBuffer);                                                             // Affichage du message dans le shell
             sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"
         }
@@ -1262,7 +1255,7 @@ int removeBuggyTask(int actionNumber){
 int makeStatusRequest(int msgType){
 	unsigned char i;
 	unsigned char ptrData=0;
-
+        
 	AlgoidCommand.msgValueCnt=0;
 	AlgoidCommand.msgValueCnt = NBDIN + NBBTN + NBMOTOR + NBSONAR + NBRGBC + NBLED + NBPWM +1 ; // Nombre de VALEUR � transmettre + 1 pour le SystemStatus
      
@@ -1294,7 +1287,7 @@ int makeStatusRequest(int msgType){
                 else strcpy(AlgoidResponse[ptrData].DINresponse.event_state, "off");                
 		ptrData++;
 	}
-
+                
         for(i=0;i<NBBTN;i++){
                 AlgoidResponse[ptrData].BTNresponse.id=i;
                 AlgoidResponse[ptrData].value=body.button[i].state;
@@ -1303,14 +1296,14 @@ int makeStatusRequest(int msgType){
                 else strcpy(AlgoidResponse[ptrData].BTNresponse.event_state, "off");
                 ptrData++;
 	}
-        
+
 	for(i=0;i<NBMOTOR;i++){
 		AlgoidResponse[ptrData].MOTresponse.motor=i;
 		AlgoidResponse[ptrData].MOTresponse.speed=body.motor[i].speed_cmS;
 		AlgoidResponse[ptrData].MOTresponse.cm=body.motor[i].distance_cm;
 		ptrData++;
 	}
-        
+
         for(i=0;i<NBSONAR;i++){
                 AlgoidResponse[ptrData].DISTresponse.id=i;
                 AlgoidResponse[ptrData].value=body.distance[i].value;
@@ -1319,7 +1312,7 @@ int makeStatusRequest(int msgType){
                 else strcpy(AlgoidResponse[ptrData].DISTresponse.event_state, "off");
                 ptrData++;
 	}
-        
+
         for(i=0;i<NBRGBC;i++){
 		AlgoidResponse[ptrData].RGBresponse.id=i;
 		AlgoidResponse[ptrData].RGBresponse.red.value=body.rgb[i].red.value;
@@ -1332,22 +1325,21 @@ int makeStatusRequest(int msgType){
                 
 		ptrData++;
 	}
-        
+
         for(i=0;i<NBLED;i++){
 		AlgoidResponse[ptrData].LEDresponse.id=i;
 		AlgoidResponse[ptrData].value=body.led[i].state;
                 AlgoidResponse[ptrData].LEDresponse.powerPercent=body.led[i].power;
 		ptrData++;
 	}
-        
-        
+
         for(i=0;i<NBPWM;i++){
 		AlgoidResponse[ptrData].PWMresponse.id=i;
 		AlgoidResponse[ptrData].value=body.pwm[i].state;
                 AlgoidResponse[ptrData].PWMresponse.powerPercent=body.pwm[i].power;
 		ptrData++;
 	}
-                
+
 	// Envoie de la r�ponse MQTT
 	sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, msgType, STATUS, AlgoidCommand.msgValueCnt);
 	return (1);
@@ -2160,7 +2152,7 @@ int runCloudTestCommand(void){
 
 void resetConfig(void){
     int i;
-    /*  
+      
     	// Init body membre
 	for(i=0;i<NBAIN;i++){
 		body.battery[i].event_enable=DEFAULT_EVENT_STATE;
@@ -2186,11 +2178,14 @@ void resetConfig(void){
                 body.motor[i].velocity=0;
                 body.motor[i].time=0;
                 body.motor[i].cm=0;
-             
+            
                 sysConfig.motor[i].inverted=0;
                 sysConfig.motor[i].minPower=0;
-	}
-    
+                sysConfig.motor[i].rpmRegulator.PIDstate=0;
+                sysConfig.motor[i].rpmRegulator.PID_Kp=0.0;
+                sysConfig.motor[i].rpmRegulator.PID_Ki=0.0;
+                sysConfig.motor[i].rpmRegulator.PID_Kd=0.0;
+	}  
 
         for(i=0;i<NBSTEPPER;i++){
             
@@ -2234,8 +2229,8 @@ void resetConfig(void){
 		body.rgb[i].clear.event_low=0;
 		body.rgb[i].clear.event_high=65535;
 	}
-*/
-        sysInfo.startUpTime=0;
+
+        
         
         // ------------ Initialisation de la configuration systeme
         
@@ -2246,16 +2241,13 @@ void resetConfig(void){
         
                 
         // Load config data
-        char configStatus = LoadConfig(&sysConfig, "kehops.cfg");
+        int configStatus = LoadConfig(&sysConfig, "kehops.cfg");
         if(configStatus<0){
             printf("#[CORE] Load configuration file from \"kehops.cfg\": ERROR\n");
         }else
             printf("#[CORE] Load configuration file from \"kehops.cfg\": OK\n");
             
-        
-        
-        
-        sendMqttReport(AlgoidCommand.msgID, "WARNING ! Configuration reset");// Envoie le message sur le canal MQTT "Report"  
+        sysInfo.startUpTime=0;
 }
 
 int getStartupArg(int count, char *arg[]){

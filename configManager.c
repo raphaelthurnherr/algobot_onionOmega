@@ -329,15 +329,15 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
                                 jwObj_string("inverted", "on");
                         jwObj_int( "pwmMin", Config->motor[i].minPower);
                         jwObj_int( "rpmMax", Config->motor[i].maxRPM);
-                        jwObj_object("motor");
+                        jwObj_object("rpmRegulator");
                             if(Config->motor[i].rpmRegulator.PIDstate == 0)
                                 jwObj_string("state", "off");
                             else 
                                 if(Config->motor[i].rpmRegulator.PIDstate == 1)
                                     jwObj_string("state", "on");
-                            jwObj_double( "PID_Kp", Config->motor[i].rpmRegulator.PID_Kp);
-                            jwObj_double( "PID_Ki", Config->motor[i].rpmRegulator.PID_Ki);
-                            jwObj_double( "PID_Kd", Config->motor[i].rpmRegulator.PID_Kd);
+                                    jwObj_double( "PID_Kp", Config->motor[i].rpmRegulator.PID_Kp);
+                                    jwObj_double( "PID_Ki", Config->motor[i].rpmRegulator.PID_Ki);
+                                    jwObj_double( "PID_Kd", Config->motor[i].rpmRegulator.PID_Kd);
                         jwEnd();
                     jwEnd();
                 } 

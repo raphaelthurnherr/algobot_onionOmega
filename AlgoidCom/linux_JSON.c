@@ -311,9 +311,9 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                                         AlgoidMessageRX.Config.motor[i_dev].maxRPM=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_MAXRPM, &i_dev); 
                                                         jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT, AlgoidMessageRX.Config.motor[i_dev].inverted, 15, &i_dev ); 
                                                         jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDREG, AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PIDstate, 15, &i_dev ); 
-                                                        AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Kp=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKP, &i_dev); 
-                                                        AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Ki=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKI, &i_dev); 
-                                                        AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Kd=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKD, &i_dev); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Kp=jRead_double((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKP, &i_dev); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Ki=jRead_double((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKI, &i_dev); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Kd=jRead_double((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKD, &i_dev); 
                                                         
                                                     }
                                                 }

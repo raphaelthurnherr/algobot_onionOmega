@@ -14,10 +14,12 @@
 #include <math.h>
 
 #include "tools.h"
+#include "type.h"
+#include "algobot_main.h"
 
 int mygetch();  // Fonction getch non blocante
-int PID_speedControl(int currentSpeed, int setPoint);
 int speed_to_percent(float maxSpeed, float speed_cmS);
+int PID_speedControl(int motorId, int currentSpeed, int setPoint);
 
 // -------------------------------------------------------------------
 // SPEED_TO_PERCENT, Fonction de conversion de la vitesse mesurée en %
@@ -33,10 +35,10 @@ int speed_to_percent(float maxSpeed, float speed_cmS){
 // -------------------------------------------------------------------
 // PID_SPEEDCPMTROL, Fonction PID pour gestion vitesse du moteur
 // -------------------------------------------------------------------
-int PID_speedControl(int currentSpeed, int setPoint){
-    float Kp = 0.5;    
-    float Ki = 0.01;
-    float Kd = 0.00;
+int PID_speedControl(int motorId, int currentSpeed, int setPoint){
+    float Kp = sysConfig.motor[motorId].rpmRegulator.PID_Kp;   
+    float Ki = sysConfig.motor[motorId].rpmRegulator.PID_Ki;   
+    float Kd = sysConfig.motor[motorId].rpmRegulator.PID_Kd;   
     float loopTimeDT = 1; 
     
     static int lastSpeed;

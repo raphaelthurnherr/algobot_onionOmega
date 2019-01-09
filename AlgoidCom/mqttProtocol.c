@@ -95,7 +95,8 @@ void connlost(void *context, char *cause)
 }
 
 int mqttPutMessage(char *topic, char *data, unsigned short lenght){
-	int rc;
+    int rc;
+    
 	MQTTClient_publish(client, topic, lenght, data, QOS, 0, &token);
 	rc = MQTTClient_waitForCompletion(client, token, TIMEOUT);
 

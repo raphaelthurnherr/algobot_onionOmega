@@ -22,6 +22,7 @@ int EFM8BB_clearWheelDistance(unsigned char wheelNb);
 int EFM8BB_getFirmwareVersion(void);                            // Get the MCU firmware version
 int EFM8BB_getBoardType(void);                                  // Get the type of the board.
 
+int PCA9629_ReadMotorState(int motorNumber);                             // Lecture du registre de contrôle du moteur
 void PCA9685_DCmotorSetSpeed(unsigned char motorAdr, unsigned char dutyCycle);
 
 int PCA9629_StepperMotorControl(int motorNumber, int data);              //Configuration du registre "PAS" du driver moteur
@@ -133,6 +134,19 @@ int PCA9629_StepperMotorControl(int motorNumber, int data){
         motorAddress = PCA9629 + motorNumber;
 
         printf(" #SIMU-> STEP motor CONTROL adress: 0x%2x with register data: %d\n", motorAddress, data);
+        return(err);
+}
+
+//================================================================================
+// READMOTORSTATE
+// Lecture de l'état actuel du moteur (run/stop)
+//================================================================================
+int PCA9629_ReadMotorState(int motorNumber){
+   	unsigned char err=0;
+	unsigned char motorAddress = 0;
+        
+        motorAddress = PCA9629 + motorNumber;
+
         return(err);
 }
 

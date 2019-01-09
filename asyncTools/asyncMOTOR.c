@@ -256,10 +256,11 @@ void checkDCmotorPower(void){
             setpoint=(body.motor[0].velocity);
             actualSpeedPercent = speed_to_percent((float)sysConfig.wheel[0]._MAXSPEED_CMSEC, (float)body.motor[0].speed_cmS);
             
-            //setpoint = 20 + PID_speedControl(actualSpeedPercent, body.motor[0].velocity);
+            setpoint = PID_speedControl(0, actualSpeedPercent, body.motor[0].velocity);
             
-            //setpoint = rescaleMotorPower(0, setpoint);
-            //printf("\n-----------\nMOTOR #%d    SETPOINT: %d percent   ACTUAL : %d percent    %d CM/SEC     PWM OUT %d\n",0, body.motor[0].velocity, actualSpeedPercent, body.motor[0].speed_cmS, setpoint);
+            setpoint = sysConfig.motor[0].minPower + rescaleMotorPower(0, setpoint);
+            
+            printf("\n--- MOTOR #%d  SETPOINT: %d percent ACTUAL : %d percent  %d CM/SEC   onionPWM OUT %d\n",0, body.motor[0].velocity, actualSpeedPercent, body.motor[0].speed_cmS, setpoint);
             setMotorSpeed(0, setpoint);  
             
             /*

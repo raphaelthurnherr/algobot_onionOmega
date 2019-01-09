@@ -1,3 +1,7 @@
+-> Update resetConfig to RAZ is commentary
+
+
+
 Version 1.6.2b - 03.01.2019
 --------------------------
 
