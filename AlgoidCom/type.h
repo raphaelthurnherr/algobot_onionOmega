@@ -49,6 +49,7 @@ struct m_counter{
 struct m_motor{
 	int distance_cm;
         int speed_cmS;
+        float speed_rpm;
 	int velocity;
 	int direction;
         int accel;
@@ -93,7 +94,7 @@ struct m_PIDConfig{
 
 struct m_MotConfig{
 	char inverted;
-        int  minPower;
+        int  minRPM;
         int  maxRPM;
         struct m_PIDConfig rpmRegulator;
 };

@@ -29,7 +29,7 @@ int endWheelAction(int actionNumber, int motorNb);
 int checkMotorEncoder(int actionNumber, int encoderName);
 int dummyMotorAction(int actionNumber, int encoderName);
 
-int rescaleMotorPower(int motorName, int ratio);        // Redefinition de l'echelle % PWM en échelle utilisable par le moteur
+float RPMToPercent(int motorName, int ratio);        // Redefinition de l'echelle % PWM en échelle utilisable par le moteur
 void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
 int motorSpeedSetpoint(int motorName, int ratio);  // Applique la consigne de vélocité pour un moteur donné
 void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent);		// D�fini l'acc�leration/deceleration d'un moteur
@@ -104,7 +104,7 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 		// Défini le "nouveau" sens de rotation à applique au moteur ainsi que la consigne de vitesse
 		if(setMotorDirection(motorNb, myDirection)){                                                            // Sens de rotation
                     
-                        motorPWM = rescaleMotorPower(motorNb, veloc);                                                   // Mise à l'échelle d'un % "utilisateur" en PWM % utilisable par le moteur
+                        motorPWM = RPMToPercent(motorNb, veloc);                                                   // Mise à l'échelle d'un % "utilisateur" en PWM % utilisable par le moteur
                         motorSpeedSetpoint(motorNb, motorPWM);                                                          // Vitesse
                         
                         //printf("\n[setAsyncMotorAction()] New PWM Setpoint: %d\n", motorPWM );  
@@ -202,37 +202,26 @@ int dummyMotorAction(int actionNumber, int encoderName){
 
 
 // ----------------------------------------------------------------------
-// RESCALEMOTORPOWER
+// RPMToPercent
 // Redefini l'echelle donnée en % en une échelle utilisable
 // selon les caractéristique du motor (par ex. PWM minimum pour démarrage moteur)
 // donnés dans le fichier de configuration
 // -----------------------------------------------------------------------
 
-int rescaleMotorPower(int motorName, int ratio){
-        int dutyCycle;
-        int MinPower = 0;                 // % minimum pour fonctionnement du moteur 
+float RPMToPercent(int motorName, int ratio){
+        float RPMpercent = 0;                 // % minimum pour fonctionnement du moteur 
         int newRatio;
         
-        MinPower = sysConfig.motor[motorName].minPower;
+        RPMpercent = (float)sysConfig.motor[motorName].minRPM + ((float)(sysConfig.motor[motorName].maxRPM - sysConfig.motor[motorName].minRPM)/100) * ratio;
+           
         
-        // "Re-défini" une échelle de dutycycle en fonction des caractéristiques du moteur
-        // (Applique un dutycycle min si > 0)
+        // V�rification ratio max et min comprise entre 0..100%
+	if(RPMpercent > 100)
+		RPMpercent = 100;
+	if (RPMpercent<0)
+		RPMpercent = 0;
         
-        if(ratio != 0)
-            //dutyCycle = MinPower + (100-(float)MinPower)/100 * (float)ratio;
-            dutyCycle = MinPower + ratio;
-        else
-            dutyCycle = 0;     
-        
-        	// V�rification ratio max et min comprise entre 0..100%
-	if(dutyCycle > 100)
-		ratio = 100;
-	if (dutyCycle<0)
-		dutyCycle = 0;
-
-        //newRatio = round(dutyCycle);
-        
-        return dutyCycle;
+        return RPMpercent;
 }
 
 // ------------------------------------------------------------------------------------
@@ -242,6 +231,7 @@ int rescaleMotorPower(int motorName, int ratio){
 // Elle va augmenter ou diminuer la velocite du moteur jusqu'a atteindre la consigne
 // ------------------------------------------------------------------------------------
 void checkDCmotorPower(void){
+        static int oldSetpoint;
 	unsigned char ii;
         int setpoint;
         int actualSpeedPercent;
@@ -254,15 +244,18 @@ void checkDCmotorPower(void){
             // Converti la consigne donnée en % en consigne  CM/SEC
             
             setpoint=(body.motor[0].velocity);
-            actualSpeedPercent = speed_to_percent((float)sysConfig.wheel[0]._MAXSPEED_CMSEC, (float)body.motor[0].speed_cmS);
+            //actualSpeedPercent = speed_to_percent((float)sysConfig.wheel[0]._MAXSPEED_CMSEC, (float)body.motor[0].speed_cmS);
             
-            setpoint = PID_speedControl(0, actualSpeedPercent, body.motor[0].velocity);
+            //setpoint = PID_speedControl(0, actualSpeedPercent, body.motor[0].velocity);
             
-            setpoint = sysConfig.motor[0].minPower + rescaleMotorPower(0, setpoint);
+            setpoint = sysConfig.motor[0].minRPM + RPMToPercent(0, setpoint);
+            printf("\n--- MOTOR #%d  ACTUAL RPM: %.1f  onionPWM OUT %d\n",0 , body.motor[0].speed_rpm, setpoint);
             
-            printf("\n--- MOTOR #%d  SETPOINT: %d percent ACTUAL : %d percent  %d CM/SEC   onionPWM OUT %d\n",0, body.motor[0].velocity, actualSpeedPercent, body.motor[0].speed_cmS, setpoint);
-            setMotorSpeed(0, setpoint);  
-            
+            if(setpoint != oldSetpoint){
+                printf("\n--- MOTOR #%d  SETPOINT: %d percent ACTUAL : %d percent  %d CM/SEC   onionPWM OUT %d\n",0, body.motor[0].velocity, actualSpeedPercent, body.motor[0].speed_cmS, setpoint);
+                setMotorSpeed(0, setpoint);  
+            }
+            oldSetpoint = setpoint;
             /*
             //printf("Motor Nb: %d Adr: %2x ActualPower: %d   TargetPower: %d  \n",i, motorDCadr[i], motorDCactualPower[i], motorDCtargetPower[i]);
             if(motorDCactualPower[i] < motorDCtargetPower[i]){
@@ -307,7 +300,7 @@ int motorSpeedSetpoint(int motorName, int ratio){
 	else
 		printf("\n function [motorSpeedSetpoint] : undefine motor #%d", motorName);
         
-        return;
+        return 0;
 }
 
 // -------------------------------------------------------------------

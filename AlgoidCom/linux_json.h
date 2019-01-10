@@ -90,7 +90,7 @@ struct mPIDConfig{
 struct mMotConfig{
         int id;
 	char inverted[25];
-        int  minPower;
+        int  minRPM;
         int  maxRPM;
         struct mPIDConfig rpmRegulator;
 };

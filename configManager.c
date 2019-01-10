@@ -18,7 +18,7 @@
 #define FILE_KEY_CONFIG_MOTOR "{'motor'"
 #define FILE_KEY_CONFIG_MOTOR_ID "{'motor'[*{'motor'"
 #define FILE_KEY_CONFIG_MOTOR_INVERT "{'motor'[*{'inverted'"
-#define FILE_KEY_CONFIG_MOTOR_MINPWM "{'motor'[*{'pwmMin'"
+#define FILE_KEY_CONFIG_MOTOR_MINRPM "{'motor'[*{'rpmMin'"
 #define FILE_KEY_CONFIG_MOTOR_MAXRPM "{'motor'[*{'rpmMax'"
 #define FILE_KEY_CONFIG_MOTOR_PIDEN  "{'motor'[*{'rpmRegulator'{'state'"
 #define FILE_KEY_CONFIG_MOTOR_PIDkp  "{'motor'[*{'rpmRegulator'{'PID_Kp'"
@@ -139,8 +139,8 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
             // Reset motor data config before reading
             for(i=0;i<NBMOTOR;i++){
               Config->motor[i].inverted = -1;
-              Config->motor[i].minPower = 0;
-              Config->motor[i].maxRPM = 500;
+              Config->motor[i].minRPM = 0;
+              Config->motor[i].maxRPM = 200;
             }
 
         // Motor Setting
@@ -156,7 +156,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                     deviceId=jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_ID, &i); 
 
                     if(deviceId >= 0 && deviceId < NBMOTOR){
-                        Config->motor[deviceId].minPower = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINPWM, &i); 
+                        Config->motor[deviceId].minRPM = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINRPM, &i); 
                         Config->motor[deviceId].maxRPM = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MAXRPM, &i); 
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_INVERT, dataValue, 15, &i );
                         if(!strcmp(dataValue, "on")){
@@ -327,7 +327,7 @@ char SaveConfig(t_sysConfig * Config, char * fileName){
                         else 
                             if(Config->motor[i].inverted == 1)
                                 jwObj_string("inverted", "on");
-                        jwObj_int( "pwmMin", Config->motor[i].minPower);
+                        jwObj_int( "rpmMin", Config->motor[i].minRPM);
                         jwObj_int( "rpmMax", Config->motor[i].maxRPM);
                         jwObj_object("rpmRegulator");
                             if(Config->motor[i].rpmRegulator.PIDstate == 0)

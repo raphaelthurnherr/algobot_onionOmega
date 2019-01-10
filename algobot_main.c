@@ -214,6 +214,7 @@ int main(int argc, char *argv[]) {
                             
                             // Convert millimeter per pulse to centimeter per pulse and calculation of distance
                             body.motor[i].speed_cmS = (float)(getMotorFrequency(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
+                            body.motor[i].speed_rpm = 60 * (float)(getMotorFrequency(i)) / (sysConfig.wheel[i].pulsePerRot);
                             body.motor[i].distance_cm = (float)(getMotorPulses(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
 //                            printf("\n----- SPEED #: %d -----\n", body.motor[i].speed_cmS);
                             //printf("\n----- DISTANCE #%d:  %2f -----\n",i, body.motor[i].distance_cm);
@@ -421,10 +422,9 @@ int processAlgoidCommand(void){
                                                     sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=0;
                                                     strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].inverted, "off");
                                             }
-                                            // Save config for motor minimum PWM power
-                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].minPower=AlgoidCommand.Config.motor[i].minPower;
 
-                                            // Save config for motor Max RPM
+                                            // Save config for motor Min Max RPM
+                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].minRPM=AlgoidCommand.Config.motor[i].minRPM;
                                             sysConfig.motor[AlgoidCommand.Config.motor[i].id].maxRPM=AlgoidCommand.Config.motor[i].maxRPM;
                                             
                                             // Save config for motor PID regulator
@@ -441,7 +441,7 @@ int processAlgoidCommand(void){
                                             sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PID_Ki=AlgoidCommand.Config.motor[i].rpmRegulator.PID_Ki;
                                             sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PID_Kd=AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kd;
                                             
-                                            AlgoidResponse[valCnt].CONFIGresponse.motor[i].minPower = AlgoidCommand.Config.motor[i].minPower;
+                                            AlgoidResponse[valCnt].CONFIGresponse.motor[i].minRPM = AlgoidCommand.Config.motor[i].minRPM;
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].id = AlgoidCommand.Config.motor[i].id;
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PID_Kp = AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kp;
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PID_Ki = AlgoidCommand.Config.motor[i].rpmRegulator.PID_Ki;
@@ -2180,7 +2180,8 @@ void resetConfig(void){
                 body.motor[i].cm=0;
             
                 sysConfig.motor[i].inverted=0;
-                sysConfig.motor[i].minPower=0;
+                sysConfig.motor[i].minRPM=20;
+                sysConfig.motor[i].maxRPM=200;
                 sysConfig.motor[i].rpmRegulator.PIDstate=0;
                 sysConfig.motor[i].rpmRegulator.PID_Kp=0.0;
                 sysConfig.motor[i].rpmRegulator.PID_Ki=0.0;
