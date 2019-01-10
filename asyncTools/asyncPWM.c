@@ -40,7 +40,7 @@ int setAsyncPwmAction(int actionNumber, int pwmName, int mode, int time, int cou
         }
         else{
             if(mode==ON)
-                setPwmPower(pwmName, body.pwm[pwmName].power); 
+                setPwmPower(pwmName, robot.pwm[pwmName].power); 
             else
                 if(mode==OFF)
                     setPwmPower(pwmName, 0);
@@ -90,7 +90,7 @@ int checkBlinkPwmCount(int actionNumber, int pwmName){
         static int PWMtoggleState[NBPWM];
          
         // Si mode blink actif, toggle sur PWM et comptage
-        if(body.pwm[pwmName].state==BLINK){
+        if(robot.pwm[pwmName].state==BLINK){
             
             // Performe the PWM toggle
             if(PWMtoggleState[pwmName]>0){
@@ -98,18 +98,18 @@ int checkBlinkPwmCount(int actionNumber, int pwmName){
                 PWMtoggleState[pwmName]=0;
             }else
             {
-                setPwmPower(pwmName, body.pwm[pwmName].power);
+                setPwmPower(pwmName, robot.pwm[pwmName].power);
                 PWMtoggleState[pwmName]=1;
             }
            
             // Consigned de clignotement atteinte ?
-            if(blinkCount >= body.pwm[pwmName].blinkCount-1){
-                body.pwm[pwmName].state=PWMtoggleState[pwmName];      // Update the actual state of pPWM
+            if(blinkCount >= robot.pwm[pwmName].blinkCount-1){
+                robot.pwm[pwmName].state=PWMtoggleState[pwmName];      // Update the actual state of pPWM
                 endPwmAction(actionNumber, pwmName);
                 blinkCount=0;                                   // Reset le compteur
             }
             else{
-                    setTimer(body.pwm[pwmName].blinkTime, &checkBlinkPwmCount, actionNumber, pwmName, PWM);                    
+                    setTimer(robot.pwm[pwmName].blinkTime, &checkBlinkPwmCount, actionNumber, pwmName, PWM);                    
                     blinkCount++;
             }
         }

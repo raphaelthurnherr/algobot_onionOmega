@@ -36,20 +36,20 @@ int setAsyncStepperAction(int actionNumber, int motorNb, int veloc, char unit, i
         
 	if(veloc == 0){
 		myDirection=BUGGY_STOP;
-		body.stepper[motorNb].direction = 0;
+		robot.stepper[motorNb].direction = 0;
 	}else
         {
             if(veloc < 0){
                 // Check if motor inversion requiered and modify if necessary
                 if(!sysConfig.stepper[motorNb].inverted) myDirection=BUGGY_FORWARD;
                 else myDirection=BUGGY_BACK;
-                body.stepper[motorNb].direction = -1;
+                robot.stepper[motorNb].direction = -1;
                 veloc *=-1;					// Convertion en valeur positive
             }else{      
                 // Check if motor inversion requiered and modify if necessary
                 if(!sysConfig.stepper[motorNb].inverted) myDirection=BUGGY_BACK;
                 else myDirection=BUGGY_FORWARD;
-            body.stepper[motorNb].direction = 1;
+            robot.stepper[motorNb].direction = 1;
             }            
         }
 
@@ -133,7 +133,7 @@ int endStepperAction(int actionNumber, int motorNb){
 	// Stop le moteur
 //	setMotorSpeed(motorNb, 0);
         setStepperStepAction(motorNb, BUGGY_STOP, NULL);
-        body.stepper[motorNb].direction = BUGGY_STOP;
+        robot.stepper[motorNb].direction = BUGGY_STOP;
         
 	// Retire l'action de la table et v�rification si toute les actions sont effectu�es
 	// Pour la t�che en cours donn�e par le message ALGOID

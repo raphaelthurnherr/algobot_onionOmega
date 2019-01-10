@@ -21,7 +21,7 @@
 #define ROTATION          4
 #define ANGLE             5
 
-extern t_sensor body;
+extern t_robotMap robot;
 extern t_system sysInfo;
 extern t_sysConfig sysConfig;
 

@@ -39,7 +39,7 @@ int setAsyncLedAction(int actionNumber, int ledName, int mode, int time, int cou
         }
         else{
             if(mode==ON)
-                setLedPower(ledName, body.led[ledName].power); 
+                setLedPower(ledName, robot.led[ledName].power); 
             else
                 if(mode==OFF)
                     setLedPower(ledName, 0);
@@ -120,7 +120,7 @@ int checkBlinkLedCount(int actionNumber, int ledName){
 
          
         // Si mode blink actif, toggle sur LED et comptage
-        if(body.led[ledName].state==BLINK){
+        if(robot.led[ledName].state==BLINK){
             
             // Performe the LED toggle
             if(LEDtoggleState[ledName]>0){
@@ -128,18 +128,18 @@ int checkBlinkLedCount(int actionNumber, int ledName){
                 LEDtoggleState[ledName]=0;
             }else
             {
-                setLedPower(ledName, body.led[ledName].power);
+                setLedPower(ledName, robot.led[ledName].power);
                 LEDtoggleState[ledName]=1;
             }
            
             // Consigned de clignotement atteinte ?
-            if(blinkCount >= body.led[ledName].blinkCount-1){
-                body.led[ledName].state=LEDtoggleState[ledName];      // Update the actual state of led
+            if(blinkCount >= robot.led[ledName].blinkCount-1){
+                robot.led[ledName].state=LEDtoggleState[ledName];      // Update the actual state of led
                 endLedAction(actionNumber, ledName);
                     blinkCount=0;                                     // Reset le compteur
             }
             else{
-                    setTimer(body.led[ledName].blinkTime, &checkBlinkLedCount, actionNumber, ledName, LED);                    
+                    setTimer(robot.led[ledName].blinkTime, &checkBlinkLedCount, actionNumber, ledName, LED);                    
                     blinkCount++;
             }
         }

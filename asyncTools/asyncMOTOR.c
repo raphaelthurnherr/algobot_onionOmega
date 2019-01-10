@@ -49,20 +49,20 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
         
 	if(veloc == 0){
 		myDirection=BUGGY_STOP;
-		body.motor[motorNb].direction = 0;
+		robot.motor[motorNb].direction = 0;
 	}else
         {
             if(veloc < 0){
                 // Check if motor inversion requiered and modify if necessary
                 if(!sysConfig.motor[motorNb].inverted) myDirection=BUGGY_FORWARD;
                 else myDirection=BUGGY_BACK;
-                body.motor[motorNb].direction = -1;
+                robot.motor[motorNb].direction = -1;
                 veloc *=-1;					// Convertion en valeur positive
             }else{      
                 // Check if motor inversion requiered and modify if necessary
                 if(!sysConfig.motor[motorNb].inverted) myDirection=BUGGY_BACK;
                 else myDirection=BUGGY_FORWARD;
-            body.motor[motorNb].direction = 1;
+            robot.motor[motorNb].direction = 1;
             }            
         }
 
@@ -72,8 +72,8 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
 	switch(unit){
 		case  MILLISECOND:  setTimerResult=setTimer(value, &endWheelAction, actionNumber, motorNb, MOTOR); break;
 		case  CENTIMETER:   //motorNb = getOrganNumber(motorNb);
-                                    body.encoder[motorNb].startEncoderValue=getMotorPulses(motorNb)*(sysConfig.wheel[motorNb]._MMPP/10); // (/10 = Convert millimeter per pulse to centimeter per pulse)
-                                    body.encoder[motorNb].stopEncoderValue = body.encoder[motorNb].startEncoderValue+ value;
+                                    robot.encoder[motorNb].startEncoderValue=getMotorPulses(motorNb)*(sysConfig.wheel[motorNb]._MMPP/10); // (/10 = Convert millimeter per pulse to centimeter per pulse)
+                                    robot.encoder[motorNb].stopEncoderValue = robot.encoder[motorNb].startEncoderValue+ value;
                                     setTimerResult=setTimer(50, &checkMotorEncoder, actionNumber, motorNb, MOTOR); break;// D�marre un timer pour contr�le de distance chaque 35mS
                                    
                 case  INFINITE:     setTimerResult=setTimer(100, &dummyMotorAction, actionNumber, motorNb, MOTOR); break;
@@ -138,7 +138,7 @@ int endWheelAction(int actionNumber, int motorNb){
 	// Stop le moteur
 	//setMotorSpeed(motorNb, 0);
         motorSpeedSetpoint(motorNb, 0);
-        body.motor[motorNb].direction = BUGGY_STOP;
+        robot.motor[motorNb].direction = BUGGY_STOP;
         
 	// Retire l'action de la table et v�rification si toute les actions sont effectu�es
 	// Pour la t�che en cours donn�e par le message ALGOID
@@ -184,7 +184,7 @@ int checkMotorEncoder(int actionNumber, int encoderName){
 	}else  printf("\n ERROR: I2CBUS READ\n");
 	//printf("\n Encodeur #%d -> START %.2f cm  STOP %.2f cm", encoderNumber, startEncoderValue[encoderNumber], stopEncoderValue[encoderNumber]);
 
-	if(distance >= body.encoder[encoderName].stopEncoderValue){
+	if(distance >= robot.encoder[encoderName].stopEncoderValue){
 		endWheelAction(actionNumber, encoderName);
         }
 	else{
@@ -243,16 +243,16 @@ void checkDCmotorPower(void){
             
             // Converti la consigne donnée en % en consigne  CM/SEC
             
-            setpoint=(body.motor[0].velocity);
-            //actualSpeedPercent = speed_to_percent((float)sysConfig.wheel[0]._MAXSPEED_CMSEC, (float)body.motor[0].speed_cmS);
+            setpoint=(robot.motor[0].velocity);
+            //actualSpeedPercent = speed_to_percent((float)sysConfig.wheel[0]._MAXSPEED_CMSEC, (float)robot.motor[0].speed_cmS);
             
-            //setpoint = PID_speedControl(0, actualSpeedPercent, body.motor[0].velocity);
+            //setpoint = PID_speedControl(0, actualSpeedPercent, robot.motor[0].velocity);
             
             setpoint = sysConfig.motor[0].minRPM + RPMToPercent(0, setpoint);
-            printf("\n--- MOTOR #%d  ACTUAL RPM: %.1f  onionPWM OUT %d\n",0 , body.motor[0].speed_rpm, setpoint);
+            printf("\n--- MOTOR #%d  ACTUAL RPM: %.1f  onionPWM OUT %d\n",0 , robot.motor[0].speed_rpm, setpoint);
             
             if(setpoint != oldSetpoint){
-                printf("\n--- MOTOR #%d  SETPOINT: %d percent ACTUAL : %d percent  %d CM/SEC   onionPWM OUT %d\n",0, body.motor[0].velocity, actualSpeedPercent, body.motor[0].speed_cmS, setpoint);
+                printf("\n--- MOTOR #%d  SETPOINT: %d percent ACTUAL : %d percent  %d CM/SEC   onionPWM OUT %d\n",0, robot.motor[0].velocity, actualSpeedPercent, robot.motor[0].speed_cmS, setpoint);
                 setMotorSpeed(0, setpoint);  
             }
             oldSetpoint = setpoint;

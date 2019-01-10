@@ -37,7 +37,7 @@ int setAsyncServoAction(int actionNumber, int pwmName, int mode, int time){
 	// Valeur en retour >0 signifie que l'action "en retour" � �t� �cras�e
 
         if(mode==ON)
-            setServoPosition(pwmName, body.pwm[pwmName].power); 
+            setServoPosition(pwmName, robot.pwm[pwmName].power); 
         else
             if(mode==OFF)
             setServoPosition(pwmName, -1);
@@ -89,15 +89,15 @@ int checkBlinkServoCount(int actionNumber, int pwmName){
         static int PWMtoggleState[NBPWM];
 
         // Si mode blink actif, toggle sur PWM et comptage
-        if(body.pwm[pwmName].state==BLINK){    
+        if(robot.pwm[pwmName].state==BLINK){    
             
             // Consigned de clignotement atteinte ?
-            if(blinkCount >= body.pwm[pwmName].blinkCount){
+            if(blinkCount >= robot.pwm[pwmName].blinkCount){
                 endServoAction(actionNumber, pwmName);
                 blinkCount=0;                                   // Reset le compteur
             }
             else{
-                    setTimer(body.pwm[pwmName].blinkTime, &checkBlinkServoCount, actionNumber, pwmName, PWM);      
+                    setTimer(robot.pwm[pwmName].blinkTime, &checkBlinkServoCount, actionNumber, pwmName, PWM);      
             }
 
             blinkCount++;
@@ -108,7 +108,7 @@ int checkBlinkServoCount(int actionNumber, int pwmName){
                 PWMtoggleState[pwmName]=0;
             }else
             {
-                setPwmPower(pwmName, body.pwm[pwmName].power);
+                setPwmPower(pwmName, robot.pwm[pwmName].power);
                 PWMtoggleState[pwmName]=1;
             }
         }

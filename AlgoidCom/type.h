@@ -134,7 +134,7 @@ struct m_RGB{
         struct m_color clear;
 };
 
-typedef struct tsensor{
+typedef struct tmap{
 	struct m_prox proximity[NBDIN];
         struct m_prox button[NBBTN];
 	struct m_dist distance[NBPWM];
@@ -145,7 +145,7 @@ typedef struct tsensor{
         struct m_led led[NBLED];
         struct m_led pwm[NBPWM];
         struct m_RGB rgb[NBRGBC];
-}t_sensor;
+}t_robotMap;
 
 
 typedef struct tSystem{
