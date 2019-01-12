@@ -64,6 +64,7 @@
 #define KEY_MESSAGE_VALUE_CFG_MOTOR "{'MsgData'{'MsgValue'[*{'motor'"
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_ID "{'MsgData'{'MsgValue'[{'motor'[*{'motor'"
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT "{'MsgData'{'MsgValue'[{'motor'[*{'inverted'"
+#define KEY_MESSAGE_VALUE_CFG_MOTOR_MINPWM "{'MsgData'{'MsgValue'[{'motor'[*{'pwmMin'"
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_MINRPM "{'MsgData'{'MsgValue'[{'motor'[*{'rpmMin'"
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_MAXRPM "{'MsgData'{'MsgValue'[{'motor'[*{'rpmMax'"
 #define KEY_MESSAGE_VALUE_CFG_MOTOR_PIDREG "{'MsgData'{'MsgValue'[{'motor'[*{'rpmRegulator'{'state'"
@@ -306,9 +307,10 @@ char GetAlgoidMsg(ALGOID destMessage, char *srcBuffer){
                                                     AlgoidMessageRX.Config.motValueCnt=nbOfdeviceInConf;
                                                     
                                                     for(i_dev=0; i_dev < nbOfdeviceInConf; i_dev++){                 
-                                                        AlgoidMessageRX.Config.motor[i_dev].id=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_ID, &i_dev); 
-                                                        AlgoidMessageRX.Config.motor[i_dev].minRPM=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_MINRPM, &i_dev); 
-                                                        AlgoidMessageRX.Config.motor[i_dev].maxRPM=jRead_long((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_MAXRPM, &i_dev); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].id=jRead_int((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_ID, &i_dev); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].minRPM=jRead_int((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_MINRPM, &i_dev); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].maxRPM=jRead_int((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_MAXRPM, &i_dev); 
+                                                        AlgoidMessageRX.Config.motor[i_dev].minPWM=jRead_int((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_MINPWM, &i_dev); 
                                                         jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_INVERT, AlgoidMessageRX.Config.motor[i_dev].inverted, 15, &i_dev ); 
                                                         jRead_string((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDREG, AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PIDstate, 15, &i_dev ); 
                                                         AlgoidMessageRX.Config.motor[i_dev].rpmRegulator.PID_Kp=jRead_double((char *)srcBuffer, KEY_MESSAGE_VALUE_CFG_MOTOR_PIDKP, &i_dev); 
@@ -615,8 +617,9 @@ void ackToJSON(char * buffer, int msgId, char* to, char* from, char* msgType, ch
                                                                                 jwObj_array( "motor" );
                                                                                     for(j=0;j<NBMOTOR;j++){
                                                                                         jwArr_object();
-                                                                                            jwObj_int("cm",round((AlgoidResponse[i].MOTresponse.cm)));
+                                                                                            jwObj_double("cm",(AlgoidResponse[i].MOTresponse.cm));
                                                                                             jwObj_int("speed",round((AlgoidResponse[i].MOTresponse.speed)));
+                                                                                            jwObj_int("setpoint",AlgoidResponse[i].MOTresponse.velocity);
                                                                                         jwEnd();           
                                                                                         i++;
                                                                                     }

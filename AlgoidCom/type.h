@@ -94,6 +94,7 @@ struct m_PIDConfig{
 
 struct m_MotConfig{
 	char inverted;
+        int  minPWM;
         int  minRPM;
         int  maxRPM;
         struct m_PIDConfig rpmRegulator;

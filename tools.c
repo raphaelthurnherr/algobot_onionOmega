@@ -19,7 +19,7 @@
 
 int mygetch();  // Fonction getch non blocante
 int speed_to_percent(float maxSpeed, float speed_cmS);
-int PID_speedControl(int motorId, int currentSpeed, int setPoint);
+int PID_speedControl(int motorId, float currentSpeed, float setPoint);
 
 // -------------------------------------------------------------------
 // SPEED_TO_PERCENT, Fonction de conversion de la vitesse mesurée en %
@@ -35,16 +35,16 @@ int speed_to_percent(float maxSpeed, float speed_cmS){
 // -------------------------------------------------------------------
 // PID_SPEEDCPMTROL, Fonction PID pour gestion vitesse du moteur
 // -------------------------------------------------------------------
-int PID_speedControl(int motorId, int currentSpeed, int setPoint){
+int PID_speedControl(int motorId, float currentSpeed, float setPoint){
     float Kp = sysConfig.motor[motorId].rpmRegulator.PID_Kp;   
     float Ki = sysConfig.motor[motorId].rpmRegulator.PID_Ki;   
     float Kd = sysConfig.motor[motorId].rpmRegulator.PID_Kd;   
     float loopTimeDT = 1; 
     
     static int lastSpeed;
-    int output=0;
-    int outputMin=0;
-    int outputMax=100;
+    float output;
+    float outputMin=0;
+    float outputMax=100;
     float error;
     static float sumError=0;
     float newSum;
@@ -64,9 +64,6 @@ int PID_speedControl(int motorId, int currentSpeed, int setPoint){
             output = outputMin;
         else 
             sumError =  newSum;
-            
-    
-    printf("\n----- PID ADJUST  -  SETPOINT    %d    -  NEW SETPOINT %d  -----\n", setPoint, output);
     
     return output;
 }

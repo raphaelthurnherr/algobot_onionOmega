@@ -29,7 +29,7 @@ int endWheelAction(int actionNumber, int motorNb);
 int checkMotorEncoder(int actionNumber, int encoderName);
 int dummyMotorAction(int actionNumber, int encoderName);
 
-float RPMToPercent(int motorName, int ratio);        // Redefinition de l'echelle % PWM en échelle utilisable par le moteur
+float rpmToPercent(int motorName, int rpm);
 void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
 int motorSpeedSetpoint(int motorName, int ratio);  // Applique la consigne de vélocité pour un moteur donné
 void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent);		// D�fini l'acc�leration/deceleration d'un moteur
@@ -103,8 +103,9 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
                 
 		// Défini le "nouveau" sens de rotation à applique au moteur ainsi que la consigne de vitesse
 		if(setMotorDirection(motorNb, myDirection)){                                                            // Sens de rotation
-                    
-                        motorPWM = RPMToPercent(motorNb, veloc);                                                   // Mise à l'échelle d'un % "utilisateur" en PWM % utilisable par le moteur
+
+                        
+                        //motorPWM = RPMToPercent(motorNb, veloc);                                                   // Mise à l'échelle d'un % "utilisateur" en PWM % utilisable par le moteur
                         motorSpeedSetpoint(motorNb, motorPWM);                                                          // Vitesse
                         
                         //printf("\n[setAsyncMotorAction()] New PWM Setpoint: %d\n", motorPWM );  
@@ -137,7 +138,8 @@ int endWheelAction(int actionNumber, int motorNb){
 
 	// Stop le moteur
 	//setMotorSpeed(motorNb, 0);
-        motorSpeedSetpoint(motorNb, 0);
+        //motorSpeedSetpoint(motorNb, 0);
+        robot.motor[0].velocity=0;
         robot.motor[motorNb].direction = BUGGY_STOP;
         
 	// Retire l'action de la table et v�rification si toute les actions sont effectu�es
@@ -208,19 +210,12 @@ int dummyMotorAction(int actionNumber, int encoderName){
 // donnés dans le fichier de configuration
 // -----------------------------------------------------------------------
 
-float RPMToPercent(int motorName, int ratio){
+float rpmToPercent(int motorName, int rpm){
         float RPMpercent = 0;                 // % minimum pour fonctionnement du moteur 
         int newRatio;
         
-        RPMpercent = (float)sysConfig.motor[motorName].minRPM + ((float)(sysConfig.motor[motorName].maxRPM - sysConfig.motor[motorName].minRPM)/100) * ratio;
+        RPMpercent = (rpm * 100) / (float)(sysConfig.motor[motorName].maxRPM);
            
-        
-        // V�rification ratio max et min comprise entre 0..100%
-	if(RPMpercent > 100)
-		RPMpercent = 100;
-	if (RPMpercent<0)
-		RPMpercent = 0;
-        
         return RPMpercent;
 }
 
@@ -231,10 +226,14 @@ float RPMToPercent(int motorName, int ratio){
 // Elle va augmenter ou diminuer la velocite du moteur jusqu'a atteindre la consigne
 // ------------------------------------------------------------------------------------
 void checkDCmotorPower(void){
-        static int oldSetpoint;
+        static float oldSetpoint;
 	unsigned char ii;
-        int setpoint;
-        int actualSpeedPercent;
+        float userSetpoint;
+        float normalizeSetpoint;
+        float pidSetpoint;
+        float actualRpmInPercent;
+        int pwmOutSetpoint;
+        float newSetpoint;
         
 	//unsigned char PowerToSet;
 
@@ -243,19 +242,63 @@ void checkDCmotorPower(void){
             
             // Converti la consigne donnée en % en consigne  CM/SEC
             
-            setpoint=(robot.motor[0].velocity);
-            //actualSpeedPercent = speed_to_percent((float)sysConfig.wheel[0]._MAXSPEED_CMSEC, (float)robot.motor[0].speed_cmS);
+            userSetpoint=(float)(robot.motor[0].velocity);
             
-            //setpoint = PID_speedControl(0, actualSpeedPercent, robot.motor[0].velocity);
+            actualRpmInPercent = rpmToPercent(0, robot.motor[0].speed_rpm);
             
-            setpoint = sysConfig.motor[0].minRPM + RPMToPercent(0, setpoint);
-            printf("\n--- MOTOR #%d  ACTUAL RPM: %.1f  onionPWM OUT %d\n",0 , robot.motor[0].speed_rpm, setpoint);
-            
-            if(setpoint != oldSetpoint){
-                printf("\n--- MOTOR #%d  SETPOINT: %d percent ACTUAL : %d percent  %d CM/SEC   onionPWM OUT %d\n",0, robot.motor[0].velocity, actualSpeedPercent, robot.motor[0].speed_cmS, setpoint);
-                setMotorSpeed(0, setpoint);  
+            if(userSetpoint <= 0){   
+                setMotorSpeed(0, 0);
+            }else{
+                
+                if(sysConfig.motor[0].rpmRegulator.PIDstate >0){
+                //normalizeSetpoint = sysConfig.motor[0].minRPM + userSetpoint + ((float)(sysConfig.motor[0].maxRPM - sysConfig.motor[0].minRPM)/100);
+                normalizeSetpoint = rpmToPercent(0,sysConfig.motor[0].minRPM) + userSetpoint;
+                                
+                //printf("\nnormalizeSetpoint: %.2f", normalizeSetpoint);
+                    pidSetpoint = PID_speedControl(0, actualRpmInPercent, normalizeSetpoint);
+                    
+                    if(pidSetpoint < sysConfig.motor[0].minPWM)
+                        pidSetpoint = sysConfig.motor[0].minPWM;
+                    newSetpoint = pidSetpoint;  
+              
+                    
+                }else{                    
+                    
+                    // Crée une consigne avec le PWM minimum pour entretenir le moteur et ajoute la consigne utilisateur
+                    pwmOutSetpoint = sysConfig.motor[0].minPWM + ((100 - (float)sysConfig.motor[0].minPWM) / 100) * userSetpoint;
+                    
+                    //Ajoute 30% de consigne pour le démarrage moteur si RPM trop bas
+                    if(actualRpmInPercent < sysConfig.motor[0].minRPM){
+                        pwmOutSetpoint += ((float)sysConfig.motor[0].minPWM / 100) * 30;
+                    }
+                        
+                    //printf("\n*** MOTOR #%d  USER setpoint [pc]:   %d     Normalized setpoint [pc]:   %.2f       \n",0, robot.motor[0].velocity, userSetpoint);
+                    if(pwmOutSetpoint < sysConfig.motor[0].minPWM){
+                        newSetpoint = sysConfig.motor[0].minPWM;
+                    }else
+                        newSetpoint = pwmOutSetpoint;
+                }
+                
+                //Ajoute 30% de consigne pour le démarrage moteur si RPM trop bas (20% < RPMmin)
+                if(robot.motor[0].speed_rpm < sysConfig.motor[0].minRPM - (sysConfig.motor[0].minRPM / 100 * 50)){
+                    newSetpoint += ((float)sysConfig.motor[0].minPWM / 100) * 25;
+                    printf("\n !!!!!!! KICK START !!!!!\n");
+                }
+                
+                if(newSetpoint != oldSetpoint){
+                    setMotorSpeed(0, newSetpoint); 
+                    printf("\n*** MOTOR #%d  USER setpoint [pc]:   %.2f       Actual speed [pc] : %.2f      New SETPOINT [pc]:   %.2f\n",0, normalizeSetpoint, actualRpmInPercent, newSetpoint);
+                }
+                oldSetpoint = newSetpoint;
             }
-            oldSetpoint = setpoint;
+
+            //printf("\n--- MOTOR #%d  ACTUAL RPM: %.1f  ACTUAL RPM [percent]: %.1f   USER SETPOINT: %.1f\n",0 , robot.motor[0].speed_rpm, actualSpeedPercent, userSetpoint);
+            //pidSetpoint = PID_speedControl(0, actualSpeedPercent, robot.motor[0].velocity);           
+            //setpoint = sysConfig.motor[0].minRPM + RPMToPercent(0, setpoint);
+            
+            
+
+            
             /*
             //printf("Motor Nb: %d Adr: %2x ActualPower: %d   TargetPower: %d  \n",i, motorDCadr[i], motorDCactualPower[i], motorDCtargetPower[i]);
             if(motorDCactualPower[i] < motorDCtargetPower[i]){

@@ -24,7 +24,7 @@ int checkMotorEncoder(int actionNumber, int encoderName);
 int dummyMotorAction(int actionNumber, int motorNb);
 void checkDCmotorPower(void);				// Fonction temporaire pour rampe d'acceleration
 int motorSpeedSetpoint(int motorName, int ratio);  // Applique la consigne de vélocité pour un moteur donné
-
+float rpmToPercent(int motorName, int rpm);
 #ifdef __cplusplus
 }
 #endif

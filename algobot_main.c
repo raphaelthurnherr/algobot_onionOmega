@@ -25,6 +25,7 @@
 #include "asyncPWM.h"
 #include "asyncSERVO.h"
 #include "asyncLED.h"
+#include "asyncMOTOR.h"
 #include "configManager.h"
 #include "type.h"
 
@@ -423,6 +424,9 @@ int processAlgoidCommand(void){
                                                     strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].inverted, "off");
                                             }
 
+                                            // Save config for motor Min PWM for run
+                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].minPWM = AlgoidCommand.Config.motor[i].minPWM;
+                                            
                                             // Save config for motor Min Max RPM
                                             sysConfig.motor[AlgoidCommand.Config.motor[i].id].minRPM=AlgoidCommand.Config.motor[i].minRPM;
                                             sysConfig.motor[AlgoidCommand.Config.motor[i].id].maxRPM=AlgoidCommand.Config.motor[i].maxRPM;
@@ -1299,8 +1303,9 @@ int makeStatusRequest(int msgType){
 
 	for(i=0;i<NBMOTOR;i++){
 		AlgoidResponse[ptrData].MOTresponse.motor=i;
-		AlgoidResponse[ptrData].MOTresponse.speed=robot.motor[i].speed_cmS;
-		AlgoidResponse[ptrData].MOTresponse.cm=robot.motor[i].distance_cm;
+		AlgoidResponse[ptrData].MOTresponse.speed=robot.motor[i].speed_rpm;
+		AlgoidResponse[ptrData].MOTresponse.cm = rpmToPercent(i, robot.motor[i].speed_rpm);
+                AlgoidResponse[ptrData].MOTresponse.velocity = rpmToPercent(0,sysConfig.motor[0].minRPM) + robot.motor[i].velocity;;
 		ptrData++;
 	}
 

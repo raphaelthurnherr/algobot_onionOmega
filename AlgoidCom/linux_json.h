@@ -50,7 +50,7 @@ struct m2wd{
 	int speed;
         int velocity;
 	int time;
-	int cm;
+	float cm;
 	int accel;
 	int decel;
 };
@@ -92,6 +92,7 @@ struct mMotConfig{
 	char inverted[25];
         int  minRPM;
         int  maxRPM;
+        int  minPWM;
         struct mPIDConfig rpmRegulator;
 };
 

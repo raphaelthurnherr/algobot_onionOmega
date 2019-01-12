@@ -4,7 +4,7 @@ build/Debug/GNU_Omega-Linux/algobot_main.o: algobot_main.c buildNumber.h \
  AlgoidCom/udpPublish.h tools.h algobot_main.h AlgoidCom/type.h \
  timerManager.h hwControl/hwManager.h asyncTools/asyncTools.h \
  asyncTools/asyncPWM.h asyncTools/asyncSERVO.h asyncTools/asyncLED.h \
- configManager.h
+ asyncTools/asyncMOTOR.h configManager.h
 
 buildNumber.h:
 
@@ -39,5 +39,7 @@ asyncTools/asyncPWM.h:
 asyncTools/asyncSERVO.h:
 
 asyncTools/asyncLED.h:
+
+asyncTools/asyncMOTOR.h:
 
 configManager.h:
