@@ -217,7 +217,7 @@ int main(int argc, char *argv[]) {
                             robot.motor[i].speed_cmS = (float)(getMotorFrequency(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
                             robot.motor[i].speed_rpm = 60 * (float)(getMotorFrequency(i)) / (sysConfig.wheel[i].pulsePerRot);
                             robot.motor[i].distance_cm = (float)(getMotorPulses(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
-//                            printf("\n----- SPEED #: %d -----\n", robot.motor[i].speed_cmS);
+                           // printf("\n----- SPEED RPM#: %.2f -----\n", robot.motor[i].speed_rpm);
                             //printf("\n----- DISTANCE #%d:  %2f -----\n",i, robot.motor[i].distance_cm);
                         }
 /*

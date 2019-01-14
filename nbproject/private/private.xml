@@ -9,6 +9,7 @@
         <group>
             <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/timerManager.c</file>
             <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/AlgoidCom/linux_json.h</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/hwControl/hwManager.c</file>
             <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/algobot_main.c</file>
             <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/configManager.c</file>
             <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/tools.h</file>
@@ -16,6 +17,7 @@
             <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/asyncTools/asyncMOTOR.c</file>
             <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/AlgoidCom/type.h</file>
             <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/tools.c</file>
+            <file>file:/home/raph/NetBeansProjects/algobot_onionOmega/runRemote.sh</file>
         </group>
     </open-files>
 </project-private>

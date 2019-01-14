@@ -36,26 +36,29 @@ int speed_to_percent(float maxSpeed, float speed_cmS){
 // PID_SPEEDCPMTROL, Fonction PID pour gestion vitesse du moteur
 // -------------------------------------------------------------------
 int PID_speedControl(int motorId, float currentSpeed, float setPoint){
-    float Kp = sysConfig.motor[motorId].rpmRegulator.PID_Kp;   
-    float Ki = sysConfig.motor[motorId].rpmRegulator.PID_Ki;   
-    float Kd = sysConfig.motor[motorId].rpmRegulator.PID_Kd;   
+
     float loopTimeDT = 1; 
     
-    static int lastSpeed;
+    static int lastSpeed[NBMOTOR];
+    static float sumError[NBMOTOR];
+        
     float output;
     float outputMin=0;
     float outputMax=100;
     float error;
-    static float sumError=0;
     float newSum;
     float dErrorLoopTime;
+    
+    float Kp = sysConfig.motor[motorId].rpmRegulator.PID_Kp;   
+    float Ki = sysConfig.motor[motorId].rpmRegulator.PID_Ki;   
+    float Kd = sysConfig.motor[motorId].rpmRegulator.PID_Kd;  
      
     error = setPoint - currentSpeed;
-    newSum = (sumError + error) * loopTimeDT;
-    dErrorLoopTime = (lastSpeed - currentSpeed) / loopTimeDT;
-    lastSpeed = currentSpeed;
+    newSum = (sumError[motorId] + error) * loopTimeDT;
+    dErrorLoopTime = (lastSpeed[motorId] - currentSpeed) / loopTimeDT;
+    lastSpeed[motorId] = currentSpeed;
     
-    output = Kp * error + Ki * sumError + Kd * dErrorLoopTime;
+    output = Kp * error + Ki * sumError[motorId] + Kd * dErrorLoopTime;
     
     if(output >= outputMax)
         output = outputMax;
@@ -63,7 +66,7 @@ int PID_speedControl(int motorId, float currentSpeed, float setPoint){
         if(output <= outputMin)
             output = outputMin;
         else 
-            sumError =  newSum;
+            sumError[motorId] =  newSum;
     
     return output;
 }
