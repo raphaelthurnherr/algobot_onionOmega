@@ -169,6 +169,8 @@ typedef struct tConfig{
         struct m_StepperConfig stepper[NBSTEPPER];
 }t_sysConfig;
 
+
+// ICI LES NOUVEAUX TYPE DE VARIABLE
 #ifdef __cplusplus
 }
 #endif
