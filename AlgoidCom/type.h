@@ -172,6 +172,9 @@ typedef struct tConfig{
 
 // ICI LES NOUVEAUX TYPE DE VARIABLE
 
+// -----------------------------
+// COMMUNES
+// -----------------------------
 struct s_eventAnalog{
 	int enable;
 	int low;
@@ -188,14 +191,6 @@ struct s_color{
         struct s_eventAnalog event;
 };
 
-struct s_frequency{
-	int value;
-};
-
-struct s_count{
-	int value;
-};
-
 // -------------------------------------
 // DEFINITION DES TYPE DE CAPTEURS
 // -------------------------------------
@@ -209,11 +204,6 @@ struct s_ain{
         struct s_eventAnalog event;
 };
 
-struct s_counter{
-	struct s_frequency frequency;
-        struct s_count counter;
-};
-
 struct s_rgbc{
         struct s_color red;
         struct s_color green;
@@ -221,32 +211,33 @@ struct s_rgbc{
         struct s_color clear;
 };
 
+struct s_counter{
+	int frequency;
+        int counter;
+};
+
+
 // -------------------------------------
 // DEFINITION DES TYPE DE SORTIE
 // -------------------------------------
-struct s_motorAction{
-	int time;
-        int distance;
-};
-
+/*
 struct s_stepperAction{
 	int step;
         int rotation;
         int angle;
         int time;
 };
+*/
 
 struct a_motor{
     int speed;
-    int direction;
-    struct s_motorAction action;
-    
+    int direction;    
 };
 
 struct a_stepper{
     int speed;
     int direction;
-    struct s_stepperAction action;
+    int steps;
     
 };
 // 
@@ -264,11 +255,33 @@ struct t_actuator{
     int stepper;
 };
 
+// --------------------------------------
+// HIGH LEVEL
+// --------------------------------------
+
 typedef struct t_device{
     struct t_sensor sensor;
     struct t_actuator actuator;
 }t_device;
 
+typedef struct robotDCWheel{
+    int diameter;
+    int speed_cm;
+    struct motor_Setpoint *setpoint;
+    struct a_motor *motor;   //  <--- TO REMOVE
+}robot_dcwheel;
+
+// --------------------------------------
+// HIGH LEVEL
+// --------------------------------------
+      
+struct motor_Setpoint{
+    struct a_motor *motor;
+    int time;
+    int distanceCM;
+    int angle;
+    int rotation;
+};
 
 #ifdef __cplusplus
 }

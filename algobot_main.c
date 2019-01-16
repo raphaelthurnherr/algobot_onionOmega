@@ -1,4 +1,3 @@
-//test branch
 #define FIRMWARE_VERSION "1.6.2e"
 
 #define DEFAULT_EVENT_STATE 1   
@@ -139,37 +138,38 @@ int main(int argc, char *argv[]) {
         resetConfig();
         resetHardware(&sysConfig);            // Reset les peripheriques hardware selon configuration initiale                   
 
-        t_device device;
-        
-        //struct t_actuator *Pactuator, hoho;
-        //Pactuator = &hoho;
-        
-        struct {
-            int diameter;
-            int speed_cm;
-            struct a_motor *motorAlias;
-        }wheel[2];
-        
-        wheel[0].motorAlias = &device.actuator.motor[0];
-        wheel[1].motorAlias = &device.actuator.motor[1];
-        
-        
-        
+        t_device device;     
+        robot_dcwheel wheel[2];
+         
         device.actuator.motor[0].speed=666;
         device.actuator.motor[1].speed=999;
+        
+        
+        wheel[0].motor = &device.actuator.motor[0];
+        wheel[0].setpoint->motor = &device.actuator.motor[0];
+        wheel[1].motor = &device.actuator.motor[1];
+        
+
                 
         printf("\nMa vitesse moteur device[0]: %d", device.actuator.motor[0].speed);
-        printf("\nMa vitesse moteur device[1]: %d", device.actuator.motor[1].speed);
+        printf("\nMa vitesse moteur device[1]: %d", device.actuator.motor[1].direction);
 //        printf("\nMa wheel.motorAlias %d\n", wheel.motorAlias->motor.speed);
-        printf("\nMa wheel.motorAlias %d\n", wheel[0].motorAlias->speed);    
-        printf("\nMa wheel.motorAlias %d\n", wheel[1].motorAlias->speed);  
+        printf("\nMa wheel.motorAlias %d\n", wheel[0].motor->speed);    
+        printf("\nMa wheel.motorAlias %d\n", wheel[1].motor->speed);  
         
-        wheel[1].motorAlias->speed = 876;
-       printf("-----\nMa wheel.motorAlias %d\n", wheel[1].motorAlias->speed);  
-       printf("\nMa wheel.motorAlias %d\n", device.actuator.motor[1].speed);       
-       printf("\nMa vitesse moteur device[0]: %d", device.actuator.motor[0].speed);
-               printf("\nMa wheel.motorAlias %d\n", wheel[0].motorAlias->speed);
+        //wheel[1].motor->speed = 876;
         
+       //printf("-----\nMa wheel.motorAlias %d\n", wheel[1].motor->speed);  
+       //printf("\nMa wheel.motorAlias %d\n", device.actuator.motor[1].speed);       
+       printf("\nMa vitesse moteur [device.actuator.motor[0].speed]: %d", device.actuator.motor[0].speed);
+       printf("\nMa vitesse moteur [wheel[0].motor->speed] %d\n", wheel[0].motor->speed);
+       printf("\nMa wheel.setpoint->motor->speed %d\n", wheel[0].setpoint->motor->speed);  
+       wheel[0].setpoint->motor->speed= 789;
+       
+       printf("\n--------------\nMa vitesse moteur [device.actuator.motor[0].speed]: %d", device.actuator.motor[0].speed);
+       printf("\nMa vitesse moteur [wheel[0].motor->speed] %d\n", wheel[0].motor->speed);
+       printf("\nMa wheel.setpoint->motor->speed %d\n", wheel[0].setpoint->motor->speed);  
+       
         // Check internet connectivity
         if(runCloudTestCommand())
             printf ("#[CORE] Connexion au serveur cloud OK\n");
