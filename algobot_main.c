@@ -138,6 +138,37 @@ int main(int argc, char *argv[]) {
         resetConfig();
         resetHardware(&sysConfig);            // Reset les peripheriques hardware selon configuration initiale                   
 
+        t_device device;
+        
+        //struct t_actuator *Pactuator, hoho;
+        //Pactuator = &hoho;
+        
+        struct {
+            int diameter;
+            int speed_cm;
+            struct a_motor *motorAlias;
+        }wheel[2];
+        
+        wheel[0].motorAlias = &device.actuator.motor[0];
+        wheel[1].motorAlias = &device.actuator.motor[1];
+        
+        
+        
+        device.actuator.motor[0].speed=666;
+        device.actuator.motor[1].speed=999;
+                
+        printf("\nMa vitesse moteur device[0]: %d", device.actuator.motor[0].speed);
+        printf("\nMa vitesse moteur device[1]: %d", device.actuator.motor[1].speed);
+//        printf("\nMa wheel.motorAlias %d\n", wheel.motorAlias->motor.speed);
+        printf("\nMa wheel.motorAlias %d\n", wheel[0].motorAlias->speed);    
+        printf("\nMa wheel.motorAlias %d\n", wheel[1].motorAlias->speed);  
+        
+        wheel[1].motorAlias->speed = 876;
+       printf("-----\nMa wheel.motorAlias %d\n", wheel[1].motorAlias->speed);  
+       printf("\nMa wheel.motorAlias %d\n", device.actuator.motor[1].speed);       
+       printf("\nMa vitesse moteur device[0]: %d", device.actuator.motor[0].speed);
+               printf("\nMa wheel.motorAlias %d\n", wheel[0].motorAlias->speed);
+        
         // Check internet connectivity
         if(runCloudTestCommand())
             printf ("#[CORE] Connexion au serveur cloud OK\n");

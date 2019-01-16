@@ -171,6 +171,105 @@ typedef struct tConfig{
 
 
 // ICI LES NOUVEAUX TYPE DE VARIABLE
+
+struct s_eventAnalog{
+	int enable;
+	int low;
+	int high;
+	int hysteresis;
+};
+
+struct s_eventBool{
+	int enable;
+};
+
+struct s_color{
+	int value;
+        struct s_eventAnalog event;
+};
+
+struct s_frequency{
+	int value;
+};
+
+struct s_count{
+	int value;
+};
+
+// -------------------------------------
+// DEFINITION DES TYPE DE CAPTEURS
+// -------------------------------------
+struct s_din{
+	int value;
+        struct s_eventBool event;
+};
+
+struct s_ain{
+	int value;
+        struct s_eventAnalog event;
+};
+
+struct s_counter{
+	struct s_frequency frequency;
+        struct s_count counter;
+};
+
+struct s_rgbc{
+        struct s_color red;
+        struct s_color green;
+        struct s_color blue;
+        struct s_color clear;
+};
+
+// -------------------------------------
+// DEFINITION DES TYPE DE SORTIE
+// -------------------------------------
+struct s_motorAction{
+	int time;
+        int distance;
+};
+
+struct s_stepperAction{
+	int step;
+        int rotation;
+        int angle;
+        int time;
+};
+
+struct a_motor{
+    int speed;
+    int direction;
+    struct s_motorAction action;
+    
+};
+
+struct a_stepper{
+    int speed;
+    int direction;
+    struct s_stepperAction action;
+    
+};
+// 
+// --------------------------------------
+struct t_sensor{
+	struct s_din din[NBDIN];
+        struct s_ain ain[NBAIN];
+	struct s_counter counter[NBMOTOR];
+	struct s_rgbc rgbc[NBRGBC];
+
+};
+
+struct t_actuator{
+    struct a_motor motor[NBMOTOR];
+    int stepper;
+};
+
+typedef struct t_device{
+    struct t_sensor sensor;
+    struct t_actuator actuator;
+}t_device;
+
+
 #ifdef __cplusplus
 }
 #endif
