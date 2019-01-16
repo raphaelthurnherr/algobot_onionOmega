@@ -1,3 +1,4 @@
+//test branch
 #define FIRMWARE_VERSION "1.6.2e"
 
 #define DEFAULT_EVENT_STATE 1   
