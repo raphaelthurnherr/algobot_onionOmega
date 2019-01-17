@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.2e"
+#define FIRMWARE_VERSION "1.6.2e branch updateStructure"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -78,6 +78,7 @@ void runRestartCommand(void);
 int runCloudTestCommand(void);
 
 void resetConfig(void);
+void assignMotorWheel(void);        // Assign a motor for each wheel
 
 char reportBuffer[256];
 
@@ -85,6 +86,9 @@ t_robotMap robot;
 t_system sysInfo;
 t_sysConfig sysConfig;
 
+// New structure
+t_device device;            // Device structure with actuator & sensor     
+robot_kehops kehops;
 
 // -------------------------------------------------------------------
 // MAIN APPLICATION
@@ -137,38 +141,8 @@ int main(int argc, char *argv[]) {
 	// ----------- DEBUT DE LA BOUCLE PRINCIPALE ----------
         resetConfig();
         resetHardware(&sysConfig);            // Reset les peripheriques hardware selon configuration initiale                   
-
-        t_device device;     
-        robot_dcwheel wheel[2];
          
-        device.actuator.motor[0].speed=666;
-        device.actuator.motor[1].speed=999;
-        
-        
-        wheel[0].motor = &device.actuator.motor[0];
-        wheel[0].setpoint->motor = &device.actuator.motor[0];
-        wheel[1].motor = &device.actuator.motor[1];
-        
-
-                
-        printf("\nMa vitesse moteur device[0]: %d", device.actuator.motor[0].speed);
-        printf("\nMa vitesse moteur device[1]: %d", device.actuator.motor[1].direction);
-//        printf("\nMa wheel.motorAlias %d\n", wheel.motorAlias->motor.speed);
-        printf("\nMa wheel.motorAlias %d\n", wheel[0].motor->speed);    
-        printf("\nMa wheel.motorAlias %d\n", wheel[1].motor->speed);  
-        
-        //wheel[1].motor->speed = 876;
-        
-       //printf("-----\nMa wheel.motorAlias %d\n", wheel[1].motor->speed);  
-       //printf("\nMa wheel.motorAlias %d\n", device.actuator.motor[1].speed);       
-       printf("\nMa vitesse moteur [device.actuator.motor[0].speed]: %d", device.actuator.motor[0].speed);
-       printf("\nMa vitesse moteur [wheel[0].motor->speed] %d\n", wheel[0].motor->speed);
-       printf("\nMa wheel.setpoint->motor->speed %d\n", wheel[0].setpoint->motor->speed);  
-       wheel[0].setpoint->motor->speed= 789;
-       
-       printf("\n--------------\nMa vitesse moteur [device.actuator.motor[0].speed]: %d", device.actuator.motor[0].speed);
-       printf("\nMa vitesse moteur [wheel[0].motor->speed] %d\n", wheel[0].motor->speed);
-       printf("\nMa wheel.setpoint->motor->speed %d\n", wheel[0].setpoint->motor->speed);  
+        assignMotorWheel();                   // Set assignement of motors for wheels
        
         // Check internet connectivity
         if(runCloudTestCommand())
@@ -700,8 +674,6 @@ int runMotorAction(void){
             if(ptrData>=0){
                 actionCount++;
                         robot.motor[i].velocity=AlgoidCommand.DCmotor[ptrData].velocity;
-                        robot.motor[i].accel=AlgoidCommand.DCmotor[ptrData].accel;
-                        robot.motor[i].decel=AlgoidCommand.DCmotor[ptrData].decel;
                         robot.motor[i].cm=AlgoidCommand.DCmotor[ptrData].cm;
                         robot.motor[i].time=AlgoidCommand.DCmotor[ptrData].time;
             }
@@ -730,8 +702,6 @@ int runMotorAction(void){
                     for(ptrData=0; action < actionCount && ptrData<10; ptrData++){
                         ID = AlgoidCommand.DCmotor[ptrData].motor;
                         if(ID >= 0){
-                            if(robot.motor[ID].accel!=0 || robot.motor[ID].decel)
-                                setMotorAccelDecel(ID, robot.motor[ID].accel, robot.motor[ID].decel);
                             
                             // Effectue l'action sur la roue
                             if(robot.motor[ID].cm <=0 && robot.motor[ID].time<=0){                                
@@ -2208,9 +2178,6 @@ void resetConfig(void){
 	}
     
         for(i=0;i<NBMOTOR;i++){
-            
-		robot.motor[i].accel=100;        
-                robot.motor[i].decel=100;
                 robot.motor[i].distance_cm=0;           // ATTENTION, BUG SEGFAULT !!!!!
                 robot.motor[i].velocity=0;
                 robot.motor[i].time=0;
@@ -2301,3 +2268,33 @@ int getStartupArg(int count, char *arg[]){
             sprintf(&ADDRESS, "%s", arg[i+1]);
     }
 }
+
+// Assign a motor for each wheel
+void assignMotorWheel(void){
+        
+        kehops.dcWheel[0].motor = &device.actuator.motor[0].setpoint;
+        kehops.dcWheel[1].motor = &device.actuator.motor[1].setpoint;
+        
+        
+/*
+        device.actuator.motor[0].setpoint.speed=50;
+        device.actuator.motor[1].setpoint.speed=60;
+                
+        printf("\nMa vitesse moteur device[0]: %d", device.actuator.motor[0].setpoint.speed);
+        printf("\nMa vitesse moteur device[1]: %d", device.actuator.motor[1].setpoint.speed);
+        printf("\nMa  kehops.dcWheel[0].motor->speed %d\n",  kehops.dcWheel[0].motor->speed);    
+        printf("\nMa  kehops.dcWheel[0].motor->speed %d\n",  kehops.dcWheel[1].motor->speed);  
+        
+         kehops.dcWheel[1].motor->speed = 66;
+        
+       //printf("-----\nMa wheel.motorAlias %d\n", wheel[1].motor->speed);  
+       //printf("\nMa wheel.motorAlias %d\n", device.actuator.motor[1].speed);       
+       printf("\nMa vitesse moteur [device.actuator.motor[1].speed]: %d", device.actuator.motor[1].setpoint.speed);
+       printf("\nMa vitesse moteur [kehops.dcWheel[1].motor->speed] %d\n", kehops.dcWheel[1].motor->speed);
+      
+       kehops.dcWheel[1].motor->speed= 55;
+       
+       printf("\n--------------\nMa vitesse moteur [device.actuator.motor[0].speed]: %d", device.actuator.motor[0].setpoint.speed);
+       printf("\nMa vitesse moteur [kehops.dcWheel[0].motor->speed] %d\n", kehops.dcWheel[0].motor->speed);  
+*/
+}   

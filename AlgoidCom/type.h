@@ -52,8 +52,6 @@ struct m_motor{
         float speed_rpm;
 	int velocity;
 	int direction;
-        int accel;
-        int decel;
         int cm;
         int time;
 };
@@ -229,9 +227,27 @@ struct s_stepperAction{
 };
 */
 
-struct a_motor{
+
+struct s_motor_sp{
     int speed;
     int direction;    
+};
+
+struct s_stepper_sp{
+    int speed;
+    int direction;    
+    int steps;  
+};
+
+
+struct s_motor_config{
+    char inverted;   
+    char powerMin;   
+};
+
+struct actuator_motor{
+    struct s_motor_sp setpoint;
+    struct s_motor_config config;
 };
 
 struct a_stepper{
@@ -251,7 +267,7 @@ struct t_sensor{
 };
 
 struct t_actuator{
-    struct a_motor motor[NBMOTOR];
+    struct actuator_motor motor[NBMOTOR];
     int stepper;
 };
 
@@ -264,24 +280,140 @@ typedef struct t_device{
     struct t_actuator actuator;
 }t_device;
 
-typedef struct robotDCWheel{
-    int diameter;
-    int speed_cm;
-    struct motor_Setpoint *setpoint;
-    struct a_motor *motor;   //  <--- TO REMOVE
-}robot_dcwheel;
-
 // --------------------------------------
 // HIGH LEVEL
 // --------------------------------------
-      
-struct motor_Setpoint{
-    struct a_motor *motor;
+
+struct s_pid{
+    char  enable;
+    float Kp;
+    float Ki;
+    float Kd;
+};
+
+struct s_wheel_meas{
+    int  distance;
+    int  rpm;
+    int  speed_cmS;
+    int  speed_percent;
+};
+
+// --------------------------------------
+struct wheel_settarget{
     int time;
     int distanceCM;
     int angle;
     int rotation;
 };
+
+struct dc_wheel_config{
+    struct s_pid pidReg;
+    int motorID;
+    int counterID;
+    int diameter;           // Config of wheel diameter in mm
+    int pulsesPerRot;       // Config number of pulses per rotation of encoder
+    int rpmMax;             // Config max supperted RPM of Wheel (motor)
+    int rpmMin;             // Config min supported RPM of Wheel (motor)
+};
+
+struct stepper_wheel_config{
+    struct s_pid pidReg;
+    int motorID;
+    int diameter;           // Config of wheel diameter in mm
+    int rpmMax;             // Config max supperted RPM of Wheel (motor)
+    int rpmMin;             // Config min supported RPM of Wheel (motor)
+};
+
+typedef struct robotDCWheel{
+    struct s_motor_sp *motor;
+    struct wheel_settarget *target;
+    struct dc_wheel_config config;
+    struct s_wheel_meas measure;
+}robot_dcwheel;
+
+typedef struct robotStepperWheel{
+    struct wheel_settarget *target;
+    struct s_stepper_sp *motor;
+    struct stepper_wheel_config config;
+    struct s_wheel_meas measure;
+}robot_stepperwheel;
+
+
+// AIN & BATTERY  
+
+struct s_ain_config{
+    int  ainID;
+};
+
+struct s_battery_meas{
+    int  voltage_mV;
+    int  capacity;
+};
+
+typedef struct robotBattery{
+    struct s_ain_config config;
+    struct s_battery_meas measure;
+    struct s_eventAnalog event;
+    
+}robot_battery;
+
+
+// BUTTONS
+
+struct s_din_config{
+    int  dinID;
+};
+
+struct s_button_meas{
+    int  state;
+};
+
+
+typedef struct robotButton{
+    struct s_din_config config;
+    struct s_button_meas measure;
+    struct s_eventBool event;
+    
+}robot_button;
+
+
+// COmmunication & MQTT 
+
+struct mqtt_stream{
+    int  state;
+    int  time_ms;
+    int  onEvent;
+    int  topic;
+};
+
+struct s_mqtt{
+    struct mqtt_stream streamm;
+};
+
+struct s_udp_bc{
+    int  state;
+    int  time_ms;
+};
+
+
+struct s_udp{
+    struct s_udp_bc broadcast;
+};
+typedef struct s_communication{
+    struct s_mqtt mqtt;
+    struct s_udp udp;
+}communication;
+
+
+
+
+typedef struct robotKehops{
+    robot_battery battery[2];
+    robot_button button[NBBTN];
+    robot_stepperwheel stepperWheel[NBSTEPPER];
+    robot_dcwheel dcWheel[NBMOTOR];
+    
+}robot_kehops;
 
 #ifdef __cplusplus
 }

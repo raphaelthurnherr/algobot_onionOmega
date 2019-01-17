@@ -409,49 +409,6 @@ int getStepperState(int motorNumber){
     return motor.stepper[motorNumber].isRunning;
 }                              
 
-/*
-//-----------------------------------------------------------------
-// GETMOTORPOWER
-// Retourne l'�tat actuelle de la puissance du moteur selectionn�
-// -------------------------------------------------------------------
-
-unsigned char getMotorPower(unsigned char motorNr){
-	return motorDCactualPower[motorNr];
-}
-*/
-
-
-/*
-// -------------------------------------------------------------------
-// setMotorAccelDecel
-// D�fini les valeurs d'acceleration et decelaration du moteur
-// Valeur donn�e en % de ce qu'il reste pour atteindre la consigne
-// -------------------------------------------------------------------
-void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPercent){
-
-	//unsigned char motorSlot;
-	//motorSlot = getOrganNumber(motorNo);
-
-	// R�cup�ration de la valeur absolue de l'acceleration
-	if(accelPercent<0) accelPercent*=-1;
-	// D�fini un maximum de 100% d'acceleration
-	if(accelPercent>100)
-		accelPercent=100;
-
-	// R�cup�ration de la valeur absolue de la deceleration
-	if(decelPercent<0) decelPercent*=-1;
-	// D�fini un maximum de 100% de deceleration
-	if(decelPercent>100)
-		decelPercent=100;
-
-	// Ne modifie les valeurs d'acceleration et deceleration uniquement si "valable" (=>0)
-	if(accelPercent>0)
-		motorDCaccelValue[motorNo] = accelPercent;
-	if(decelPercent>0)
-		motorDCdecelValue[motorNo] = decelPercent;
-}
-*/
-
 // ---------------------------------------------------------------------------
 // SETMOTORSPEED
 // Applique la consigne de v�locit� pour un moteur donn�
@@ -595,7 +552,6 @@ int resetHardware(t_sysConfig * Config){
     // Etat initial des moteur
     for(i=0;i<NBMOTOR;i++){
         setMotorSpeed(i, 0);
-//        setMotorAccelDecel(i, 25, 100);
         setMotorDirection(i, BUGGY_FORWARD);
         EFM8BB_clearWheelDistance(i);
     }
@@ -615,9 +571,6 @@ int resetHardware(t_sysConfig * Config){
     for(i=0;i<NBPWM;i++){
         setPwmPower(i,0);
     }
-    
-    // Etat initial des Moteur pas à pas
-    //DEBUG //    for(i=0;i<NBPWM;i++)
-//        setPwmPower(i,0);    
+      
     return 0;
 }

@@ -19,11 +19,6 @@
 
 char reportBuffer[256];
 
-//unsigned char motorDCactualPower[2];				// Valeur de la puissance moteur
-//unsigned char motorDCtargetPower[2]; 				// Valuer de consigne pour la puissance moteur
-//unsigned char motorDCaccelValue[2]={25,25};			// Valeur d'acceleration des moteurs
-//unsigned char motorDCdecelValue[2]={25,25};			// Valeur d'acceleration des moteurs
-
 int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value);
 int endWheelAction(int actionNumber, int motorNb);
 int checkMotorEncoder(int actionNumber, int encoderName);
@@ -44,7 +39,6 @@ void setMotorAccelDecel(unsigned char motorNo, char accelPercent, char decelPerc
 int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int value){
 	int setTimerResult;
 	int endOfTask;  
-        int motorPWM;
         
 	if(veloc == 0){
 		robot.motor[motorNb].direction = BUGGY_STOP;
@@ -104,7 +98,7 @@ int setAsyncMotorAction(int actionNumber, int motorNb, int veloc, char unit, int
                 
 		// Défini le "nouveau" sens de rotation à applique au moteur ainsi que la consigne de vitesse
 		if(setMotorDirection(motorNb, robot.motor[motorNb].direction)){                                                            // Sens de rotation
-                    printf("\n----  SET DIRECTION: %d  \n", robot.motor[motorNb].direction);
+                    //printf("\n----  SET DIRECTION: %d  \n", robot.motor[motorNb].direction);
                         //motorPWM = RPMToPercent(motorNb, veloc);                                                   // Mise à l'échelle d'un % "utilisateur" en PWM % utilisable par le moteur
                         //motorSpeedSetpoint(motorNb, motorPWM);                                                          // Vitesse
                         

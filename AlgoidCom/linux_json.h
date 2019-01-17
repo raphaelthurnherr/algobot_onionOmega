@@ -51,8 +51,6 @@ struct m2wd{
         int velocity;
 	int time;
 	float cm;
-	int accel;
-	int decel;
 };
 
 struct mStepper{

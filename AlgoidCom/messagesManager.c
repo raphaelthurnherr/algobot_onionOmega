@@ -228,8 +228,6 @@ char clearMsgStack(unsigned char ptrStack){
                                 AlgoidMsgRXStack[ptrStack].DCmotor[i].motor=-1;
 				AlgoidMsgRXStack[ptrStack].DCmotor[i].time=-1;
 				AlgoidMsgRXStack[ptrStack].DCmotor[i].velocity=-1;
-                                AlgoidMsgRXStack[ptrStack].DCmotor[i].accel=-1;
-                                AlgoidMsgRXStack[ptrStack].DCmotor[i].decel=-1;
                                 AlgoidMsgRXStack[ptrStack].DCmotor[i].cm=-1;
 			}
 			return 0;
