@@ -113,7 +113,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
         
         
         if(srcDataBuffer != NULL){
-        // EXTRACT STREAM SETTINGS FROM CONFIG
+    // EXTRACT STREAM SETTINGS FROM CONFIG
             // Load data for stream TIME
             Config->dataStream.time_ms= jRead_int((char *) srcDataBuffer, FILE_KEY_CONFIG_STREAM_TIME, &i);
 
@@ -122,6 +122,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
 
             if(!strcmp(dataValue, "on")){
                 Config->dataStream.state = 1;
+                
             }else
                 if(!strcmp(dataValue, "off")){
                     Config->dataStream.state = 0;
@@ -136,7 +137,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                     Config->dataStream.onEvent = 0;
                 }
 
-        // EXTRACT MOTOR SETTINGS FROM CONFIG    
+    // EXTRACT MOTOR SETTINGS FROM CONFIG    
             // Reset motor data config before reading
             for(i=0;i<NBMOTOR;i++){
               Config->motor[i].inverted = -1;
@@ -183,7 +184,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                 }
             }
             
-        // EXTRACT WHEEL SETTINGS FROM CONFIG    
+    // EXTRACT WHEEL SETTINGS FROM CONFIG    
             // Reset motor data config before reading
             for(i=0;i<NBMOTOR;i++){
               Config->wheel[i].diameter=-1;
@@ -212,7 +213,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
                 }
             }
             
-        // EXTRACT STEPPER MOPTOR SETTINGS FROM CONFIG
+    // EXTRACT STEPPER MOTOR SETTINGS FROM CONFIG
         
             // Reset motor data config before reading
         for(i=0;i<NBSTEPPER;i++){

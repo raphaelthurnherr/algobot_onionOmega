@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.2e branch updateStructure"
+#define FIRMWARE_VERSION "1.6.2e"
 
 #define DEFAULT_EVENT_STATE 1   
 
@@ -87,8 +87,10 @@ t_system sysInfo;
 t_sysConfig sysConfig;
 
 // New structure
+
 t_device device;            // Device structure with actuator & sensor     
 robot_kehops kehops;
+t_sysApp sysApp;
 
 // -------------------------------------------------------------------
 // MAIN APPLICATION
@@ -2274,7 +2276,6 @@ void assignMotorWheel(void){
         
         kehops.dcWheel[0].motor = &device.actuator.motor[0].setpoint;
         kehops.dcWheel[1].motor = &device.actuator.motor[1].setpoint;
-        
         
 /*
         device.actuator.motor[0].setpoint.speed=50;

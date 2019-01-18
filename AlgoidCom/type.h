@@ -218,31 +218,19 @@ struct s_counter{
 // -------------------------------------
 // DEFINITION DES TYPE DE SORTIE
 // -------------------------------------
-/*
-struct s_stepperAction{
-	int step;
-        int rotation;
-        int angle;
-        int time;
-};
-*/
 
 
+// --------------------------------------
+// MOTEURS
+// --------------------------------------
 struct s_motor_sp{
     int speed;
     int direction;    
 };
 
-struct s_stepper_sp{
-    int speed;
-    int direction;    
-    int steps;  
-};
-
-
 struct s_motor_config{
     char inverted;   
-    char powerMin;   
+    int powerMin;   
 };
 
 struct actuator_motor{
@@ -250,25 +238,58 @@ struct actuator_motor{
     struct s_motor_config config;
 };
 
-struct a_stepper{
-    int speed;
-    int direction;
-    int steps;
-    
-};
-// 
 // --------------------------------------
+// STEP MOTOR
+// --------------------------------------
+
+struct s_stepper_sp{
+    int speed;
+    int direction;    
+    int steps;  
+};
+
+struct s_stepper_config{
+    char inverted;   
+    int steps;   
+    int ratio;
+};
+
+struct actuator_stepper{
+    struct s_stepper_sp setpoint;
+    struct s_stepper_config config;
+};
+
+// --------------------------------------
+// DOUT
+// --------------------------------------
+
+struct s_dout_sp{
+    char enable;
+    int  power;  
+};
+
+struct s_dout_config{   
+    int isServo;   
+};
+
+struct actuator_dout{
+    struct s_dout_sp setpoint;
+    struct s_dout_config config;
+};
+
+
+struct t_actuator{
+    struct actuator_motor motor[NBMOTOR];
+    struct actuator_stepper stepperMotor[NBSTEPPER];
+    struct actuator_dout digitalOutput[NBPWM+NBLED+NBSERVO];
+};
+
 struct t_sensor{
 	struct s_din din[NBDIN];
         struct s_ain ain[NBAIN];
 	struct s_counter counter[NBMOTOR];
 	struct s_rgbc rgbc[NBRGBC];
 
-};
-
-struct t_actuator{
-    struct actuator_motor motor[NBMOTOR];
-    int stepper;
 };
 
 // --------------------------------------
@@ -283,6 +304,8 @@ typedef struct t_device{
 // --------------------------------------
 // HIGH LEVEL
 // --------------------------------------
+
+
 
 struct s_pid{
     char  enable;
@@ -339,9 +362,10 @@ typedef struct robotStepperWheel{
 }robot_stepperwheel;
 
 
+
 // AIN & BATTERY  
 
-struct s_ain_config{
+struct s_batt_config{
     int  ainID;
 };
 
@@ -351,7 +375,7 @@ struct s_battery_meas{
 };
 
 typedef struct robotBattery{
-    struct s_ain_config config;
+    struct s_batt_config config;
     struct s_battery_meas measure;
     struct s_eventAnalog event;
     
@@ -360,7 +384,7 @@ typedef struct robotBattery{
 
 // BUTTONS
 
-struct s_din_config{
+struct s_button_config{
     int  dinID;
 };
 
@@ -370,7 +394,7 @@ struct s_button_meas{
 
 
 typedef struct robotButton{
-    struct s_din_config config;
+    struct s_button_config config;
     struct s_button_meas measure;
     struct s_eventBool event;
     
@@ -387,7 +411,7 @@ struct mqtt_stream{
 };
 
 struct s_mqtt{
-    struct mqtt_stream streamm;
+    struct mqtt_stream stream;
 };
 
 struct s_udp_bc{
@@ -399,12 +423,30 @@ struct s_udp_bc{
 struct s_udp{
     struct s_udp_bc broadcast;
 };
-typedef struct s_communication{
+struct app_comm{
     struct s_mqtt mqtt;
     struct s_udp udp;
-}communication;
+};
 
 
+// DOUT, PWM and LEDS
+
+struct s_pwm_action{
+    int  blinkCount;
+    int  blinkTime;
+};
+
+struct s_led_config{
+    int  doutID;
+    struct s_dout_config *mode;
+};
+
+
+typedef struct robotLed{
+    struct s_dout_sp *led;
+    struct s_led_config config;
+    struct s_pwm_action action;
+}robot_led;
 
 
 typedef struct robotKehops{
@@ -412,8 +454,20 @@ typedef struct robotKehops{
     robot_button button[NBBTN];
     robot_stepperwheel stepperWheel[NBSTEPPER];
     robot_dcwheel dcWheel[NBMOTOR];
-    
+    robot_led led[NBLED];
+    robot_led pwm[NBPWM];
+    robot_led servo[NBSERVO];
 }robot_kehops;
+
+
+struct app_kehops{
+    char resetConfig;
+};
+
+typedef struct systemApp{
+    struct app_comm communication;
+    struct app_kehops kehops;
+}t_sysApp;
 
 #ifdef __cplusplus
 }
