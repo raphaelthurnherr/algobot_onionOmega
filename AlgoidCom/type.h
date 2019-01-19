@@ -269,7 +269,7 @@ struct s_dout_sp{
 };
 
 struct s_dout_config{   
-    int isServo;   
+    char isServo;   
 };
 
 struct actuator_dout{
@@ -321,6 +321,13 @@ struct s_wheel_meas{
     int  speed_percent;
 };
 
+struct dc_wheel_data{
+    float _MMPP;
+    float _MAXSPEED_CMSEC;
+    float _STARTENCODERVALUE;
+    float _STOPENCODERVALUE;
+};
+
 // --------------------------------------
 struct wheel_settarget{
     int time;
@@ -352,6 +359,7 @@ typedef struct robotDCWheel{
     struct wheel_settarget *target;
     struct dc_wheel_config config;
     struct s_wheel_meas measure;
+    struct dc_wheel_data data;
 }robot_dcwheel;
 
 typedef struct robotStepperWheel{
@@ -460,6 +468,16 @@ typedef struct robotKehops{
 }robot_kehops;
 
 
+struct tInfosys{
+	char name[32];
+        long startUpTime;
+        char firmwareVersion[32];
+        char mcuVersion[32];
+        char HWrevision[32];
+        float battVoltage;
+        int wan_online;
+};
+
 struct app_kehops{
     char resetConfig;
 };
@@ -467,6 +485,7 @@ struct app_kehops{
 typedef struct systemApp{
     struct app_comm communication;
     struct app_kehops kehops;
+    struct tInfosys info;
 }t_sysApp;
 
 #ifdef __cplusplus

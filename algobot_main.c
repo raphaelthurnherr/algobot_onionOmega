@@ -2276,7 +2276,6 @@ void assignMotorWheel(void){
         
         kehops.dcWheel[0].motor = &device.actuator.motor[0].setpoint;
         kehops.dcWheel[1].motor = &device.actuator.motor[1].setpoint;
-        
 /*
         device.actuator.motor[0].setpoint.speed=50;
         device.actuator.motor[1].setpoint.speed=60;
