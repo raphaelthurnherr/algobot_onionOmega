@@ -186,7 +186,6 @@ struct s_eventBool{
 
 struct s_color{
 	int value;
-        struct s_eventAnalog event;
 };
 
 // -------------------------------------
@@ -194,19 +193,19 @@ struct s_color{
 // -------------------------------------
 struct s_din{
 	int value;
-        struct s_eventBool event;
 };
 
 struct s_ain{
 	int value;
-        struct s_eventAnalog event;
+};
+
+struct s_rgb_config{ 
+    int rgbID;   
 };
 
 struct s_rgbc{
-        struct s_color red;
-        struct s_color green;
-        struct s_color blue;
-        struct s_color clear;
+        struct s_color measure;
+        struct s_eventAnalog event;
 };
 
 struct s_counter{
@@ -329,7 +328,15 @@ struct dc_wheel_data{
 };
 
 // --------------------------------------
-struct wheel_settarget{
+struct stepwheel_settarget{
+    int steps;
+    int time;
+    int distanceCM;
+    int angle;
+    int rotation;
+};
+
+struct dcwheel_settarget{
     int time;
     int distanceCM;
     int angle;
@@ -356,14 +363,14 @@ struct stepper_wheel_config{
 
 typedef struct robotDCWheel{
     struct s_motor_sp *motor;
-    struct wheel_settarget *target;
+    struct dcwheel_settarget *target;
     struct dc_wheel_config config;
     struct s_wheel_meas measure;
     struct dc_wheel_data data;
 }robot_dcwheel;
 
 typedef struct robotStepperWheel{
-    struct wheel_settarget *target;
+    struct stepwheel_settarget *target;
     struct s_stepper_sp *motor;
     struct stepper_wheel_config config;
     struct s_wheel_meas measure;
@@ -372,6 +379,10 @@ typedef struct robotStepperWheel{
 
 
 // AIN & BATTERY  
+
+struct s_son_config{
+    int  sonarID;
+};
 
 struct s_batt_config{
     int  ainID;
@@ -382,12 +393,22 @@ struct s_battery_meas{
     int  capacity;
 };
 
+struct s_sonar_meas{
+    int  distance_cm;
+};
+
 typedef struct robotBattery{
     struct s_batt_config config;
     struct s_battery_meas measure;
     struct s_eventAnalog event;
     
 }robot_battery;
+
+typedef struct robotSonar{
+    struct s_son_config config;
+    struct s_sonar_meas measure;
+    struct s_eventAnalog event;
+}robot_sonar;
 
 
 // BUTTONS
@@ -400,6 +421,20 @@ struct s_button_meas{
     int  state;
 };
 
+struct s_rgb_meas{
+    struct s_rgbc red;
+    struct s_rgbc green;
+    struct s_rgbc blue;
+    struct s_rgbc clear;
+};
+
+struct s_prox_meas{
+    int  state;
+};
+
+struct s_prox_config{
+    int  dinID;
+};
 
 typedef struct robotButton{
     struct s_button_config config;
@@ -408,6 +443,12 @@ typedef struct robotButton{
     
 }robot_button;
 
+typedef struct robotProx{
+    struct s_prox_config config;
+    struct s_prox_meas measure;
+    struct s_eventBool event;
+    
+}robot_prox;
 
 // COmmunication & MQTT 
 
@@ -456,6 +497,14 @@ typedef struct robotLed{
     struct s_pwm_action action;
 }robot_led;
 
+typedef struct robotColor{
+    struct s_eventBool event;
+    struct s_rgb_meas color;
+    struct s_rgb_config config;
+}robot_color;
+
+
+
 
 typedef struct robotKehops{
     robot_battery battery[2];
@@ -465,6 +514,9 @@ typedef struct robotKehops{
     robot_led led[NBLED];
     robot_led pwm[NBPWM];
     robot_led servo[NBSERVO];
+    robot_prox proximity[NBDIN];
+    robot_sonar sonar[NBSONAR];
+    robot_color rgb[NBRGBC];
 }robot_kehops;
 
 

@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
 
 	// ----------- DEBUT DE LA BOUCLE PRINCIPALE ----------
         resetConfig();
-        resetHardware(&sysConfig);            // Reset les peripheriques hardware selon configuration initiale                   
+        resetHardware(&sysApp);            // Reset les peripheriques hardware selon configuration initiale                   
          
         assignMotorWheel();                   // Set assignement of motors for wheels
        
@@ -155,17 +155,18 @@ int main(int argc, char *argv[]) {
 	while(1){
         
         // Check if reset was triggered by user
-        if(sysConfig.config.reset>0){
+        if(sysApp.kehops.resetConfig>0){
             // Reset configuration to default value
             resetConfig();
-            resetHardware(&sysConfig);
+            resetHardware(&sysApp);
             systemDataStreamCounter=0;
             runCloudTestCommand();
         }
             
         // Controle periodique de l'envoie du flux de donnees des capteurs (status)
-        if(sysConfig.dataStream.state==ON){
-            if(systemDataStreamCounter++ >= sysConfig.dataStream.time_ms){
+        if(sysApp.communication.mqtt.stream.state==ON){
+            if(systemDataStreamCounter++ >= sysApp.communication.mqtt.stream.time_ms){
+                
                 // Retourne un message "Status" sur topic "Stream"
                 makeStatusRequest(DATAFLOW);
                 systemDataStreamCounter=0;
@@ -213,27 +214,19 @@ int main(int argc, char *argv[]) {
     	if(t100msFlag){
                         // R�cup�ration des couleur mesur�e sur les capteurs
                         for(i=0;i<NBRGBC;i++){
-                            robot.rgb[i].red.value=getColorValue(i,RED);
-                            robot.rgb[i].green.value=getColorValue(i,GREEN);
-                            robot.rgb[i].blue.value=getColorValue(i,BLUE);
-                            robot.rgb[i].clear.value=getColorValue(i,CLEAR);
+                            kehops.rgb[i].color.red.measure.value = getColorValue(i,RED);
+                            kehops.rgb[i].color.green.measure.value = getColorValue(i,GREEN);
+                            kehops.rgb[i].color.blue.measure.value = getColorValue(i,BLUE);
+                            kehops.rgb[i].color.clear.measure.value = getColorValue(i,CLEAR);
                         }			
 
-                        for(i=0;i<NBMOTOR;i++){
-                            
+                        for(i=0;i<NBMOTOR;i++){   
                             // Convert millimeter per pulse to centimeter per pulse and calculation of distance
-                            robot.motor[i].speed_cmS = (float)(getMotorFrequency(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
-                            robot.motor[i].speed_rpm = 60 * (float)(getMotorFrequency(i)) / (sysConfig.wheel[i].pulsePerRot);
-                            robot.motor[i].distance_cm = (float)(getMotorPulses(i)) * (sysConfig.wheel[i]._MMPP / 10.0);
-                           // printf("\n----- SPEED RPM#: %.2f -----\n", robot.motor[i].speed_rpm);
-                            //printf("\n----- DISTANCE #%d:  %2f -----\n",i, robot.motor[i].distance_cm);
+                            kehops.dcWheel[i].measure.speed_cmS = (float)(getMotorFrequency(i)) * (kehops.dcWheel[i].data._MMPP / 10.0);
+                            kehops.dcWheel[i].measure.rpm = 60 * (float)(getMotorFrequency(i)) / (kehops.dcWheel[i].config.pulsesPerRot);
+                            kehops.dcWheel[i].measure.distance = (float)(getMotorPulses(i)) * (kehops.dcWheel[i].data._MMPP / 10.0);
                         }
-/*
-                       int setpoint;
-                       setpoint = PID_speedControl(robot.motor[0].speed_cmS, robot.motor[0].velocity);
-                       setpoint = rescaleMotorPower(0, setpoint);
-                       motorSpeedSetpoint(0, setpoint);                      
-                        */                      
+                        
 			DINEventCheck();										// Cont�le de l'�tat des entr�es num�rique
 															// G�n�re un �venement si changement d'�tat d�tect�
 
@@ -242,18 +235,16 @@ int main(int argc, char *argv[]) {
                         
                         COLOREventCheck();										// Cont�le les valeur RGB des capteurs
                         
-			robot.distance[0].value = getSonarDistance();
-			distanceEventCheck();										// Provoque un �venement de type "distance" si la distance mesur�e
-															// est hors de la plage sp�cifi�e par l'utilisateur
-
-			robot.battery[0].value = getBatteryVoltage();
-                        robot.battery[0].capacity=(robot.battery[0].value-3500)/((4210-3500)/100);
+                        kehops.sonar[0].measure.distance_cm = getSonarDistance();
+			distanceEventCheck();										// Provoque un �venement de type "distance" si la distance mesur�e					// est hors de la plage sp�cifi�e par l'utilisateur
+                        kehops.battery[0].measure.voltage_mV = getBatteryVoltage();
+                        kehops.battery[0].measure.capacity =(kehops.battery[0].measure.voltage_mV-3500)/((4210-3500)/100);
                         batteryEventCheck();
 
 			t100msFlag=0;												// Quittance le flag 100mS
     	}
         
-        sysInfo.startUpTime++;
+        sysApp.info.startUpTime++;
     	usleep(1000);	// Attente de 1ms
     }
  
@@ -401,21 +392,22 @@ int processAlgoidCommand(void){
                             // CONFIG COMMAND FOR DATASTREAM
                                     // R�cup�re les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par polling
                                     if(!strcmp(AlgoidCommand.Config.stream.state, "on"))
-                                        sysConfig.dataStream.state=1; 			// Activation de l'envoie du datastream
+                                        sysApp.communication.mqtt.stream.state=1; 			// Activation de l'envoie du datastream
+                                    
                                     else
                                         if(!strcmp(AlgoidCommand.Config.stream.state, "off"))
-                                            sysConfig.dataStream.state=0; 		// Desactivation de l'envoie du datastream
+                                            sysApp.communication.mqtt.stream.state=0; 		// Desactivation de l'envoie du datastream
 
                                     
                                     // R�cup�re les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par evenement
                                     if(!strcmp(AlgoidCommand.Config.stream.onEvent, "on"))
-                                        sysConfig.dataStream.onEvent=1; 			// Activation de l'envoie du datastream
+                                        sysApp.communication.mqtt.stream.onEvent=1; 			// Activation de l'envoie du datastream
                                     else
                                         if(!strcmp(AlgoidCommand.Config.stream.onEvent, "off"))
-                                            sysConfig.dataStream.onEvent=0; 		// Desactivation de l'envoie du datastr
+                                            sysApp.communication.mqtt.stream.onEvent=0; 		// Desactivation de l'envoie du datastr
                                     
                                     if(AlgoidCommand.Config.stream.time>0)
-                                        sysConfig.dataStream.time_ms=AlgoidCommand.Config.stream.time;
+                                        sysApp.communication.mqtt.stream.time_ms=AlgoidCommand.Config.stream.time;
                                     
                                 // CONFIG COMMAND FOR MOTOR SETTING
                                     for(i=0;i<AlgoidCommand.Config.motValueCnt; i++){
@@ -538,13 +530,13 @@ int processAlgoidCommand(void){
 
                         // Préparation des valeurs du message de réponse
                                 // GET STREAM CONFIG FOR RESPONSE
-                                    AlgoidResponse[valCnt].CONFIGresponse.stream.time=sysConfig.dataStream.time_ms;
+                                    AlgoidResponse[valCnt].CONFIGresponse.stream.time=sysApp.communication.mqtt.stream.time_ms;
                                     
-                                    if(sysConfig.dataStream.onEvent==0) 
+                                    if(sysApp.communication.mqtt.stream.onEvent==0) 
                                         strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.onEvent, "off");
                                     else strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.onEvent, "on");
 
-                                    if(sysConfig.dataStream.state==0) 
+                                    if(sysApp.communication.mqtt.stream.state==0) 
                                         strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.state, "off");
                                     else strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.state, "on");
 
@@ -675,9 +667,9 @@ int runMotorAction(void){
             ptrData=getWDvalue(i);
             if(ptrData>=0){
                 actionCount++;
-                        robot.motor[i].velocity=AlgoidCommand.DCmotor[ptrData].velocity;
-                        robot.motor[i].cm=AlgoidCommand.DCmotor[ptrData].cm;
-                        robot.motor[i].time=AlgoidCommand.DCmotor[ptrData].time;
+                        kehops.dcWheel[i].motor->speed = AlgoidCommand.DCmotor[ptrData].velocity;
+                        kehops.dcWheel[i].target->distanceCM = AlgoidCommand.DCmotor[ptrData].cm;
+                        kehops.dcWheel[i].target->time = AlgoidCommand.DCmotor[ptrData].time;
             }
         }
 
@@ -706,12 +698,12 @@ int runMotorAction(void){
                         if(ID >= 0){
                             
                             // Effectue l'action sur la roue
-                            if(robot.motor[ID].cm <=0 && robot.motor[ID].time<=0){                                
+                            if(kehops.dcWheel[ID].target->distanceCM <= 0 && kehops.dcWheel[ID].target->time <= 0)
                                 sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\" ou \"cm\" pour l'action sur le moteur %d\n", ID);
 
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
                                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
-                                setAsyncMotorAction(myTaskId, ID, robot.motor[ID].velocity, INFINITE, NULL);
+                                setAsyncMotorAction(myTaskId, ID, kehops.dcWheel[ID].motor->speed, INFINITE, NULL);
 
                                 // Défini l'état de laction comme "en cours" pour message de réponse
                                 AlgoidResponse[0].responseType = EVENT_ACTION_RUN;
@@ -719,10 +711,10 @@ int runMotorAction(void){
                                 sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, MOTORS, 1);
                             }else
                             {
-                                if(robot.motor[ID].cm > 0)
-                                        setAsyncMotorAction(myTaskId, ID, robot.motor[ID].velocity, CENTIMETER, robot.motor[ID].cm);
+                                if(kehops.dcWheel[ID].target->distanceCM > 0)
+                                        setAsyncMotorAction(myTaskId, ID, kehops.dcWheel[ID].motor->speed, CENTIMETER, kehops.dcWheel[ID].target->distanceCM);
                                 else{
-                                        setAsyncMotorAction(myTaskId, ID, robot.motor[ID].velocity, MILLISECOND, robot.motor[ID].time);
+                                        setAsyncMotorAction(myTaskId, ID, kehops.dcWheel[ID].motor->speed, MILLISECOND, kehops.dcWheel[ID].target->time);                                        
                                 }
                             }
                         }
@@ -762,11 +754,11 @@ int runStepperAction(void){
             ptrData=getStepperValue(i);
             if(ptrData>=0){
                 actionCount++;
-                        robot.stepper[i].speed=AlgoidCommand.StepperMotor[ptrData].velocity;
-                        robot.stepper[i].time=AlgoidCommand.StepperMotor[ptrData].time;
-                        robot.stepper[i].step=AlgoidCommand.StepperMotor[ptrData].step;
-                        robot.stepper[i].angle=AlgoidCommand.StepperMotor[ptrData].angle;
-                        robot.stepper[i].rotation=AlgoidCommand.StepperMotor[ptrData].rotation;
+                        kehops.stepperWheel[i].motor->speed = AlgoidCommand.StepperMotor[ptrData].velocity;
+                        kehops.stepperWheel[i].target->time = AlgoidCommand.StepperMotor[ptrData].time;
+                        kehops.stepperWheel[i].target->steps = AlgoidCommand.StepperMotor[ptrData].step;
+                        kehops.stepperWheel[i].target->angle = AlgoidCommand.StepperMotor[ptrData].angle;
+                        kehops.stepperWheel[i].target->rotation = AlgoidCommand.StepperMotor[ptrData].rotation;
             }
         }
 
@@ -795,12 +787,12 @@ int runStepperAction(void){
                         if(ID >= 0){
                             
                             // Effectue l'action sur le moteur pas à pas
-                            if(robot.stepper[ID].time<=0 && robot.stepper[ID].step <=0 && robot.stepper[ID].rotation<=0 && robot.stepper[ID].angle<=0){                                
+                            if(kehops.stepperWheel[ID].target->time <= 0 && kehops.stepperWheel[ID].target->steps <=0 && kehops.stepperWheel[ID].target->rotation <= 0 && kehops.stepperWheel[ID].target->angle <=0){                                
                                 sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\" ou \"step\" ou \"rotation\" ou \"angle\"pour l'action sur le moteur pas à pas %d\n", ID);
 
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
                                 sendMqttReport(AlgoidCommand.msgID, reportBuffer);				      // Envoie le message sur le canal MQTT "Report"     
-                                setAsyncStepperAction(myTaskId, ID, robot.stepper[ID].speed, INFINITE, NULL);
+                                setAsyncStepperAction(myTaskId, ID, kehops.stepperWheel[ID].motor->speed, INFINITE, NULL);
 
                                 // Défini l'état de laction comme "en cours" pour message de réponse
                                 AlgoidResponse[0].responseType = EVENT_ACTION_RUN;
@@ -808,19 +800,19 @@ int runStepperAction(void){
                                 sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom,  EVENT, STEPPER, 1);
                             }else
                             {
-                                if(robot.stepper[ID].step > 0){
-                                    setAsyncStepperAction(myTaskId, ID, robot.stepper[ID].speed, STEP, robot.stepper[ID].step);
+                                if(kehops.stepperWheel[ID].target->steps > 0){
+                                    setAsyncStepperAction(myTaskId, ID, kehops.stepperWheel[ID].motor->speed, STEP, kehops.stepperWheel[ID].motor->steps);
                                 }
                                 else{
-                                    if(robot.stepper[ID].angle > 0){
-                                       setAsyncStepperAction(myTaskId, ID, robot.stepper[ID].speed, ANGLE, robot.stepper[ID].angle);
+                                    if(kehops.stepperWheel[ID].target->angle > 0){
+                                       setAsyncStepperAction(myTaskId, ID, kehops.stepperWheel[ID].motor->speed, ANGLE, kehops.stepperWheel[ID].target->angle);
                                     }else
                                     {
-                                        if(robot.stepper[ID].rotation > 0){
-                                            setAsyncStepperAction(myTaskId, ID, robot.stepper[ID].speed, ROTATION, robot.stepper[ID].rotation);
+                                        if(kehops.stepperWheel[ID].target->rotation > 0){
+                                            setAsyncStepperAction(myTaskId, ID, kehops.stepperWheel[ID].motor->speed, ROTATION, kehops.stepperWheel[ID].target->rotation);
                                         }else{
-                                            if(robot.stepper[ID].time > 0){
-                                                setAsyncStepperAction(myTaskId, ID, robot.stepper[ID].speed, MILLISECOND, robot.stepper[ID].time);
+                                            if(kehops.stepperWheel[ID].target->time > 0){
+                                                setAsyncStepperAction(myTaskId, ID, kehops.stepperWheel[ID].motor->speed, MILLISECOND, kehops.stepperWheel[ID].target->time);
                                             }
                                         }
                                     }
@@ -875,21 +867,21 @@ int runLedAction(void){
                 
                 // R�cup�ration de commande d'�tat de la led dans le message
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"off"))
-                    robot.led[i].state=OFF;
+                    kehops.led[i].led->enable = OFF;
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"on"))
-                    robot.led[i].state=ON;
+                    kehops.led[i].led->enable = ON;
                 if(!strcmp(AlgoidCommand.LEDarray[ptrData].state,"blink"))
-                    robot.led[i].state=BLINK;
+                    kehops.led[i].led->enable = BLINK;
                 
                 // R�cup�ration des consignes dans le message (si disponible)
                 if(AlgoidCommand.LEDarray[ptrData].powerPercent > 0)
-                    robot.led[i].power=AlgoidCommand.LEDarray[ptrData].powerPercent;
+                    kehops.led[i].led->power = AlgoidCommand.LEDarray[ptrData].powerPercent;
                 
                 if(AlgoidCommand.LEDarray[ptrData].time > 0)
-                    robot.led[i].blinkTime=AlgoidCommand.LEDarray[ptrData].time;
+                    kehops.led[i].action.blinkTime = AlgoidCommand.LEDarray[ptrData].time;
                 
                 if(AlgoidCommand.LEDarray[ptrData].blinkCount > 0)
-                    robot.led[i].blinkCount=AlgoidCommand.LEDarray[ptrData].blinkCount;
+                    kehops.led[i].action.blinkCount = AlgoidCommand.LEDarray[ptrData].blinkCount;
             }
         }
 
@@ -918,12 +910,9 @@ int runLedAction(void){
                                     Count=AlgoidCommand.LEDarray[ptrData].blinkCount;
                                     time=AlgoidCommand.LEDarray[ptrData].time;
                                     // Mode blink
-                                    if(robot.led[ID].state==BLINK){
-                                        
+                                    if(kehops.led[ID].led->enable == BLINK){
                                         // Verifie la presence de parametres de type "time" et "count", sinon applique des
-                                        // valeurs par defaut
-/*                                        if(time<=0){
- */ 
+                                        // valeurs par defaut */ 
                                         if(time<=0 && Count<=0){
                                             time=500;
                                             Count=1;
@@ -948,10 +937,10 @@ int runLedAction(void){
 
                                     // Mode on ou off
                                     else{
-                                            if(robot.led[ID].state==OFF)
+                                            if(kehops.led[ID].led->enable == OFF)
                                                 setAsyncLedAction(myTaskId, ID, OFF, NULL, NULL);
 
-                                            if(robot.led[ID].state==ON)
+                                            if(kehops.led[ID].led->enable == ON)
                                                 setAsyncLedAction(myTaskId, ID, ON, NULL, NULL);
                                     }
 
@@ -1000,27 +989,24 @@ int runPwmAction(void){
                 
                 // R�cup�ration de commande d'�tat pour la sortie PWM
                 if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"off"))
-                    robot.pwm[i].state=OFF;
+                    kehops.pwm[i].led->enable = OFF;
                 if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"on"))
-                    robot.pwm[i].state=ON;
+                    kehops.pwm[i].led->enable = ON;
                 
 
                 // Blink mode not available in SERVO MODE
                 if(!AlgoidCommand.PWMarray[ptrData].isServoMode){
                     if(!strcmp(AlgoidCommand.PWMarray[ptrData].state,"blink"))
-                        robot.pwm[i].state=BLINK;
+                        kehops.pwm[i].led->enable = BLINK;
                     if(AlgoidCommand.PWMarray[ptrData].time > 0)
-                        robot.pwm[i].blinkTime=AlgoidCommand.PWMarray[ptrData].time;
+                        kehops.pwm[i].action.blinkTime = AlgoidCommand.PWMarray[ptrData].time;
                     if(AlgoidCommand.PWMarray[ptrData].blinkCount > 0)
-                        robot.pwm[i].blinkCount=AlgoidCommand.PWMarray[ptrData].blinkCount;
-                }
-                else{
-                    
+                        kehops.pwm[i].action.blinkCount = AlgoidCommand.PWMarray[ptrData].blinkCount;
                 }
                 
                 // Recuperation des consignes dans le message (si disponible)
                 if(AlgoidCommand.PWMarray[ptrData].powerPercent >= 0)
-                    robot.pwm[i].power=AlgoidCommand.PWMarray[ptrData].powerPercent;
+                    kehops.pwm[i].led->power=AlgoidCommand.PWMarray[ptrData].powerPercent;
             }
         }
 
@@ -1049,7 +1035,7 @@ int runPwmAction(void){
                                     // Check if is a servomotor PWM (500uS .. 2.5mS)
                                     if(!AlgoidCommand.PWMarray[ptrData].isServoMode){
                                         // Mode blink
-                                        if(robot.pwm[ID].state==BLINK){
+                                        if(kehops.pwm[i].led->enable == BLINK){
                                             // Verifie la presence de parametres de type "time" et "count", sinon applique des
                                             // valeurs par defaut
                                             if(time<=0){
@@ -1069,20 +1055,19 @@ int runPwmAction(void){
                                              setAsyncPwmAction(myTaskId, ID, BLINK, time, Count);
                                         }
                                         else{
-                                            if(robot.pwm[ID].state==OFF)
+                                            if(kehops.pwm[ID].led->enable == OFF)
                                                 setAsyncPwmAction(myTaskId, ID, OFF, NULL, NULL);
 
-                                            if(robot.pwm[ID].state==ON)
+                                            if(kehops.pwm[ID].led->enable == ON)
                                                 setAsyncPwmAction(myTaskId, ID, ON, NULL, NULL);
                                             }
                                     }
                                     else
                                         
                                     {
-                                            if(robot.pwm[ID].state==OFF)
+                                            if(kehops.pwm[ID].led->enable == OFF)
                                                 setAsyncServoAction(myTaskId, ID, OFF, NULL);
-
-                                            if(robot.pwm[ID].state==ON)
+                                            if(kehops.pwm[ID].led->enable == ON)
                                                 setAsyncServoAction(myTaskId, ID, ON, NULL);
                                     }
                                     
@@ -1283,53 +1268,55 @@ int makeStatusRequest(int msgType){
         strcpy(AlgoidResponse[ptrData].SYSresponse.firmwareVersion,FIRMWARE_VERSION);
         strcpy(AlgoidResponse[ptrData].SYSresponse.mcuVersion,fv);
         strcpy(AlgoidResponse[ptrData].SYSresponse.HWrevision,hv);
-        AlgoidResponse[ptrData].SYSresponse.battVoltage=robot.battery[0].value;
-        AlgoidResponse[ptrData].SYSresponse.battPercent=robot.battery[0].capacity;
+        AlgoidResponse[ptrData].SYSresponse.battVoltage = kehops.battery[0].measure.voltage_mV;
+        AlgoidResponse[ptrData].SYSresponse.battPercent = kehops.battery[0].measure.capacity;
         ptrData++;
         
 	for(i=0;i<NBDIN;i++){
 		AlgoidResponse[ptrData].DINresponse.id=i;
-		AlgoidResponse[ptrData].value=robot.proximity[i].state;
+                AlgoidResponse[ptrData].value = kehops.proximity[i].measure.state;
                 
-                if(robot.proximity[i].event_enable) strcpy(AlgoidResponse[ptrData].DINresponse.event_state, "on");
+                if(kehops.proximity[i].event.enable) strcpy(AlgoidResponse[ptrData].DINresponse.event_state, "on");
                 else strcpy(AlgoidResponse[ptrData].DINresponse.event_state, "off");                
 		ptrData++;
 	}
                 
         for(i=0;i<NBBTN;i++){
                 AlgoidResponse[ptrData].BTNresponse.id=i;
-                AlgoidResponse[ptrData].value=robot.button[i].state;
+                AlgoidResponse[ptrData].value = kehops.button[i].measure.state;
                 
-                if(robot.button[i].event_enable) strcpy(AlgoidResponse[ptrData].BTNresponse.event_state, "on");
+                if(kehops.button[i].event.enable) strcpy(AlgoidResponse[ptrData].BTNresponse.event_state, "on");                
                 else strcpy(AlgoidResponse[ptrData].BTNresponse.event_state, "off");
                 ptrData++;
 	}
 
 	for(i=0;i<NBMOTOR;i++){
 		AlgoidResponse[ptrData].MOTresponse.motor=i;
-		AlgoidResponse[ptrData].MOTresponse.speed=robot.motor[i].speed_rpm;
-		AlgoidResponse[ptrData].MOTresponse.cm = rpmToPercent(i, robot.motor[i].speed_rpm);
-                AlgoidResponse[ptrData].MOTresponse.velocity = rpmToPercent(0,sysConfig.motor[0].minRPM) + robot.motor[i].velocity;;
+                AlgoidResponse[ptrData].MOTresponse.speed=kehops.dcWheel[i].measure.rpm;
+                AlgoidResponse[ptrData].MOTresponse.cm = rpmToPercent(i, kehops.dcWheel[i].measure.rpm);
+                // !!! RESPONSE VELOCITY TO CHECK...
+                //AlgoidResponse[ptrData].MOTresponse.velocity = rpmToPercent(0,sysConfig.motor[0].minRPM) + robot.motor[i].velocity;
+                AlgoidResponse[ptrData].MOTresponse.velocity = rpmToPercent(0,sysConfig.motor[0].minRPM) + kehops.dcWheel[i].motor->speed;
 		ptrData++;
 	}
 
         for(i=0;i<NBSONAR;i++){
                 AlgoidResponse[ptrData].DISTresponse.id=i;
-                AlgoidResponse[ptrData].value=robot.distance[i].value;
+                AlgoidResponse[ptrData].value = kehops.sonar[i].measure.distance_cm;
                 
-                if(robot.distance[i].event_enable) strcpy(AlgoidResponse[ptrData].DISTresponse.event_state, "on");
+                if(kehops.sonar[i].event.enable) strcpy(AlgoidResponse[ptrData].DISTresponse.event_state, "on");
                 else strcpy(AlgoidResponse[ptrData].DISTresponse.event_state, "off");
                 ptrData++;
 	}
 
         for(i=0;i<NBRGBC;i++){
 		AlgoidResponse[ptrData].RGBresponse.id=i;
-		AlgoidResponse[ptrData].RGBresponse.red.value=robot.rgb[i].red.value;
-                AlgoidResponse[ptrData].RGBresponse.green.value=robot.rgb[i].green.value;
-                AlgoidResponse[ptrData].RGBresponse.blue.value=robot.rgb[i].blue.value;
-                AlgoidResponse[ptrData].RGBresponse.clear.value=robot.rgb[i].clear.value;
+                AlgoidResponse[ptrData].RGBresponse.red.value = kehops.rgb[i].color.red.measure.value;
+                AlgoidResponse[ptrData].RGBresponse.green.value = kehops.rgb[i].color.green.measure.value;
+                AlgoidResponse[ptrData].RGBresponse.blue.value = kehops.rgb[i].color.blue.measure.value;
+                AlgoidResponse[ptrData].RGBresponse.clear.value = kehops.rgb[i].color.clear.measure.value;
                 
-                if(robot.rgb[i].event_enable) strcpy(AlgoidResponse[ptrData].RGBresponse.event_state, "on");
+                if(kehops.rgb[i].event.enable) strcpy(AlgoidResponse[ptrData].RGBresponse.event_state, "on");
                 else strcpy(AlgoidResponse[ptrData].RGBresponse.event_state, "off");
                 
 		ptrData++;
@@ -1337,15 +1324,15 @@ int makeStatusRequest(int msgType){
 
         for(i=0;i<NBLED;i++){
 		AlgoidResponse[ptrData].LEDresponse.id=i;
-		AlgoidResponse[ptrData].value=robot.led[i].state;
-                AlgoidResponse[ptrData].LEDresponse.powerPercent=robot.led[i].power;
+                AlgoidResponse[ptrData].value = kehops.led[i].led->enable;
+                AlgoidResponse[ptrData].LEDresponse.powerPercent=kehops.led[i].led->power;
 		ptrData++;
 	}
 
         for(i=0;i<NBPWM;i++){
 		AlgoidResponse[ptrData].PWMresponse.id=i;
-		AlgoidResponse[ptrData].value=robot.pwm[i].state;
-                AlgoidResponse[ptrData].PWMresponse.powerPercent=robot.pwm[i].power;
+		AlgoidResponse[ptrData].value = kehops.pwm[i].led->enable;
+                AlgoidResponse[ptrData].PWMresponse.powerPercent = kehops.pwm[i].led->power;
 		ptrData++;
 	}
 
@@ -1376,8 +1363,8 @@ int makeSensorsRequest(void){
 			// Contr�le que le capteur soit pris en charge
 			if(AlgoidCommand.DINsens[i].id < NBDIN){
 				// Recherche de param�tres suppl�mentaires et enregistrement des donn�e en "local"
-				if(!strcmp(AlgoidCommand.DINsens[i].event_state, "on"))	robot.proximity[AlgoidCommand.DINsens[i].id].event_enable=1; 			// Activation de l'envoie de messages sur �venements
-				else if(!strcmp(AlgoidCommand.DINsens[i].event_state, "off"))	robot.proximity[AlgoidCommand.DINsens[i].id].event_enable=0;    // D�sactivation de l'envoie de messages sur �venements
+                                if(!strcmp(AlgoidCommand.DINsens[i].event_state, "on"))	kehops.proximity[AlgoidCommand.DINsens[i].id].event.enable = 1; 			// Activation de l'envoie de messages sur �venements
+				else if(!strcmp(AlgoidCommand.DINsens[i].event_state, "off"))	kehops.proximity[AlgoidCommand.DINsens[i].id].event.enable = 0;    // D�sactivation de l'envoie de messages sur �venements
 			} else
 				AlgoidResponse[i].value = -1;
 		};
@@ -1388,8 +1375,8 @@ int makeSensorsRequest(void){
 
 		// Contr�le que le capteur soit pris en charge
 		if(AlgoidCommand.DINsens[i].id < NBDIN){
-			AlgoidResponse[i].value = robot.proximity[temp].state;
-			if(robot.proximity[temp].event_enable) strcpy(AlgoidResponse[i].DINresponse.event_state, "on");
+                        AlgoidResponse[i].value = kehops.proximity[temp].measure.state;
+			if(kehops.proximity[temp].event.enable) strcpy(AlgoidResponse[i].DINresponse.event_state, "on");
 				else strcpy(AlgoidResponse[i].DINresponse.event_state, "off");
 		} else
 			AlgoidResponse[i].value = -1;
@@ -1422,8 +1409,8 @@ int makeButtonRequest(void){
 			// Contr�le que le capteur soit pris en charge
 			if(AlgoidCommand.BTNsens[i].id < NBBTN){
 				// Recherche de param�tres suppl�mentaires et enregistrement des donn�e en "local"
-				if(!strcmp(AlgoidCommand.BTNsens[i].event_state, "on"))	robot.button[AlgoidCommand.BTNsens[i].id].event_enable=1; 			// Activation de l'envoie de messages sur �venements
-				else if(!strcmp(AlgoidCommand.BTNsens[i].event_state, "off"))	robot.button[AlgoidCommand.BTNsens[i].id].event_enable=0;    // D�sactivation de l'envoie de messages sur �venements
+                                if(!strcmp(AlgoidCommand.BTNsens[i].event_state, "on"))	kehops.button[AlgoidCommand.BTNsens[i].id].event.enable = 1; 			// Activation de l'envoie de messages sur �venements
+				else if(!strcmp(AlgoidCommand.BTNsens[i].event_state, "off"))	kehops.button[AlgoidCommand.BTNsens[i].id].event.enable = 0;    // D�sactivation de l'envoie de messages sur �venements
 			} else
 				AlgoidResponse[i].value = -1;
 		};
@@ -1434,8 +1421,8 @@ int makeButtonRequest(void){
 
 		// Contr�le que le capteur soit pris en charge
 		if(AlgoidCommand.BTNsens[i].id < NBBTN){
-			AlgoidResponse[i].value = robot.button[temp].state;
-			if(robot.button[temp].event_enable) strcpy(AlgoidResponse[i].BTNresponse.event_state, "on");
+                        AlgoidResponse[i].value = kehops.button[temp].measure.state;
+			if(kehops.button[temp].event.enable) strcpy(AlgoidResponse[i].BTNresponse.event_state, "on");
                         else strcpy(AlgoidResponse[i].BTNresponse.event_state, "off");
 		} else
 			AlgoidResponse[i].value = -1;
@@ -1470,20 +1457,20 @@ int makeDistanceRequest(void){
 
 					// Activation de l'envoie de messages sur �venements
 					if(!strcmp(AlgoidCommand.DISTsens[i].event_state, "on")){
-							robot.distance[AlgoidCommand.DISTsens[i].id].event_enable=1;
-							saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
+                                            kehops.sonar[AlgoidCommand.DISTsens[i].id].event.enable = 1;
+                                            saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 					}
 					else if(!strcmp(AlgoidCommand.DISTsens[i].event_state, "off")){
-						robot.distance[AlgoidCommand.DISTsens[i].id].event_enable=0;
-						removeSenderOfMsgId(AlgoidCommand.msgID);
+                                            kehops.sonar[AlgoidCommand.DISTsens[i].id].event.enable = 0;
+                                            removeSenderOfMsgId(AlgoidCommand.msgID);
 					}
 
 					// Evemenent haut
 					if(AlgoidCommand.DISTsens[i].event_high!=0)
-						robot.distance[AlgoidCommand.DISTsens[i].id].event_high=AlgoidCommand.DISTsens[i].event_high;
+                                            kehops.sonar[AlgoidCommand.DISTsens[i].id].event.high = AlgoidCommand.DISTsens[i].event_high;
 					// Evemenent bas
 					if(AlgoidCommand.DISTsens[i].event_low!=0)
-                                            robot.distance[AlgoidCommand.DISTsens[i].id].event_low=AlgoidCommand.DISTsens[i].event_low;
+                                            kehops.sonar[AlgoidCommand.DISTsens[i].id].event.low = AlgoidCommand.DISTsens[i].event_low;
 				} else
 					AlgoidResponse[i].value = -1;
 			};
@@ -1494,13 +1481,12 @@ int makeDistanceRequest(void){
 		int temp = AlgoidResponse[i].DISTresponse.id;
 
 		if(AlgoidCommand.DISTsens[i].id <NBSONAR){
-			AlgoidResponse[i].value=robot.distance[temp].value;
-			//AlgoidResponse[i].DISTresponse.angle=angle[AlgoidCommand.DISTsens[i].angle];
+                        AlgoidResponse[i].value=kehops.sonar[temp].measure.distance_cm;
 
-			if(robot.distance[temp].event_enable)strcpy(AlgoidResponse[i].DISTresponse.event_state, "on");
+			if(kehops.sonar[temp].event.enable)strcpy(AlgoidResponse[i].DISTresponse.event_state, "on");
 			else strcpy(AlgoidResponse[i].DISTresponse.event_state, "off");
-			AlgoidResponse[i].DISTresponse.event_high=robot.distance[temp].event_high;
-			AlgoidResponse[i].DISTresponse.event_low=robot.distance[temp].event_low;
+			AlgoidResponse[i].DISTresponse.event_high = kehops.sonar[temp].event.high;
+			AlgoidResponse[i].DISTresponse.event_low = kehops.sonar[temp].event.low;
 		} else
 			AlgoidResponse[i].value = -1;
 	};
@@ -1535,45 +1521,45 @@ int makeRgbRequest(void){
 
 					// PARAMETRAGE DE L'ENVOIE DES MESSAGES SUR EVENEMENTS.
 					if(!strcmp(AlgoidCommand.RGBsens[i].event_state, "on")){
-							robot.rgb[AlgoidCommand.RGBsens[i].id].event_enable=1;
-							saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].event.enable = 1;
+                                            saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 					}
 					else if(!strcmp(AlgoidCommand.RGBsens[i].event_state, "off")){
-						robot.rgb[AlgoidCommand.RGBsens[i].id].event_enable=0;
-						removeSenderOfMsgId(AlgoidCommand.msgID);
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].event.enable = 0;
+                                            removeSenderOfMsgId(AlgoidCommand.msgID);
 					}
 
                                         // Param�tre capteur ROUGE
 					// Evemenent haut
 					if(AlgoidCommand.RGBsens[i].red.event_high!=0)
-						robot.rgb[AlgoidCommand.RGBsens[i].id].red.event_high=AlgoidCommand.RGBsens[i].red.event_high;
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].color.red.event.high=AlgoidCommand.RGBsens[i].red.event_high;
 					// Evemenent bas
 					if(AlgoidCommand.RGBsens[i].red.event_low!=0)
-						robot.rgb[AlgoidCommand.RGBsens[i].id].red.event_low=AlgoidCommand.RGBsens[i].red.event_low;
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].color.red.event.low=AlgoidCommand.RGBsens[i].red.event_low;
                                         
                                         // Param�tre capteur VERT
                                         // Evemenent haut
 					if(AlgoidCommand.RGBsens[i].green.event_high!=0)
-                                            robot.rgb[AlgoidCommand.RGBsens[i].id].green.event_high=AlgoidCommand.RGBsens[i].green.event_high;
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].color.green.event.high = AlgoidCommand.RGBsens[i].green.event_high;
 					// Evemenent bas
 					if(AlgoidCommand.RGBsens[i].green.event_low!=0)
-						robot.rgb[AlgoidCommand.RGBsens[i].id].green.event_low=AlgoidCommand.RGBsens[i].green.event_low;
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].color.green.event.low=AlgoidCommand.RGBsens[i].green.event_low;
                                         
                                         // Param�tre capteur BLEU
                                         // Evemenent haut
 					if(AlgoidCommand.RGBsens[i].blue.event_high!=0)
-						robot.rgb[AlgoidCommand.RGBsens[i].id].blue.event_high=AlgoidCommand.RGBsens[i].blue.event_high;
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].color.blue.event.high=AlgoidCommand.RGBsens[i].blue.event_high;
 					// Evemenent bas
 					if(AlgoidCommand.RGBsens[i].blue.event_low!=0)
-                                                robot.rgb[AlgoidCommand.RGBsens[i].id].blue.event_low=AlgoidCommand.RGBsens[i].blue.event_low;
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].color.blue.event.low=AlgoidCommand.RGBsens[i].blue.event_low;
 
                                         // Param�tre capteur CLEAR
                                         // Evemenent haut
 					if(AlgoidCommand.RGBsens[i].clear.event_high!=0)
-						robot.rgb[AlgoidCommand.RGBsens[i].id].clear.event_high=AlgoidCommand.RGBsens[i].clear.event_high;
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].color.clear.event.high=AlgoidCommand.RGBsens[i].clear.event_high;
 					// Evemenent bas
 					if(AlgoidCommand.RGBsens[i].clear.event_low!=0)
-						robot.rgb[AlgoidCommand.RGBsens[i].id].clear.event_low=AlgoidCommand.RGBsens[i].clear.event_low;
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].clear.event.low=AlgoidCommand.RGBsens[i].clear.event_low;
 				} else
 					AlgoidResponse[i].value = -1;
 			};
@@ -1584,30 +1570,30 @@ int makeRgbRequest(void){
 		int temp = AlgoidResponse[i].RGBresponse.id;
 
 		if(AlgoidCommand.RGBsens[i].id <NBRGBC){
-			AlgoidResponse[i].RGBresponse.red.value=robot.rgb[temp].red.value;
-                        AlgoidResponse[i].RGBresponse.green.value=robot.rgb[temp].green.value;
-                        AlgoidResponse[i].RGBresponse.blue.value=robot.rgb[temp].blue.value;
-                        AlgoidResponse[i].RGBresponse.clear.value=robot.rgb[temp].clear.value;
+                        AlgoidResponse[i].RGBresponse.red.value=kehops.rgb[temp].color.red.measure;
+                        AlgoidResponse[i].RGBresponse.green.value=kehops.rgb[temp].color.green.measure;
+                        AlgoidResponse[i].RGBresponse.blue.value=kehops.rgb[temp].color.blue.measure;
+                        AlgoidResponse[i].RGBresponse.clear.value=kehops.rgb[temp].color.clear.measure;
 
                         // Copie de l'etat de l'evenement
-			if(robot.rgb[temp].event_enable)strcpy(AlgoidResponse[i].RGBresponse.event_state, "on");
+			if(kehops.rgb[i].event.enable)strcpy(AlgoidResponse[i].RGBresponse.event_state, "on");
 			else strcpy(AlgoidResponse[i].RGBresponse.event_state, "off");
                         
                         // Copie des param�tres �venements haut/bas pour le ROUGE
-			AlgoidResponse[i].RGBresponse.red.event_high=robot.rgb[temp].red.event_high;
-			AlgoidResponse[i].RGBresponse.red.event_low=robot.rgb[temp].red.event_low;
+                        AlgoidResponse[i].RGBresponse.red.event_high=kehops.rgb[temp].color.red.event.high;
+                        AlgoidResponse[i].RGBresponse.red.event_low=kehops.rgb[temp].color.red.event.low;
 
                         // Copie des param�tres �venements haut/bas pour le VERT
-			AlgoidResponse[i].RGBresponse.green.event_high=robot.rgb[temp].green.event_high;
-			AlgoidResponse[i].RGBresponse.green.event_low=robot.rgb[temp].green.event_low;
+                        AlgoidResponse[i].RGBresponse.green.event_high=kehops.rgb[temp].color.green.event.high;
+                        AlgoidResponse[i].RGBresponse.green.event_low=kehops.rgb[temp].color.green.event.low;
                         
                         // Copie des param�tres �venements haut/bas pour le BLEU
-			AlgoidResponse[i].RGBresponse.blue.event_high=robot.rgb[temp].blue.event_high;
-			AlgoidResponse[i].RGBresponse.blue.event_low=robot.rgb[temp].blue.event_low;
+                        AlgoidResponse[i].RGBresponse.blue.event_high=kehops.rgb[temp].color.blue.event.high;
+                        AlgoidResponse[i].RGBresponse.blue.event_low=kehops.rgb[temp].color.blue.event.low;
                         
                         // Copie des param�tres �venements haut/bas pour le CLEAR
-			AlgoidResponse[i].RGBresponse.clear.event_high=robot.rgb[temp].clear.event_high;
-			AlgoidResponse[i].RGBresponse.clear.event_low=robot.rgb[temp].clear.event_low;
+                        AlgoidResponse[i].RGBresponse.clear.event_high=kehops.rgb[temp].color.clear.event.high;
+                        AlgoidResponse[i].RGBresponse.clear.event_low=kehops.rgb[temp].color.clear.event.low;
                         
                         
 		} else
@@ -1645,16 +1631,16 @@ int makeBatteryRequest(void){
 					// Recherche de param�tres suppl�mentaires
 					// Evenement activ�es
 					if(!strcmp(AlgoidCommand.BATTsens[i].event_state, "on")){
-						robot.battery[AlgoidCommand.BATTsens[i].id].event_enable=1;
+                                                kehops.battery[AlgoidCommand.BATTsens[i].id].event.enable = 1;
 						saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 					}
 					else if(!strcmp(AlgoidCommand.BATTsens[i].event_state, "off")){
-						robot.battery[AlgoidCommand.BATTsens[i].id].event_enable=0;
+                                                kehops.battery[AlgoidCommand.BATTsens[i].id].event.enable = 0;
 						removeSenderOfMsgId(AlgoidCommand.msgID);
 					}
 					// Evemenent haut
-					if(AlgoidCommand.BATTsens[i].event_high!=0) robot.battery[AlgoidCommand.BATTsens[i].id].event_high=AlgoidCommand.BATTsens[i].event_high;
-					if(AlgoidCommand.BATTsens[i].event_high!=0) robot.battery[AlgoidCommand.BATTsens[i].id].event_low=AlgoidCommand.BATTsens[i].event_low;
+					if(AlgoidCommand.BATTsens[i].event_high!=0) kehops.battery[AlgoidCommand.BATTsens[i].id].event.high = AlgoidCommand.BATTsens[i].event_high;
+					if(AlgoidCommand.BATTsens[i].event_low!=0) kehops.battery[AlgoidCommand.BATTsens[i].id].event.low = AlgoidCommand.BATTsens[i].event_low;
 				}else
 					AlgoidResponse[i].value = -1;
 			};
@@ -1664,9 +1650,9 @@ int makeBatteryRequest(void){
 		int temp = AlgoidResponse[i].BATTesponse.id;
 
 		if(AlgoidCommand.BATTsens[i].id <NBAIN){
-			AlgoidResponse[i].value=robot.battery[temp].value;
+                        AlgoidResponse[i].value=kehops.battery[temp].measure.voltage_mV;                        
 
-			if(robot.battery[temp].event_enable){
+                        if(kehops.battery[temp].event.enable){
 				strcpy(AlgoidResponse[i].BATTesponse.event_state, "on");
 				saveSenderOfMsgId(AlgoidCommand.msgID, AlgoidMessageRX.msgFrom);
 			}
@@ -1674,8 +1660,8 @@ int makeBatteryRequest(void){
 				strcpy(AlgoidResponse[i].BATTesponse.event_state, "off");
 				removeSenderOfMsgId(AlgoidCommand.msgID);
 			}
-			AlgoidResponse[i].BATTesponse.event_high=robot.battery[temp].event_high;
-			AlgoidResponse[i].BATTesponse.event_low=robot.battery[temp].event_low;
+                        AlgoidResponse[i].BATTesponse.event_high = kehops.battery[temp].event.high;
+                        AlgoidResponse[i].BATTesponse.event_low = kehops.battery[temp].event.low;
 		} else
 			AlgoidResponse[i].value = -1;
 	};
@@ -1708,8 +1694,9 @@ int makeMotorRequest(void){
 		// Contr�le que le moteur soit pris en charge
 		if(AlgoidCommand.DCmotor[i].motor < NBMOTOR){
                     
-			AlgoidResponse[i].MOTresponse.velocity = robot.motor[temp].cm;
-                        AlgoidResponse[i].MOTresponse.velocity = robot.motor[temp].velocity;
+                        AlgoidResponse[i].MOTresponse.speed = kehops.dcWheel[temp].motor->speed;
+                        AlgoidResponse[i].MOTresponse.cm = kehops.dcWheel[temp].target->distanceCM;
+                        AlgoidResponse[i].MOTresponse.time = kehops.dcWheel[temp].target->time;
                         AlgoidResponse[i].responseType=RESP_STD_MESSAGE;
                         
 			
@@ -1736,56 +1723,54 @@ void distanceEventCheck(void){
 	// Contr�le periodique des mesures de distances pour envoie d'evenement
 	for(i=0;i<NBSONAR;i++){
 		// V�rification si envoie des EVENT activ�s
-		if(robot.distance[i].event_enable){
+            if(kehops.sonar[i].event.enable){
 
-			int event_low_disable, event_high_disable, distLowDetected, distHighDetected;
+                int event_low_disable, event_high_disable, distLowDetected, distHighDetected;
 
-			// Contr�le l' individuelle des evenements ( = si valeur < 0)
-			if(robot.distance[i].event_low < 0) event_low_disable = 1;
-			else event_low_disable = 0;
+                // Contr�le l' individuelle des evenements ( = si valeur < 0)
+                if(kehops.sonar[i].event.low < 0) event_low_disable = 1;
+                else event_low_disable = 0;
 
-			if(robot.distance[i].event_high < 0) event_high_disable = 1;
-			else event_high_disable = 0;
+                if(kehops.sonar[i].event.high < 0) event_high_disable = 1;
+                else event_high_disable = 0;
 
-			// Detection des seuils d'alarme
-			if(robot.distance[i].value < robot.distance[i].event_low) distLowDetected = 1;
+                    // Detection des seuils d'alarme
+                        if(kehops.sonar[i].measure.distance_cm < kehops.sonar[i].event.low) distLowDetected = 1;
 			else distLowDetected = 0;
 
-			if(robot.distance[i].value > robot.distance[i].event_high) distHighDetected = 1;
+			if(kehops.sonar[i].measure.distance_cm > kehops.sonar[i].event.high) distHighDetected = 1;
 			else distHighDetected = 0;
 
 			// Evaluation des alarmes � envoyer
 			if((distLowDetected && !event_low_disable) || (distHighDetected && !event_high_disable)){		// Mesure de distance hors plage
-				if(distWarningSended[i]==0){													// N'envoie l' event qu'une seule fois
-					AlgoidResponse[i].DISTresponse.id=i;
-					AlgoidResponse[i].value=robot.distance[i].value;
+                            if(distWarningSended[i]==0){													// N'envoie l' event qu'une seule fois
+                                AlgoidResponse[i].DISTresponse.id=i;
+                                AlgoidResponse[i].value=kehops.sonar[i].measure.distance_cm;
 
-                                        if(robot.distance[i].event_enable) strcpy(AlgoidResponse[i].DISTresponse.event_state, "on");
-                                        else strcpy(AlgoidResponse[i].DISTresponse.event_state, "off");
-                                        
-					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DISTANCE, NBSONAR);
-					distWarningSended[i]=1;
-                                        
-                                        // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);
-//                                        printf("CHANGEMENT SONAR%d, VALUE:%d\n", i, robot.distance[i].value);
-				}
+                                if(kehops.sonar[i].event.enable) strcpy(AlgoidResponse[i].DISTresponse.event_state, "on");
+                                else strcpy(AlgoidResponse[i].DISTresponse.event_state, "off");
+
+                                sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DISTANCE, NBSONAR);
+                                distWarningSended[i]=1;
+
+                                // Si evenement pour stream activ�, envoie une trame de type status
+                                if(sysApp.communication.mqtt.stream.onEvent==1)
+                                    makeStatusRequest(DATAFLOW);
+                            }
 			}
 			else if (distWarningSended[i]==1){													// Mesure de distance revenu dans la plage
 					AlgoidResponse[i].DISTresponse.id=i;							// Et n'envoie qu'une seule fois le message
-					AlgoidResponse[i].value=robot.distance[i].value;
+					AlgoidResponse[i].value=kehops.sonar[i].measure.distance_cm;
 
-                                        if(robot.distance[i].event_enable) strcpy(AlgoidResponse[i].DISTresponse.event_state, "on");
+                                        if(kehops.sonar[i].event.enable) strcpy(AlgoidResponse[i].DISTresponse.event_state, "on");
                                         else strcpy(AlgoidResponse[i].DISTresponse.event_state, "off");
                                         
 					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DISTANCE, NBSONAR);
 					distWarningSended[i]=0;
                                         
                                         // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
+                                        if(sysApp.communication.mqtt.stream.onEvent==1)
                                             makeStatusRequest(DATAFLOW); 
-//                                        printf("CHANGEMENT SONAR%d, VALUE:%d\n", i, robot.distance[i].value);
 			}
 		}
 	}
@@ -1805,48 +1790,48 @@ void batteryEventCheck(void){
 	unsigned char i;
 	// Contr�le periodique des mesures de tension batterie pour envoie d'evenement
 	for(i=0;i<NBAIN;i++){
-		if(robot.battery[i].event_enable){
+		if(kehops.battery[i].event.enable){
 
 			int event_low_disable, event_high_disable, battLowDetected, battHighDetected;
 
 			// Contr�le l' individuelle des evenements ( = si valeur < 0)
-			if(robot.battery[i].event_low < 0) event_low_disable = 1;
+			if(kehops.battery[i].event.low < 0) event_low_disable = 1;
 			else event_low_disable = 0;
 
-			if(robot.battery[i].event_high < 0) event_high_disable = 1;
+			if(kehops.battery[i].event.high < 0) event_high_disable = 1;
 			else event_high_disable = 0;
 
 			// Detection des seuils d'alarme
-			if(robot.battery[i].value < robot.battery[i].event_low) battLowDetected = 1;
+			if(kehops.battery[i].measure.voltage_mV < kehops.battery[i].event.low) battLowDetected = 1;
 			else battLowDetected = 0;
 
-			if(robot.battery[i].value > robot.battery[i].event_high) battHighDetected = 1;
+			if(kehops.battery[i].measure.voltage_mV > kehops.battery[i].event.high) battHighDetected = 1;
 			else battHighDetected = 0;
 
 			// Evaluation des alarmes � envoyer
 			if((battLowDetected && !event_low_disable) || (battHighDetected && !event_high_disable)){				// Mesure tension hors plage
-				if(battWarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
-					AlgoidResponse[i].BATTesponse.id=i;
-					AlgoidResponse[i].value=robot.battery[i].value;
-					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BATTERY, 1);
-					battWarningSended[i]=1;
-                                        
-                                        // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);                                        
-				}
+                            if(battWarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
+                                AlgoidResponse[i].BATTesponse.id=i;
+                                AlgoidResponse[i].value = kehops.battery[i].measure.voltage_mV;
+                                sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BATTERY, 1);
+                                battWarningSended[i]=1;
+
+                                // Si evenement pour stream activ�, envoie une trame de type status
+                                if(sysApp.communication.mqtt.stream.onEvent==1)
+                                    makeStatusRequest(DATAFLOW);                                        
+                            }
 			}
 			// Envoie un �venement Fin de niveau bas (+50mV Hysterese)
-			else if (battWarningSended[i]==1 && robot.battery[i].value > (robot.battery[i].event_low + robot.battery[i].event_hysteresis)){				// Mesure tension dans la plage
-					AlgoidResponse[i].BATTesponse.id=i;											// n'envoie qu'une seule fois apr�s
-					AlgoidResponse[i].value=robot.battery[i].value;
-                                        // une hysterese de 50mV
-					sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BATTERY, 1);
-					battWarningSended[i]=0;
-                                        
-                                        // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);                                        
+			else if (battWarningSended[i]==1 && kehops.battery[i].measure.voltage_mV > (kehops.battery[i].event.low + kehops.battery[i].event.hysteresis)){				// Mesure tension dans la plage
+                                AlgoidResponse[i].BATTesponse.id=i;											// n'envoie qu'une seule fois apr�s
+                                AlgoidResponse[i].value = kehops.battery[i].measure.voltage_mV;
+                                // une hysterese de 50mV
+                                sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BATTERY, 1);
+                                battWarningSended[i]=0;
+
+                                // Si evenement pour stream activ�, envoie une trame de type status
+                                if(sysApp.communication.mqtt.stream.onEvent==1)
+                                    makeStatusRequest(DATAFLOW);                                        
 			}
 		}
 	}
@@ -1865,20 +1850,19 @@ void DINEventCheck(void){
 
 	for(i=0;i<NBDIN;i++){
 		// Mise � jour de l'�tat des E/S
-		oldDinValue[i]=robot.proximity[i].state;
-		robot.proximity[i].state = getDigitalInput(i);
+		oldDinValue[i] = kehops.proximity[i].measure.state;
+		kehops.proximity[i].measure.state = getDigitalInput(i);
 
 		// V�rifie si un changement a eu lieu sur les entrees et transmet un message
 		// "event" listant les modifications
-		if(robot.proximity[i].event_enable && (oldDinValue[i] != robot.proximity[i].state)){
+		if(kehops.proximity[i].event.enable && (oldDinValue[i] != kehops.proximity[i].measure.state)){
 			AlgoidResponse[ptrBuff].DINresponse.id=i;
-			AlgoidResponse[ptrBuff].value=robot.proximity[i].state;
+			AlgoidResponse[ptrBuff].value = kehops.proximity[i].measure.state;
 
-                        if(robot.proximity[i].event_enable) strcpy(AlgoidResponse[ptrBuff].DINresponse.event_state, "on");
+                        if(kehops.proximity[i].event.enable) strcpy(AlgoidResponse[ptrBuff].DINresponse.event_state, "on");
                         else strcpy(AlgoidResponse[ptrBuff].DINresponse.event_state, "off");     
-                        
+
 			ptrBuff++;
-			//printf("CHANGEMENT DIN%d, ETAT:%d\n", i, robot.proximity[i].state);
 			DINevent++;
 		}
 	}
@@ -1887,7 +1871,7 @@ void DINEventCheck(void){
 		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DINPUT, DINevent);
                 
                 // Si evenement pour stream activ�, envoie une trame de type status
-                if(sysConfig.dataStream.onEvent==1)
+                if(sysApp.communication.mqtt.stream.onEvent==1)
                     makeStatusRequest(DATAFLOW);
         }
         
@@ -1902,36 +1886,36 @@ void DINEventCheck(void){
 // -------------------------------------------------------------------
 
 void BUTTONEventCheck(void){
-	// Mise � jour de l'�tat des E/S
-	unsigned char ptrBuff=0, BTNevent=0, oldBtnValue[NBBTN], i;
+    // Mise � jour de l'�tat des E/S
+    unsigned char ptrBuff=0, BTNevent=0, oldBtnValue[NBBTN], i;
 
-	for(i=0;i<NBBTN;i++){
-		// Mise � jour de l'�tat des E/S
-		oldBtnValue[i]=robot.button[i].state;
-		robot.button[i].state = getButtonInput(i);
+    for(i=0;i<NBBTN;i++){
+        // Mise � jour de l'�tat des E/S
+        oldBtnValue[i] = kehops.button [i].measure.state;
+        kehops.button[i].measure.state = getButtonInput(i);
 
-		// V�rifie si un changement a eu lieu sur les entrees et transmet un message
-		// "event" listant les modifications
-		if(robot.button[i].event_enable && (oldBtnValue[i] != robot.button[i].state)){
-			AlgoidResponse[ptrBuff].BTNresponse.id=i;
-			AlgoidResponse[ptrBuff].value=robot.button[i].state;
+        // V�rifie si un changement a eu lieu sur les entrees et transmet un message
+        // "event" listant les modifications
+        if(kehops.button [i].event.enable && (oldBtnValue[i] != kehops.button [i].measure.state)){
+            AlgoidResponse[ptrBuff].BTNresponse.id=i;
+            AlgoidResponse[ptrBuff].value = kehops.button [i].measure.state;
 
-                        if(robot.button[i].event_enable) strcpy(AlgoidResponse[ptrBuff].BTNresponse.event_state, "on");
-                        else strcpy(AlgoidResponse[ptrBuff].BTNresponse.event_state, "off");
-                        
-			ptrBuff++;
+            if(kehops.button[i].event.enable) strcpy(AlgoidResponse[ptrBuff].BTNresponse.event_state, "on");
+            else strcpy(AlgoidResponse[ptrBuff].BTNresponse.event_state, "off");
+
+            ptrBuff++;
 //			printf("CHANGEMENT BOUTON %d, ETAT:%d\n", i, robot.button[i].state);
-			BTNevent++;
-		}
-	}
-
-	if(BTNevent>0){
-            sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BUTTON, BTNevent);
-        
-            // Si evenement pour stream activ�, envoie une trame de type status
-            if(sysConfig.dataStream.onEvent==1)
-                makeStatusRequest(DATAFLOW);
+            BTNevent++;
         }
+    }
+
+    if(BTNevent>0){
+        sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BUTTON, BTNevent);
+
+        // Si evenement pour stream activ�, envoie une trame de type status
+        if(sysApp.communication.mqtt.stream.onEvent == 1)
+            makeStatusRequest(DATAFLOW);
+    }
 }
 
 
@@ -1940,7 +1924,6 @@ void BUTTONEventCheck(void){
 // V�rifie si une changement d'�tat � eu lieu sur les entr�es num�riques
 // -------------------------------------------------------------------
 void COLOREventCheck(void){
-    
         unsigned char ptrBuff=0, RGBevent=0;
         
 	// Mise � jour de l'�tat des couleurs des capteur
@@ -1952,161 +1935,161 @@ void COLOREventCheck(void){
 	unsigned char i;
 
 	for(i=0;i<NBRGBC;i++){
-		if(robot.rgb[i].event_enable){
+            if(kehops.rgb[i].event.enable){
 
-			int red_event_low_disable, red_event_high_disable;                     
-                        int redLowDetected, redHighDetected;
-                        
-                        int green_event_low_disable, green_event_high_disable;                     
-                        int greenLowDetected, greenHighDetected;
-                        
-                        int blue_event_low_disable, blue_event_high_disable;                     
-                        int blueLowDetected, blueHighDetected;
+                int red_event_low_disable, red_event_high_disable;                     
+                int redLowDetected, redHighDetected;
 
-			// Contr�le l' individuelle des evenements sur changement de couleur [ROUGE]
-			if(robot.rgb[i].red.event_low < 0) red_event_low_disable = 1;
-			else red_event_low_disable = 0;
+                int green_event_low_disable, green_event_high_disable;                     
+                int greenLowDetected, greenHighDetected;
 
-			if(robot.rgb[i].red.event_high < 0) red_event_high_disable = 1;
-			else red_event_high_disable = 0;
+                int blue_event_low_disable, blue_event_high_disable;                     
+                int blueLowDetected, blueHighDetected;
 
-			// Detection des seuils d'alarme
-			if(robot.rgb[i].red.value < robot.rgb[i].red.event_low) redLowDetected = 1;
-			else redLowDetected = 0;
+                // Contr�le l' individuelle des evenements sur changement de couleur [ROUGE]
+                if(kehops.rgb[i].color.red.event.low < 0) red_event_low_disable = 1;
+                else red_event_low_disable = 0;
 
-			if(robot.rgb[i].red.value > robot.rgb[i].red.event_high) redHighDetected = 1;
-			else redHighDetected = 0;
-                        
-			// Evaluation des alarmes � envoyer
-			if((redLowDetected && !red_event_low_disable) || (redHighDetected && !red_event_high_disable)){				// Mesure tension hors plage
-				if(RGB_red_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
-					AlgoidResponse[ptrBuff].RGBresponse.id=i;
-					AlgoidResponse[ptrBuff].RGBresponse.red.value=robot.rgb[i].red.value;
-					ptrBuff++;
-                                        RGBevent++;
-                                        //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
-					RGB_red_WarningSended[i]=1;
-                                        
-                                        // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);
+                if(kehops.rgb[i].color.red.event.high < 0) red_event_high_disable = 1;
+                else red_event_high_disable = 0;
+
+                // Detection des seuils d'alarme
+                if(kehops.rgb[i].color.red.measure.value < kehops.rgb[i].color.red.event.low) redLowDetected = 1;
+                else redLowDetected = 0;
+
+                if(kehops.rgb[i].color.red.measure.value > kehops.rgb[i].color.red.event.high) redHighDetected = 1;
+                else redHighDetected = 0;
+
+                // Evaluation des alarmes � envoyer
+                if((redLowDetected && !red_event_low_disable) || (redHighDetected && !red_event_high_disable)){				// Mesure tension hors plage
+                    if(RGB_red_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
+                        AlgoidResponse[ptrBuff].RGBresponse.id=i;
+                        AlgoidResponse[ptrBuff].RGBresponse.red.value = kehops.rgb[i].color.red.measure.value;
+                        ptrBuff++;
+                        RGBevent++;
+                        //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+                        RGB_red_WarningSended[i]=1;
+
+                        // Si evenement pour stream activ�, envoie une trame de type status
+                        if(sysApp.communication.mqtt.stream.onEvent==1)
+                            makeStatusRequest(DATAFLOW);
 //                                        printf("CHANGEMENT ROUGE RGB %d, VALUE:%d\n", i, robot.rgb[i].red.value);
-				}
-			}
-                        
-			// Envoie un �venement Fin de niveau bas (+50mV Hysterese)
-			else if (RGB_red_WarningSended[i]==1 && robot.rgb[i].red.value > (robot.rgb[i].red.event_low + robot.rgb[i].red.event_hysteresis)){				// Mesure tension dans la plage
-					AlgoidResponse[ptrBuff].RGBresponse.id=i;											// n'envoie qu'une seule fois apr�s
-					AlgoidResponse[ptrBuff].RGBresponse.red.value=robot.rgb[i].red.value;											// une hysterese de 50mV
-                                        ptrBuff++;
-                                        RGBevent++;
-					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
-					RGB_red_WarningSended[i]=0;
-                                        // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);
- //                                        printf("- CHANGEMENT ROUGE RGB %d, VALUE:%d\n", i, robot.rgb[i].red.value);
-			}
-                        
-                        // Contr�le l' individuelle des evenements sur changement de couleur [VERT]
-			if(robot.rgb[i].green.event_low < 0) green_event_low_disable = 1;
-			else green_event_low_disable = 0;
+                    }
+                }
 
-			if(robot.rgb[i].green.event_high < 0) green_event_high_disable = 1;
-			else green_event_high_disable = 0;
+                // Envoie un �venement Fin de niveau bas (+50mV Hysterese)
+                else if (RGB_red_WarningSended[i]==1 && kehops.rgb[i].color.red.measure.value > (kehops.rgb[i].color.red.event.low + kehops.rgb[i].color.red.event.hysteresis)){				// Mesure tension dans la plage
+                    AlgoidResponse[ptrBuff].RGBresponse.id=i;											// n'envoie qu'une seule fois apr�s
+                    AlgoidResponse[ptrBuff].RGBresponse.red.value = kehops.rgb[i].color.red.measure.value;											// une hysterese de 50mV
+                    ptrBuff++;
+                    RGBevent++;
+                    //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+                    RGB_red_WarningSended[i]=0;
+                    // Si evenement pour stream activ�, envoie une trame de type status
+                    if(sysApp.communication.mqtt.stream.onEvent==1)
+                        makeStatusRequest(DATAFLOW);
+//                                        printf("- CHANGEMENT ROUGE RGB %d, VALUE:%d\n", i, robot.rgb[i].red.value);
+                }
 
-			// Detection des seuils d'alarme
-			if(robot.rgb[i].green.value < robot.rgb[i].green.event_low) greenLowDetected = 1;
-			else greenLowDetected = 0;
+                // Contr�le l' individuelle des evenements sur changement de couleur [VERT]
+                if(kehops.rgb[i].color.green.event.low < 0) green_event_low_disable = 1;
+                else green_event_low_disable = 0;
 
-			if(robot.rgb[i].green.value > robot.rgb[i].green.event_high) greenHighDetected = 1;
-			else greenHighDetected = 0;
+                if(kehops.rgb[i].color.green.event.high < 0) green_event_high_disable = 1;
+                else green_event_high_disable = 0;
 
-			// Evaluation des alarmes � envoyer
-			if((greenLowDetected && !green_event_low_disable) || (greenHighDetected && !green_event_high_disable)){				// Mesure tension hors plage
-				if(RGB_green_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
-					AlgoidResponse[ptrBuff].RGBresponse.id=i;
-					AlgoidResponse[ptrBuff].RGBresponse.green.value=robot.rgb[i].green.value;
-                                        ptrBuff++;
-                                        RGBevent++;
-					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
-					RGB_green_WarningSended[i]=1;
-                                        
-                                        // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);
- //                                        printf("CHANGEMENT VERT RGB %d, VALUE:%d\n", i, robot.rgb[i].green.value);
-				}
-			}
-                        
-			// Envoie un �venement Fin de niveau bas (+50mV Hysterese)
-			else if (RGB_green_WarningSended[i]==1 && robot.rgb[i].green.value > (robot.rgb[i].green.event_low + robot.rgb[i].green.event_hysteresis)){				// Mesure tension dans la plage
-					AlgoidResponse[ptrBuff].RGBresponse.id=i;											// n'envoie qu'une seule fois apr�s
-					AlgoidResponse[ptrBuff].RGBresponse.green.value=robot.rgb[i].green.value;											// une hysterese de 50mV
-                                        ptrBuff++;
-                                        RGBevent++;
-					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
-					RGB_green_WarningSended[i]=0;
-                                        // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);
- //                                       printf("-CHANGEMENT VERT RGB %d, VALUE:%d\n", i, robot.rgb[i].green.value);
-			}
-                        
-                        
-                        // Contr�le l' individuelle des evenements sur changement de couleur [BLEU]
-			if(robot.rgb[i].blue.event_low < 0) blue_event_low_disable = 1;
-			else blue_event_low_disable = 0;
+                // Detection des seuils d'alarme
+                if(kehops.rgb[i].color.green.measure.value < kehops.rgb[i].color.green.event.low) greenLowDetected = 1;
+                else greenLowDetected = 0;
 
-			if(robot.rgb[i].blue.event_high < 0) blue_event_high_disable = 1;
-			else blue_event_high_disable = 0;
+                if(kehops.rgb[i].color.green.measure.value > kehops.rgb[i].color.green.event.high) greenHighDetected = 1;
+                else greenHighDetected = 0;
 
-			// Detection des seuils d'alarme
-			if(robot.rgb[i].blue.value < robot.rgb[i].blue.event_low) blueLowDetected = 1;
-			else blueLowDetected = 0;
+                // Evaluation des alarmes � envoyer
+                if((greenLowDetected && !green_event_low_disable) || (greenHighDetected && !green_event_high_disable)){				// Mesure tension hors plage
+                    if(RGB_green_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
+                            AlgoidResponse[ptrBuff].RGBresponse.id=i;
+                            AlgoidResponse[ptrBuff].RGBresponse.green.value = kehops.rgb[i].color.green.measure.value;
+                            ptrBuff++;
+                            RGBevent++;
+                            //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+                            RGB_green_WarningSended[i]=1;
 
-			if(robot.rgb[i].blue.value > robot.rgb[i].blue.event_high) blueHighDetected = 1;
-			else blueHighDetected = 0;
+                            // Si evenement pour stream activ�, envoie une trame de type status
+                            if(sysApp.communication.mqtt.stream.onEvent==1)
+                                makeStatusRequest(DATAFLOW);
+//                                        printf("CHANGEMENT VERT RGB %d, VALUE:%d\n", i, robot.rgb[i].green.value);
+                    }
+                }
 
-			// Evaluation des alarmes � envoyer
-			if((blueLowDetected && !blue_event_low_disable) || (blueHighDetected && !blue_event_high_disable)){				// Mesure tension hors plage
-				if(RGB_blue_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
-					AlgoidResponse[ptrBuff].RGBresponse.id=i;
-					AlgoidResponse[ptrBuff].RGBresponse.blue.value=robot.rgb[i].blue.value;
-                                        ptrBuff++;
-                                        RGBevent++;
-					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
-					RGB_blue_WarningSended[i]=1;
-                                        
-                                        // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);
+                // Envoie un �venement Fin de niveau bas (+50mV Hysterese)
+                else if (RGB_green_WarningSended[i]==1 && kehops.rgb[i].color.green.measure.value > (kehops.rgb[i].color.green.event.low + kehops.rgb[i].color.green.event.hysteresis)){				// Mesure tension dans la plage
+                    AlgoidResponse[ptrBuff].RGBresponse.id=i;											// n'envoie qu'une seule fois apr�s
+                    AlgoidResponse[ptrBuff].RGBresponse.green.value = kehops.rgb[i].color.green.measure.value;											// une hysterese de 50mV
+                    ptrBuff++;
+                    RGBevent++;
+                    //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+                    RGB_green_WarningSended[i]=0;
+                    // Si evenement pour stream activ�, envoie une trame de type status
+                    if(sysApp.communication.mqtt.stream.onEvent==1)
+                        makeStatusRequest(DATAFLOW);
+//                                       printf("-CHANGEMENT VERT RGB %d, VALUE:%d\n", i, robot.rgb[i].green.value);
+                }
+
+
+                // Contr�le l' individuelle des evenements sur changement de couleur [BLEU]
+                if(kehops.rgb[i].color.blue.event.low < 0) blue_event_low_disable = 1;
+                else blue_event_low_disable = 0;
+
+                if(kehops.rgb[i].color.blue.event.high < 0) blue_event_high_disable = 1;
+                else blue_event_high_disable = 0;
+
+                // Detection des seuils d'alarme
+                if(kehops.rgb[i].color.blue.measure.value < kehops.rgb[i].color.blue.event.low) blueLowDetected = 1;
+                else blueLowDetected = 0;
+
+                if(kehops.rgb[i].color.blue.measure.value > kehops.rgb[i].color.blue.event.high) blueHighDetected = 1;
+                else blueHighDetected = 0;
+
+                // Evaluation des alarmes � envoyer
+                if((blueLowDetected && !blue_event_low_disable) || (blueHighDetected && !blue_event_high_disable)){				// Mesure tension hors plage
+                    if(RGB_blue_WarningSended[i]==0){														// N'envoie qu'une seule fois l'EVENT
+                        AlgoidResponse[ptrBuff].RGBresponse.id=i;
+                        AlgoidResponse[ptrBuff].RGBresponse.blue.value = kehops.rgb[i].color.blue.measure.value;
+                        ptrBuff++;
+                        RGBevent++;
+                        //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+                        RGB_blue_WarningSended[i]=1;
+
+                        // Si evenement pour stream activ�, envoie une trame de type status
+                        if(sysApp.communication.mqtt.stream.onEvent==1)
+                            makeStatusRequest(DATAFLOW);
 //                                        printf("CHANGEMENT BLEU RGB %d, VALUE:%d\n", i, robot.rgb[i].blue.value);
-				}
-			}
-                        
-			// Envoie un �venement Fin de niveau bas (+50mV Hysterese)
-			else if (RGB_blue_WarningSended[i]==1 && robot.rgb[i].blue.value > (robot.rgb[i].blue.event_low + robot.rgb[i].blue.event_hysteresis)){				// Mesure tension dans la plage
-					AlgoidResponse[ptrBuff].RGBresponse.id=i;											// n'envoie qu'une seule fois apr�s
-					AlgoidResponse[ptrBuff].RGBresponse.blue.value=robot.rgb[i].blue.value;											// une hysterese de 50mV
-                                        ptrBuff++;
-                                        RGBevent++;
-					//sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
-					RGB_blue_WarningSended[i]=0;
-                                        // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysConfig.dataStream.onEvent==1)
-                                            makeStatusRequest(DATAFLOW);
- //                                       printf("-CHANGEMENT BLEU RGB %d, VALUE:%d\n", i, robot.rgb[i].blue.value);
-			}
-		}
+                    }
+                }
+
+                // Envoie un �venement Fin de niveau bas (+50mV Hysterese)
+                else if (RGB_blue_WarningSended[i]==1 && kehops.rgb[i].color.blue.measure.value > (kehops.rgb[i].color.blue.event.low + kehops.rgb[i].color.blue.event.hysteresis)){				// Mesure tension dans la plage
+                    AlgoidResponse[ptrBuff].RGBresponse.id=i;											// n'envoie qu'une seule fois apr�s
+                    AlgoidResponse[ptrBuff].RGBresponse.blue.value = kehops.rgb[i].color.blue.measure.value;											// une hysterese de 50mV
+                    ptrBuff++;
+                    RGBevent++;
+                    //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
+                    RGB_blue_WarningSended[i]=0;
+                    // Si evenement pour stream activ�, envoie une trame de type status
+                    if(sysApp.communication.mqtt.stream.onEvent==1)
+                        makeStatusRequest(DATAFLOW);
+//                                       printf("-CHANGEMENT BLEU RGB %d, VALUE:%d\n", i, robot.rgb[i].blue.value);
+                }
+            }
 	}
         
         if(RGBevent>0){
-		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, RGBevent);
+            sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, RGBevent);
                 
-                // Si evenement pour stream activ�, envoie une trame de type status
-                if(sysConfig.dataStream.onEvent==1)
-                    makeStatusRequest(DATAFLOW);
+            // Si evenement pour stream activ�, envoie une trame de type status
+            if(sysApp.communication.mqtt.stream.onEvent==1)
+                makeStatusRequest(DATAFLOW);
         }
  
 }
@@ -2164,77 +2147,80 @@ void resetConfig(void){
       
     	// Init robot membre
 	for(i=0;i<NBAIN;i++){
-		robot.battery[i].event_enable=DEFAULT_EVENT_STATE;
-		robot.battery[i].event_high=65535;
-		robot.battery[i].event_low=0;
+            kehops.battery[i].event.enable = DEFAULT_EVENT_STATE;
+            kehops.battery[i].event.high=65535;
+            kehops.battery[i].event.low=0;
 	}
     
 
 	for(i=0;i<NBDIN;i++){
-		robot.proximity[i].event_enable=DEFAULT_EVENT_STATE;
+            kehops.proximity[i].event.enable = DEFAULT_EVENT_STATE;
 	}
 
     
         for(i=0;i<NBBTN;i++){
-		robot.button[i].event_enable=DEFAULT_EVENT_STATE;
+            kehops.button[i].event.enable=DEFAULT_EVENT_STATE;
 	}
     
         for(i=0;i<NBMOTOR;i++){
-                robot.motor[i].distance_cm=0;           // ATTENTION, BUG SEGFAULT !!!!!
-                robot.motor[i].velocity=0;
-                robot.motor[i].time=0;
-                robot.motor[i].cm=0;
-            
-                sysConfig.motor[i].inverted=0;
-                sysConfig.motor[i].minRPM=20;
-                sysConfig.motor[i].maxRPM=200;
-                sysConfig.motor[i].rpmRegulator.PIDstate=0;
-                sysConfig.motor[i].rpmRegulator.PID_Kp=0.0;
-                sysConfig.motor[i].rpmRegulator.PID_Ki=0.0;
-                sysConfig.motor[i].rpmRegulator.PID_Kd=0.0;
+            device.actuator.motor[i].config.inverted = 0;
+
+            kehops.dcWheel[i].target->distanceCM = 0;
+            kehops.dcWheel[i].motor->speed = 0;
+            kehops.dcWheel[i].target->time = 0;
+
+            kehops.dcWheel[i].config.rpmMin = 20;
+            kehops.dcWheel[i].config.rpmMax = 200;
+            kehops.dcWheel[i].config.pidReg.enable = 0;
+            kehops.dcWheel[i].config.pidReg.Kp = 0.0;
+            kehops.dcWheel[i].config.pidReg.Ki = 0.0;
+            kehops.dcWheel[i].config.pidReg.Kd = 0.0;
 	}  
 
         for(i=0;i<NBSTEPPER;i++){
+            device.actuator.stepperMotor[i].config.inverted = 0;
+            device.actuator.stepperMotor[i].config.ratio = 64;
+            device.actuator.stepperMotor[i].config.steps = 32;
             
-		robot.stepper[i].angle=0;        // ATTENTION, BUG SEGFAULT !!!!!
-		robot.stepper[i].rotation=0;
-           	robot.stepper[i].step=0;
-		robot.stepper[i].speed=0;
-		robot.stepper[i].time=0;
-               
-                sysConfig.stepper[i].inverted=0;
-                sysConfig.stepper[i].ratio=64;
-                sysConfig.stepper[i].stepPerRot=32;
+            kehops.stepperWheel[i].target->angle = 0;
+            kehops.stepperWheel[i].target->rotation = 0;
+            kehops.stepperWheel[i].target->steps = 0;
+            kehops.stepperWheel[i].target->time = 0;
+            kehops.stepperWheel[i].motor->speed = 0;
 	}
 
         for(i=0;i<NBSONAR;i++){
-		robot.distance[i].event_enable=DEFAULT_EVENT_STATE;
-                robot.distance[i].event_high=100;
-                robot.distance[i].event_low=15;
-                robot.distance[i].event_hysteresis=0;
-                robot.distance[i].value=-1;
+            kehops.sonar[i].event.enable = DEFAULT_EVENT_STATE;
+            kehops.sonar[i].event.high = 100;
+            kehops.sonar[i].event.low = 10;
+            kehops.sonar[i].event.hysteresis = 0;
+            kehops.sonar[i].measure.distance_cm = -1;
 	}
         
       
         
         for(i=0;i<NBRGBC;i++){
-                robot.rgb[i].event_enable=DEFAULT_EVENT_STATE;
+
+                kehops.rgb[i].color.red.event.enable = DEFAULT_EVENT_STATE;
+                kehops.rgb[i].color.green.event.enable = DEFAULT_EVENT_STATE;
+                kehops.rgb[i].color.blue.event.enable = DEFAULT_EVENT_STATE;
+                kehops.rgb[i].color.clear.event.enable = DEFAULT_EVENT_STATE;
                 
-		robot.rgb[i].red.value=-1;
-		robot.rgb[i].red.event_low=0;
-		robot.rgb[i].red.event_high=65535;
+                kehops.rgb[i].color.red.measure.value = -1;
+                kehops.rgb[i].color.red.event.low = 0;
+                kehops.rgb[i].color.red.event.high = 65535;
+	                
+                kehops.rgb[i].color.green.measure.value = -1;
+                kehops.rgb[i].color.green.event.low = 0;
+                kehops.rgb[i].color.green.event.high = 65535;
                 
-                robot.rgb[i].green.value=-1;
-		robot.rgb[i].green.event_low=0;
-		robot.rgb[i].green.event_high=65535;
+                kehops.rgb[i].color.blue.measure.value = -1;
+                kehops.rgb[i].color.blue.event.low = 0;
+                kehops.rgb[i].color.blue.event.high = 65535;
                 
-                robot.rgb[i].blue.value=-1;
-		robot.rgb[i].blue.event_low=0;
-		robot.rgb[i].blue.event_high=65535;
-                
-                robot.rgb[i].clear.value=-1;
-		robot.rgb[i].clear.event_low=0;
-		robot.rgb[i].clear.event_high=65535;
+                kehops.rgb[i].color.clear.measure.value = -1;
+                kehops.rgb[i].color.clear.event.low = 0;
+                kehops.rgb[i].color.clear.event.high = 65535;
 	}
 
         
@@ -2242,19 +2228,18 @@ void resetConfig(void){
         // ------------ Initialisation de la configuration systeme
         
         // Initialisation configuration de flux de donn�es periodique
-        sysConfig.dataStream.state=ON;
-        sysConfig.dataStream.time_ms=500;
-        sysConfig.config.reset=0;
+        sysApp.communication.mqtt.stream.state  = ON;
+        sysApp.communication.mqtt.stream.time_ms = 500;
+        sysApp.kehops.resetConfig = 0;
         
-                
         // Load config data
-        int configStatus = LoadConfig(&sysConfig, "kehops.cfg");
+        int configStatus = LoadConfig(&sysApp, "kehops.cfg");
         if(configStatus<0){
             printf("#[CORE] Load configuration file from \"kehops.cfg\": ERROR\n");
         }else
             printf("#[CORE] Load configuration file from \"kehops.cfg\": OK\n");
             
-        sysInfo.startUpTime=0;
+        sysApp.info.startUpTime = 0;
 }
 
 int getStartupArg(int count, char *arg[]){

@@ -100,7 +100,7 @@ int set_i2c_command_queue(int (*callback)(char, int),char adr, int cmd);
 int getHWversion(void);                                                 // Get the hardware board version
 int getMcuFirmware(void);                                              // Get the hardware microcontroller version
 
-int resetHardware(t_sysConfig * Config);
+int resetHardware(t_sysApp * Config);
 // ------------------------------------------
 // Programme principale TIMER
 // ------------------------------------------
@@ -546,7 +546,7 @@ unsigned char getOrganI2Cregister(char organType, unsigned char organName){
 // Applique un etat initial aux moteurs, LEDS, PWM, etc...
 // -------------------------------------------------------------------
 
-int resetHardware(t_sysConfig * Config){
+int resetHardware(t_sysApp * Config){
     int i;
     
     // Etat initial des moteur
