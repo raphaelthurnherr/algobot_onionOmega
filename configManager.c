@@ -47,8 +47,8 @@
 #include "libs/lib_json/jWrite.h"
 
 char * OpenConfigFromFile(char *filename);
-char LoadConfig(t_sysConfig * Config, char * fileName);
-char SaveConfig(t_sysConfig * Config, char * fileName);
+char LoadConfig(t_sysConf * Config, char * fileName);
+char SaveConfig(t_sysConf* Config, char * fileName);
 
 unsigned char mode=0;
 unsigned char dataCommandReady=0;
@@ -102,7 +102,7 @@ char * OpenConfigFromFile(char *filename){
 // Get configuration file and load data into config structure
 // -----------------------------------------------------------------------------
 
-char LoadConfig(t_sysApp * Config, char * fileName){
+char LoadConfig(t_sysConf * Config, char * fileName){
 	struct jReadElement cfg_devices_list;
         int nbOfDeviceInConf, deviceId;
 	int i;
@@ -140,9 +140,9 @@ char LoadConfig(t_sysApp * Config, char * fileName){
     // EXTRACT MOTOR SETTINGS FROM CONFIG    
             // Reset motor data config before reading
             for(i=0;i<NBMOTOR;i++){
-              Config->motor[i].inverted = -1;
-              Config->motor[i].minRPM = 0;
-              Config->motor[i].maxRPM = 200;
+              Config->device.motor[i].inverted = -1;
+              Config->parts.dcwheel[i].rpmMin = 20;
+              Config->parts.dcwheel[i].rpmMax = 200;
             }
 
         // Motor Setting
@@ -158,27 +158,27 @@ char LoadConfig(t_sysApp * Config, char * fileName){
                     deviceId=jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_ID, &i); 
 
                     if(deviceId >= 0 && deviceId < NBMOTOR){
-                        Config->motor[deviceId].minRPM = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINRPM, &i); 
-                        Config->motor[deviceId].maxRPM = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MAXRPM, &i); 
-                        Config->motor[deviceId].minPWM = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINPWM, &i); 
+                        Config->parts.dcwheel[deviceId].rpmMin = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINRPM, &i); 
+                        Config->parts.dcwheel[deviceId].rpmMax = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MAXRPM, &i); 
+                        Config->device.motor[deviceId].powerMin = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINPWM, &i); 
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_INVERT, dataValue, 15, &i );
                         if(!strcmp(dataValue, "on")){
-                            Config->motor[deviceId].inverted = 1;
+                            Config->device.motor[deviceId].inverted = 1;
                         }else
                             if(!strcmp(dataValue, "off")){
-                                Config->motor[deviceId].inverted = 0;
+                                Config->device.motor[deviceId].inverted = 0;
                             }
                         // RECUPERATION DES PARAMETRE DU REGULATOR PID
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDEN, dataValue, 15, &i );
                         if(!strcmp(dataValue, "on")){
-                            Config->motor[deviceId].rpmRegulator.PIDstate = 1;
+                            Config->parts.dcwheel[deviceId].pidReg.enable = 1;
                         }else
                             if(!strcmp(dataValue, "off")){
-                                Config->motor[deviceId].rpmRegulator.PIDstate = 0;
+                                Config->parts.dcwheel[deviceId].pidReg.enable = 0;
                             }                        
-                        Config->motor[deviceId].rpmRegulator.PID_Kp = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkp, &i); 
-                        Config->motor[deviceId].rpmRegulator.PID_Ki = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDki, &i); 
-                        Config->motor[deviceId].rpmRegulator.PID_Kd = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkd, &i); 
+                        Config->parts.dcwheel[deviceId].pidReg.Kp = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkp, &i); 
+                        Config->parts.dcwheel[deviceId].pidReg.Ki = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDki, &i); 
+                        Config->parts.dcwheel[deviceId].pidReg.Kd = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkd, &i); 
                         //printf("\n****CFG MOTOR #%d: %d\n",deviceId, Config->motor[deviceId].minPower);
                     }
                 }
@@ -187,9 +187,8 @@ char LoadConfig(t_sysApp * Config, char * fileName){
     // EXTRACT WHEEL SETTINGS FROM CONFIG    
             // Reset motor data config before reading
             for(i=0;i<NBMOTOR;i++){
-              Config->wheel[i].diameter=-1;
-              Config->wheel[i].pulsePerRot=-1;
-              Config->wheel[i]._MMPP=-1;
+              Config->parts.dcwheel[deviceId].diameter=-1;
+              Config->parts.dcwheel[deviceId].pulsesPerRot=-1;
             }
 
         // Wheel Setting
@@ -205,8 +204,8 @@ char LoadConfig(t_sysApp * Config, char * fileName){
                     deviceId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_ID, &i); 
 
                     if(deviceId >= 0 && deviceId < NBMOTOR){
-                        Config->wheel[deviceId].diameter=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_DIAMETER, &i);
-                        Config->wheel[deviceId].pulsePerRot=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_PULSES, &i);
+                        Config->parts.dcwheel[deviceId].diameter = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_DIAMETER, &i);
+                        Config->parts.dcwheel[deviceId].pulsesPerRot = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_PULSES, &i);
                         Config->wheel[deviceId]._MMPP = (Config->wheel[deviceId].diameter * 3.1415926535897932384) / Config->wheel[deviceId].pulsePerRot;
                         Config->wheel[deviceId]._MAXSPEED_CMSEC = ((float)Config->motor[deviceId].maxRPM /60) *  ((Config->wheel[deviceId].diameter * 3.1415926535897932384)/10);
                     }
@@ -217,9 +216,9 @@ char LoadConfig(t_sysApp * Config, char * fileName){
         
             // Reset motor data config before reading
         for(i=0;i<NBSTEPPER;i++){
-          Config->stepper[i].inverted=-1;
-          Config->stepper[i].ratio=-1;
-          Config->stepper[i].stepPerRot=-1;
+          Config->device.stepper[i].inverted = -1;
+          Config->device.stepper[i].ratio = -1;
+          Config->device.stepper[i].steps = -1;
         }
             
         // Stepper motor Settings
@@ -237,13 +236,13 @@ char LoadConfig(t_sysApp * Config, char * fileName){
                     if(deviceId >= 0 && deviceId < NBSTEPPER){
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_INVERT, dataValue, 15, &i );
                         if(!strcmp(dataValue, "on")){
-                            Config->stepper[deviceId].inverted = 1;
+                            Config->device.stepper[deviceId].inverted = 1;
                         }else
                             if(!strcmp(dataValue, "off")){
-                                Config->stepper[deviceId].inverted = 0;
+                                Config->device.stepper[deviceId].inverted = 0;
                             }
-                        Config->stepper[deviceId].ratio = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_RATIO, &i); 
-                        Config->stepper[deviceId].stepPerRot =jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_STEPS, &i); 
+                        Config->device.stepper[deviceId].ratio = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_RATIO, &i); 
+                        Config->device.stepper[deviceId].steps = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_STEPPER_STEPS, &i); 
                     }
                 }
             }            
@@ -252,6 +251,7 @@ char LoadConfig(t_sysApp * Config, char * fileName){
           // Reset motor data config before reading
           for(i=0;i<NBLED;i++){
             Config->led[i].power=-1;
+            
             Config->led[i].state=-1;
             Config->led[i].isServoMode=-1;
           }
@@ -296,7 +296,7 @@ char LoadConfig(t_sysApp * Config, char * fileName){
 // Save configuration to file
 // -----------------------------------------------------------------------------
 
-char SaveConfig(t_sysApp * Config, char * fileName){
+char SaveConfig(t_sysConf * Config, char * fileName){
     char buffer[MAX_MQTT_BUFF];
     unsigned int buflen= MAX_MQTT_BUFF;
     int i;

@@ -91,6 +91,8 @@ t_sysConfig sysConfig;
 t_device device;            // Device structure with actuator & sensor     
 robot_kehops kehops;
 t_sysApp sysApp;
+t_sysConf sysConf;
+
 
 // -------------------------------------------------------------------
 // MAIN APPLICATION
@@ -142,7 +144,7 @@ int main(int argc, char *argv[]) {
 
 	// ----------- DEBUT DE LA BOUCLE PRINCIPALE ----------
         resetConfig();
-        resetHardware(&sysApp);            // Reset les peripheriques hardware selon configuration initiale                   
+        resetHardware(&sysConf);            // Reset les peripheriques hardware selon configuration initiale                   
          
         assignMotorWheel();                   // Set assignement of motors for wheels
        
@@ -2260,6 +2262,11 @@ void assignMotorWheel(void){
         
         kehops.dcWheel[0].motor = &device.actuator.motor[0].setpoint;
         kehops.dcWheel[1].motor = &device.actuator.motor[1].setpoint;
+        
+        sysConf.parts.dcwheel[0] = &kehops.dcWheel[0].config;
+        sysConf.parts.dcwheel[1] = &kehops.dcWheel[1].config;
+        
+        
 /*
         device.actuator.motor[0].setpoint.speed=50;
         device.actuator.motor[1].setpoint.speed=60;

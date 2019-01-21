@@ -403,7 +403,6 @@ typedef struct robotBattery{
     struct s_batt_config config;
     struct s_battery_meas measure;
     struct s_eventAnalog event;
-    
 }robot_battery;
 
 typedef struct robotSonar{
@@ -474,7 +473,7 @@ struct s_udp_bc{
 struct s_udp{
     struct s_udp_bc broadcast;
 };
-struct app_comm{
+struct sys_comm{
     struct s_mqtt mqtt;
     struct s_udp udp;
 };
@@ -538,17 +537,26 @@ struct app_kehops{
     char resetConfig;
 };
 
-struct app_device{
-    struct s_motor_config *motor[NBMOTOR];
-    struct s_stepper_config *stepper[NBSTEPPER];
+struct sys_device{
+    struct s_motor_config motor[NBMOTOR];
+    struct s_stepper_config stepper[NBSTEPPER];
+};
+
+struct sys_parts{
+    struct dc_wheel_config dcwheel[NBMOTOR];
+    struct stepper_wheel_config stepperWheel[NBSTEPPER];
 };
 
 typedef struct systemApp{
-    struct app_comm communication;
     struct app_kehops kehops;
-    struct app_device device;
     struct tInfosys info;
 }t_sysApp;
+
+typedef struct systemConf{
+    struct sys_comm communication;
+    struct sys_device device;
+    struct sys_parts parts;
+}t_sysConf;
 
 #ifdef __cplusplus
 }
