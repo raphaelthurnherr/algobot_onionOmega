@@ -1,4 +1,4 @@
-#define FIRMWARE_VERSION "1.6.2e"
+#define FIRMWARE_VERSION "1.6.2e - Branch newStructure"
 
 #define DEFAULT_EVENT_STATE 1   
 
