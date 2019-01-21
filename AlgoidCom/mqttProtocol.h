@@ -12,7 +12,7 @@
 
 // INITIALISATION DE LA CONNEXION AU BROCKER MQTT
 //int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArrived* msgarrFunc);
-int mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArrived* msgarrFunc, MQTTClient_connectionLost* connLost_callback);
+int  mqtt_init(const char *IPaddress, const char *clientID, MQTTClient_messageArrived* msgarrFunc, MQTTClient_connectionLost* connLost_callback);
 char mqttAddRXChannel(char * topicName);
 char mqttRemoveRXChannel(char * topicName);
 // Envoie le messageau brocker MQTT

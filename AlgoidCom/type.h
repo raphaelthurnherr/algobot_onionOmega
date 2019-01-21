@@ -543,8 +543,8 @@ struct sys_device{
 };
 
 struct sys_parts{
-    struct dc_wheel_config dcwheel[NBMOTOR];
-    struct stepper_wheel_config stepperWheel[NBSTEPPER];
+    struct dc_wheel_config *dcwheel[NBMOTOR];
+    struct stepper_wheel_config *stepperWheel[NBSTEPPER];
 };
 
 typedef struct systemApp{

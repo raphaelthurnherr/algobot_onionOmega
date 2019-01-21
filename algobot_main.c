@@ -166,8 +166,8 @@ int main(int argc, char *argv[]) {
         }
             
         // Controle periodique de l'envoie du flux de donnees des capteurs (status)
-        if(sysApp.communication.mqtt.stream.state==ON){
-            if(systemDataStreamCounter++ >= sysApp.communication.mqtt.stream.time_ms){
+        if(sysConf.communication.mqtt.stream.state==ON){
+            if(systemDataStreamCounter++ >= sysConf.communication.mqtt.stream.time_ms){
                 
                 // Retourne un message "Status" sur topic "Stream"
                 makeStatusRequest(DATAFLOW);
@@ -394,22 +394,22 @@ int processAlgoidCommand(void){
                             // CONFIG COMMAND FOR DATASTREAM
                                     // R�cup�re les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par polling
                                     if(!strcmp(AlgoidCommand.Config.stream.state, "on"))
-                                        sysApp.communication.mqtt.stream.state=1; 			// Activation de l'envoie du datastream
+                                        sysConf.communication.mqtt.stream.state=1; 			// Activation de l'envoie du datastream
                                     
                                     else
                                         if(!strcmp(AlgoidCommand.Config.stream.state, "off"))
-                                            sysApp.communication.mqtt.stream.state=0; 		// Desactivation de l'envoie du datastream
+                                            sysConf.communication.mqtt.stream.state=0; 		// Desactivation de l'envoie du datastream
 
                                     
                                     // R�cup�re les parametres eventuelle pour la configuration de l'etat de l'envoie du stream par evenement
                                     if(!strcmp(AlgoidCommand.Config.stream.onEvent, "on"))
-                                        sysApp.communication.mqtt.stream.onEvent=1; 			// Activation de l'envoie du datastream
+                                        sysConf.communication.mqtt.stream.onEvent=1; 			// Activation de l'envoie du datastream
                                     else
                                         if(!strcmp(AlgoidCommand.Config.stream.onEvent, "off"))
-                                            sysApp.communication.mqtt.stream.onEvent=0; 		// Desactivation de l'envoie du datastr
+                                            sysConf.communication.mqtt.stream.onEvent=0; 		// Desactivation de l'envoie du datastr
                                     
                                     if(AlgoidCommand.Config.stream.time>0)
-                                        sysApp.communication.mqtt.stream.time_ms=AlgoidCommand.Config.stream.time;
+                                        sysConf.communication.mqtt.stream.time_ms=AlgoidCommand.Config.stream.time;
                                     
                                 // CONFIG COMMAND FOR MOTOR SETTING
                                     for(i=0;i<AlgoidCommand.Config.motValueCnt; i++){
@@ -531,13 +531,13 @@ int processAlgoidCommand(void){
 
                         // Préparation des valeurs du message de réponse
                                 // GET STREAM CONFIG FOR RESPONSE
-                                    AlgoidResponse[valCnt].CONFIGresponse.stream.time=sysApp.communication.mqtt.stream.time_ms;
+                                    AlgoidResponse[valCnt].CONFIGresponse.stream.time=sysConf.communication.mqtt.stream.time_ms;
                                     
-                                    if(sysApp.communication.mqtt.stream.onEvent==0) 
+                                    if(sysConf.communication.mqtt.stream.onEvent==0) 
                                         strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.onEvent, "off");
                                     else strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.onEvent, "on");
 
-                                    if(sysApp.communication.mqtt.stream.state==0) 
+                                    if(sysConf.communication.mqtt.stream.state==0) 
                                         strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.state, "off");
                                     else strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.state, "on");
 
@@ -1560,7 +1560,7 @@ int makeRgbRequest(void){
                                             kehops.rgb[AlgoidCommand.RGBsens[i].id].color.clear.event.high=AlgoidCommand.RGBsens[i].clear.event_high;
 					// Evemenent bas
 					if(AlgoidCommand.RGBsens[i].clear.event_low!=0)
-                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].clear.event.low=AlgoidCommand.RGBsens[i].clear.event_low;
+                                            kehops.rgb[AlgoidCommand.RGBsens[i].id].color.clear.event.low = AlgoidCommand.RGBsens[i].clear.event_low;
 				} else
 					AlgoidResponse[i].value = -1;
 			};
@@ -1571,10 +1571,10 @@ int makeRgbRequest(void){
 		int temp = AlgoidResponse[i].RGBresponse.id;
 
 		if(AlgoidCommand.RGBsens[i].id <NBRGBC){
-                        AlgoidResponse[i].RGBresponse.red.value=kehops.rgb[temp].color.red.measure;
-                        AlgoidResponse[i].RGBresponse.green.value=kehops.rgb[temp].color.green.measure;
-                        AlgoidResponse[i].RGBresponse.blue.value=kehops.rgb[temp].color.blue.measure;
-                        AlgoidResponse[i].RGBresponse.clear.value=kehops.rgb[temp].color.clear.measure;
+                        AlgoidResponse[i].RGBresponse.red.value=kehops.rgb[temp].color.red.measure.value;
+                        AlgoidResponse[i].RGBresponse.green.value=kehops.rgb[temp].color.green.measure.value;
+                        AlgoidResponse[i].RGBresponse.blue.value=kehops.rgb[temp].color.blue.measure.value;
+                        AlgoidResponse[i].RGBresponse.clear.value=kehops.rgb[temp].color.clear.measure.value;
 
                         // Copie de l'etat de l'evenement
 			if(kehops.rgb[i].event.enable)strcpy(AlgoidResponse[i].RGBresponse.event_state, "on");
@@ -1755,7 +1755,7 @@ void distanceEventCheck(void){
                                 distWarningSended[i]=1;
 
                                 // Si evenement pour stream activ�, envoie une trame de type status
-                                if(sysApp.communication.mqtt.stream.onEvent==1)
+                                if(sysConf.communication.mqtt.stream.onEvent==1)
                                     makeStatusRequest(DATAFLOW);
                             }
 			}
@@ -1770,7 +1770,7 @@ void distanceEventCheck(void){
 					distWarningSended[i]=0;
                                         
                                         // Si evenement pour stream activ�, envoie une trame de type status
-                                        if(sysApp.communication.mqtt.stream.onEvent==1)
+                                        if(sysConf.communication.mqtt.stream.onEvent==1)
                                             makeStatusRequest(DATAFLOW); 
 			}
 		}
@@ -1818,7 +1818,7 @@ void batteryEventCheck(void){
                                 battWarningSended[i]=1;
 
                                 // Si evenement pour stream activ�, envoie une trame de type status
-                                if(sysApp.communication.mqtt.stream.onEvent==1)
+                                if(sysConf.communication.mqtt.stream.onEvent==1)
                                     makeStatusRequest(DATAFLOW);                                        
                             }
 			}
@@ -1831,7 +1831,7 @@ void batteryEventCheck(void){
                                 battWarningSended[i]=0;
 
                                 // Si evenement pour stream activ�, envoie une trame de type status
-                                if(sysApp.communication.mqtt.stream.onEvent==1)
+                                if(sysConf.communication.mqtt.stream.onEvent==1)
                                     makeStatusRequest(DATAFLOW);                                        
 			}
 		}
@@ -1872,7 +1872,7 @@ void DINEventCheck(void){
 		sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, DINPUT, DINevent);
                 
                 // Si evenement pour stream activ�, envoie une trame de type status
-                if(sysApp.communication.mqtt.stream.onEvent==1)
+                if(sysConf.communication.mqtt.stream.onEvent==1)
                     makeStatusRequest(DATAFLOW);
         }
         
@@ -1914,7 +1914,7 @@ void BUTTONEventCheck(void){
         sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, BUTTON, BTNevent);
 
         // Si evenement pour stream activ�, envoie une trame de type status
-        if(sysApp.communication.mqtt.stream.onEvent == 1)
+        if(sysConf.communication.mqtt.stream.onEvent == 1)
             makeStatusRequest(DATAFLOW);
     }
 }
@@ -1972,7 +1972,7 @@ void COLOREventCheck(void){
                         RGB_red_WarningSended[i]=1;
 
                         // Si evenement pour stream activ�, envoie une trame de type status
-                        if(sysApp.communication.mqtt.stream.onEvent==1)
+                        if(sysConf.communication.mqtt.stream.onEvent==1)
                             makeStatusRequest(DATAFLOW);
 //                                        printf("CHANGEMENT ROUGE RGB %d, VALUE:%d\n", i, robot.rgb[i].red.value);
                     }
@@ -1987,7 +1987,7 @@ void COLOREventCheck(void){
                     //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
                     RGB_red_WarningSended[i]=0;
                     // Si evenement pour stream activ�, envoie une trame de type status
-                    if(sysApp.communication.mqtt.stream.onEvent==1)
+                    if(sysConf.communication.mqtt.stream.onEvent==1)
                         makeStatusRequest(DATAFLOW);
 //                                        printf("- CHANGEMENT ROUGE RGB %d, VALUE:%d\n", i, robot.rgb[i].red.value);
                 }
@@ -2017,7 +2017,7 @@ void COLOREventCheck(void){
                             RGB_green_WarningSended[i]=1;
 
                             // Si evenement pour stream activ�, envoie une trame de type status
-                            if(sysApp.communication.mqtt.stream.onEvent==1)
+                            if(sysConf.communication.mqtt.stream.onEvent==1)
                                 makeStatusRequest(DATAFLOW);
 //                                        printf("CHANGEMENT VERT RGB %d, VALUE:%d\n", i, robot.rgb[i].green.value);
                     }
@@ -2032,7 +2032,7 @@ void COLOREventCheck(void){
                     //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
                     RGB_green_WarningSended[i]=0;
                     // Si evenement pour stream activ�, envoie une trame de type status
-                    if(sysApp.communication.mqtt.stream.onEvent==1)
+                    if(sysConf.communication.mqtt.stream.onEvent==1)
                         makeStatusRequest(DATAFLOW);
 //                                       printf("-CHANGEMENT VERT RGB %d, VALUE:%d\n", i, robot.rgb[i].green.value);
                 }
@@ -2063,7 +2063,7 @@ void COLOREventCheck(void){
                         RGB_blue_WarningSended[i]=1;
 
                         // Si evenement pour stream activ�, envoie une trame de type status
-                        if(sysApp.communication.mqtt.stream.onEvent==1)
+                        if(sysConf.communication.mqtt.stream.onEvent==1)
                             makeStatusRequest(DATAFLOW);
 //                                        printf("CHANGEMENT BLEU RGB %d, VALUE:%d\n", i, robot.rgb[i].blue.value);
                     }
@@ -2078,7 +2078,7 @@ void COLOREventCheck(void){
                     //sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, 1);
                     RGB_blue_WarningSended[i]=0;
                     // Si evenement pour stream activ�, envoie une trame de type status
-                    if(sysApp.communication.mqtt.stream.onEvent==1)
+                    if(sysConf.communication.mqtt.stream.onEvent==1)
                         makeStatusRequest(DATAFLOW);
 //                                       printf("-CHANGEMENT BLEU RGB %d, VALUE:%d\n", i, robot.rgb[i].blue.value);
                 }
@@ -2089,7 +2089,7 @@ void COLOREventCheck(void){
             sendResponse(AlgoidCommand.msgID, AlgoidCommand.msgFrom, EVENT, COLORS, RGBevent);
                 
             // Si evenement pour stream activ�, envoie une trame de type status
-            if(sysApp.communication.mqtt.stream.onEvent==1)
+            if(sysConf.communication.mqtt.stream.onEvent==1)
                 makeStatusRequest(DATAFLOW);
         }
  
@@ -2229,8 +2229,8 @@ void resetConfig(void){
         // ------------ Initialisation de la configuration systeme
         
         // Initialisation configuration de flux de donn�es periodique
-        sysApp.communication.mqtt.stream.state  = ON;
-        sysApp.communication.mqtt.stream.time_ms = 500;
+        sysConf.communication.mqtt.stream.state  = ON;
+        sysConf.communication.mqtt.stream.time_ms = 500;
         sysApp.kehops.resetConfig = 0;
         
         // Load config data

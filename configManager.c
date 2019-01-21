@@ -35,7 +35,7 @@
 #define FILE_KEY_CONFIG_STEPPER_ID "{'stepper'[*{'motor'"
 #define FILE_KEY_CONFIG_STEPPER_INVERT "{'stepper'[*{'inverted'"
 #define FILE_KEY_CONFIG_STEPPER_RATIO "{'stepper'[*{'ratio'"
-#define FILE_KEY_CONFIG_STEPPER_STEPS"{'stepper'[*{'steps'"
+#define FILE_KEY_CONFIG_STEPPER_STEPS "{'stepper'[*{'steps'"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -141,8 +141,8 @@ char LoadConfig(t_sysConf * Config, char * fileName){
             // Reset motor data config before reading
             for(i=0;i<NBMOTOR;i++){
               Config->device.motor[i].inverted = -1;
-              Config->parts.dcwheel[i].rpmMin = 20;
-              Config->parts.dcwheel[i].rpmMax = 200;
+              Config->parts.dcwheel[i]->rpmMin = 20;
+              Config->parts.dcwheel[i]->rpmMax = 200;
             }
 
         // Motor Setting
@@ -158,8 +158,8 @@ char LoadConfig(t_sysConf * Config, char * fileName){
                     deviceId=jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_ID, &i); 
 
                     if(deviceId >= 0 && deviceId < NBMOTOR){
-                        Config->parts.dcwheel[deviceId].rpmMin = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINRPM, &i); 
-                        Config->parts.dcwheel[deviceId].rpmMax = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MAXRPM, &i); 
+                        Config->parts.dcwheel[deviceId]->rpmMin = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINRPM, &i); 
+                        Config->parts.dcwheel[deviceId]->rpmMax = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MAXRPM, &i); 
                         Config->device.motor[deviceId].powerMin = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_MINPWM, &i); 
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_INVERT, dataValue, 15, &i );
                         if(!strcmp(dataValue, "on")){
@@ -171,14 +171,14 @@ char LoadConfig(t_sysConf * Config, char * fileName){
                         // RECUPERATION DES PARAMETRE DU REGULATOR PID
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDEN, dataValue, 15, &i );
                         if(!strcmp(dataValue, "on")){
-                            Config->parts.dcwheel[deviceId].pidReg.enable = 1;
+                            Config->parts.dcwheel[deviceId]->pidReg.enable = 1;
                         }else
                             if(!strcmp(dataValue, "off")){
-                                Config->parts.dcwheel[deviceId].pidReg.enable = 0;
+                                Config->parts.dcwheel[deviceId]->pidReg.enable = 0;
                             }                        
-                        Config->parts.dcwheel[deviceId].pidReg.Kp = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkp, &i); 
-                        Config->parts.dcwheel[deviceId].pidReg.Ki = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDki, &i); 
-                        Config->parts.dcwheel[deviceId].pidReg.Kd = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkd, &i); 
+                        Config->parts.dcwheel[deviceId]->pidReg.Kp = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkp, &i); 
+                        Config->parts.dcwheel[deviceId]->pidReg.Ki = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDki, &i); 
+                        Config->parts.dcwheel[deviceId]->pidReg.Kd = jRead_double((char *)srcDataBuffer, FILE_KEY_CONFIG_MOTOR_PIDkd, &i); 
                         //printf("\n****CFG MOTOR #%d: %d\n",deviceId, Config->motor[deviceId].minPower);
                     }
                 }
@@ -187,8 +187,8 @@ char LoadConfig(t_sysConf * Config, char * fileName){
     // EXTRACT WHEEL SETTINGS FROM CONFIG    
             // Reset motor data config before reading
             for(i=0;i<NBMOTOR;i++){
-              Config->parts.dcwheel[deviceId].diameter=-1;
-              Config->parts.dcwheel[deviceId].pulsesPerRot=-1;
+              Config->parts.dcwheel[deviceId]->diameter=-1;
+              Config->parts.dcwheel[deviceId]->pulsesPerRot=-1;
             }
 
         // Wheel Setting
@@ -204,10 +204,10 @@ char LoadConfig(t_sysConf * Config, char * fileName){
                     deviceId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_ID, &i); 
 
                     if(deviceId >= 0 && deviceId < NBMOTOR){
-                        Config->parts.dcwheel[deviceId].diameter = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_DIAMETER, &i);
-                        Config->parts.dcwheel[deviceId].pulsesPerRot = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_PULSES, &i);
-                        Config->wheel[deviceId]._MMPP = (Config->wheel[deviceId].diameter * 3.1415926535897932384) / Config->wheel[deviceId].pulsePerRot;
-                        Config->wheel[deviceId]._MAXSPEED_CMSEC = ((float)Config->motor[deviceId].maxRPM /60) *  ((Config->wheel[deviceId].diameter * 3.1415926535897932384)/10);
+                        Config->parts.dcwheel[deviceId]->diameter = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_DIAMETER, &i);
+                        Config->parts.dcwheel[deviceId]->pulsesPerRot = jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_WHEEL_PULSES, &i);
+//                        Config->wheel[deviceId]._MMPP = (Config->wheel[deviceId].diameter * 3.1415926535897932384) / Config->wheel[deviceId].pulsePerRot;
+//                        Config->wheel[deviceId]._MAXSPEED_CMSEC = ((float)Config->motor[deviceId].maxRPM /60) *  ((Config->wheel[deviceId].diameter * 3.1415926535897932384)/10);
                     }
                 }
             }
@@ -250,8 +250,7 @@ char LoadConfig(t_sysConf * Config, char * fileName){
     // EXTRACT LED SETTINGS FROM CONFIG    
           // Reset motor data config before reading
           for(i=0;i<NBLED;i++){
-            Config->led[i].power=-1;
-            
+            Config->led[i].power=-1;            
             Config->led[i].state=-1;
             Config->led[i].isServoMode=-1;
           }
@@ -268,7 +267,7 @@ char LoadConfig(t_sysConf * Config, char * fileName){
                     deviceId=-1;
                     deviceId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_ID, &i); 
 
-                    Config->led[deviceId].power = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_POWER, &i);                     
+                   Config->led[deviceId].power = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_POWER, &i);                     
 
                     if(deviceId >= 0 && deviceId < NBLED){
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_STATE, dataValue, 15, &i );
@@ -305,18 +304,18 @@ char SaveConfig(t_sysConf * Config, char * fileName){
         // CREATE JSON CONFIG FOR STREAM        
             jwObj_object( "stream" );
             
-            if(Config->dataStream.state == 0)
+            if(Config->communication.mqtt.stream.state == 0)
                 jwObj_string("state", "off");
             else 
-                if(Config->dataStream.state == 1)
+                if(Config->communication.mqtt.stream.state == 1)
                     jwObj_string("state", "on");
 
-                jwObj_int( "time", Config->dataStream.time_ms);
+                jwObj_int( "time", Config->communication.mqtt.stream.time_ms);
                 
-            if(Config->dataStream.onEvent == 0)
+            if(Config->communication.mqtt.stream.onEvent == 0)
                 jwObj_string("onEvent", "off");
             else 
-                if(Config->dataStream.onEvent == 1)
+                if(Config->communication.mqtt.stream.onEvent == 1)
                     jwObj_string("onEvent", "on");                
             jwEnd();
 
@@ -325,23 +324,23 @@ char SaveConfig(t_sysConf * Config, char * fileName){
                 for(i=0;i<NBMOTOR;i++){
                     jwArr_object();
                         jwObj_int( "motor", i);
-                        if(Config->motor[i].inverted == 0)
+                        if(Config->device.motor[i].inverted == 0)
                             jwObj_string("inverted", "off");
                         else 
-                            if(Config->motor[i].inverted == 1)
+                            if(Config->device.motor[i].inverted == 1)
                                 jwObj_string("inverted", "on");
-                        jwObj_int( "pwmMin", Config->motor[i].minPWM);
-                        jwObj_int( "rpmMin", Config->motor[i].minRPM);
-                        jwObj_int( "rpmMax", Config->motor[i].maxRPM);
+                        jwObj_int( "pwmMin", Config->device.motor[i].powerMin);
+                        jwObj_int( "rpmMin", Config->parts.dcwheel[i]->rpmMin);
+                        jwObj_int( "rpmMax", Config->parts.dcwheel[i]->rpmMax);
                         jwObj_object("rpmRegulator");
-                            if(Config->motor[i].rpmRegulator.PIDstate == 0)
+                            if(Config->parts.dcwheel[i]->pidReg.enable == 0)
                                 jwObj_string("state", "off");
                             else 
-                                if(Config->motor[i].rpmRegulator.PIDstate == 1)
+                                if(Config->parts.dcwheel[i]->pidReg.enable == 1)
                                     jwObj_string("state", "on");
-                                    jwObj_double( "PID_Kp", Config->motor[i].rpmRegulator.PID_Kp);
-                                    jwObj_double( "PID_Ki", Config->motor[i].rpmRegulator.PID_Ki);
-                                    jwObj_double( "PID_Kd", Config->motor[i].rpmRegulator.PID_Kd);
+                                    jwObj_double( "PID_Kp", Config->parts.dcwheel[i]->pidReg.Kp);
+                                    jwObj_double( "PID_Ki", Config->parts.dcwheel[i]->pidReg.Ki);
+                                    jwObj_double( "PID_Kd", Config->parts.dcwheel[i]->pidReg.Kd);
                         jwEnd();
                     jwEnd();
                 } 
@@ -352,8 +351,8 @@ char SaveConfig(t_sysConf * Config, char * fileName){
                 for(i=0;i<NBMOTOR;i++){
                     jwArr_object();
                         jwObj_int( "wheel", i);
-                        jwObj_int( "diameter", Config->wheel[i].diameter);
-                        jwObj_int( "pulses", Config->wheel[i].pulsePerRot);
+                        jwObj_int( "diameter", Config->parts.dcwheel[i]->diameter);
+                        jwObj_int( "pulses", Config->parts.dcwheel[i]->pulsesPerRot);
                     jwEnd();
                 } 
             jwEnd();            
@@ -363,13 +362,13 @@ char SaveConfig(t_sysConf * Config, char * fileName){
                 for(i=0;i<NBSTEPPER;i++){
                     jwArr_object();
                         jwObj_int( "motor", i);
-                        if(Config->stepper[i].inverted == 0)
+                        if(Config->device.stepper[i].inverted == 0)
                             jwObj_string("inverted", "off");
                         else 
-                            if(Config->stepper[i].inverted == 1)
+                            if(Config->device.stepper[i].inverted == 1)
                                 jwObj_string("inverted", "on");
-                        jwObj_int( "ratio", Config->stepper[i].ratio);
-                        jwObj_int( "steps", Config->stepper[i].stepPerRot);
+                        jwObj_int( "ratio", Config->device.stepper[i].ratio);
+                        jwObj_int( "steps", Config->device.stepper[i].steps);
                     jwEnd();
                 } 
             jwEnd();            
