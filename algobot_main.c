@@ -416,34 +416,34 @@ int processAlgoidCommand(void){
                                         if(AlgoidCommand.Config.motor[i].id >= 0 && AlgoidCommand.Config.motor[i].id <NBMOTOR){
                                             // Save config for motor inversion
                                             if(!strcmp(AlgoidCommand.Config.motor[i].inverted, "on")){
-                                                sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=1;
+                                                kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.motor->inverted = 1;
                                                 strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].inverted, "on");
                                             }
                                             else if(!strcmp(AlgoidCommand.Config.motor[i].inverted, "off")){
-                                                    sysConfig.motor[AlgoidCommand.Config.motor[i].id].inverted=0;
+                                                    kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.motor->inverted = 0;
                                                     strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].inverted, "off");
                                             }
 
                                             // Save config for motor Min PWM for run
-                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].minPWM = AlgoidCommand.Config.motor[i].minPWM;
+                                            kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.motor->powerMin = AlgoidCommand.Config.motor[i].minPWM;
                                             
                                             // Save config for motor Min Max RPM
-                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].minRPM=AlgoidCommand.Config.motor[i].minRPM;
-                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].maxRPM=AlgoidCommand.Config.motor[i].maxRPM;
+                                            kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.rpmMin = AlgoidCommand.Config.motor[i].minRPM;
+                                            kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.rpmMax = AlgoidCommand.Config.motor[i].maxRPM;
                                             
                                             // Save config for motor PID regulator
                                             if(!strcmp(AlgoidCommand.Config.motor[i].rpmRegulator.PIDstate, "on")){
-                                                sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PIDstate=1;
+                                                kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.pidReg.enable = 1;
                                                 strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PIDstate, "on");
                                             }
                                             else if(!strcmp(AlgoidCommand.Config.motor[i].rpmRegulator.PIDstate, "off")){
-                                                    sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PIDstate=0;
-                                                    strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PIDstate, "off");
+                                                kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.pidReg.enable = 0;
+                                                strcpy(AlgoidResponse[valCnt].CONFIGresponse.motor[i].rpmRegulator.PIDstate, "off");
                                             }
                                             
-                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PID_Kp=AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kp;
-                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PID_Ki=AlgoidCommand.Config.motor[i].rpmRegulator.PID_Ki;
-                                            sysConfig.motor[AlgoidCommand.Config.motor[i].id].rpmRegulator.PID_Kd=AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kd;
+                                            kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.pidReg.Kp = AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kp;
+                                            kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.pidReg.Ki = AlgoidCommand.Config.motor[i].rpmRegulator.PID_Ki;
+                                            kehops.dcWheel[AlgoidCommand.Config.motor[i].id].config.pidReg.Kd = AlgoidCommand.Config.motor[i].rpmRegulator.PID_Kd;                                            
                                             
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].minRPM = AlgoidCommand.Config.motor[i].minRPM;
                                             AlgoidResponse[valCnt].CONFIGresponse.motor[i].id = AlgoidCommand.Config.motor[i].id;
@@ -461,11 +461,11 @@ int processAlgoidCommand(void){
                                         // Check if motor exist...
                                         if(AlgoidCommand.Config.wheel[i].id >= 0 && AlgoidCommand.Config.wheel[i].id <NBMOTOR){
                                             // Save config for motor inversion
-                                                sysConfig.wheel[AlgoidCommand.Config.wheel[i].id].diameter = AlgoidCommand.Config.wheel[i].diameter;
-                                                sysConfig.wheel[AlgoidCommand.Config.wheel[i].id].pulsePerRot = AlgoidCommand.Config.wheel[i].pulsesPerRot;
+                                                kehops.dcWheel[AlgoidCommand.Config.wheel[i].id].config.diameter = AlgoidCommand.Config.wheel[i].diameter;
+                                                kehops.dcWheel[AlgoidCommand.Config.wheel[i].id].config.pulsesPerRot = AlgoidCommand.Config.wheel[i].pulsesPerRot;
+                                                
                                                 // Calculation of value for centimeter for each pulse
-                                                sysConfig.wheel[AlgoidCommand.Config.wheel[i].id]._MMPP = (sysConfig.wheel[AlgoidCommand.Config.wheel[i].id].diameter * 3.1415926535897932384)/sysConfig.wheel[AlgoidCommand.Config.wheel[i].id].pulsePerRot;
-
+                                                kehops.dcWheel[AlgoidCommand.Config.wheel[i].id].data._MMPP = (kehops.dcWheel[AlgoidCommand.Config.wheel[i].id].config.diameter * 3.1415926535897932384)/kehops.dcWheel[AlgoidCommand.Config.wheel[i].id].config.pulsesPerRot;
                                             AlgoidResponse[valCnt].CONFIGresponse.wheel[i].id = AlgoidCommand.Config.wheel[i].id;
                                         }
                                         else
@@ -479,17 +479,16 @@ int processAlgoidCommand(void){
                                         if(AlgoidCommand.Config.stepper[i].id >= 0 && AlgoidCommand.Config.stepper[i].id < NBSTEPPER){
                                             // Save config for motor inversion
                                             if(!strcmp(AlgoidCommand.Config.stepper[i].inverted, "on")){
-                                                sysConfig.stepper[AlgoidCommand.Config.stepper[i].id].inverted=1;
+                                                kehops.stepperWheel[AlgoidCommand.Config.stepper[i].id].config.motor->inverted = 1;
                                                 strcpy(AlgoidResponse[valCnt].CONFIGresponse.stepper[i].inverted, "on");
                                             }
                                             else if(!strcmp(AlgoidCommand.Config.stepper[i].inverted, "off")){
-                                                    sysConfig.stepper[AlgoidCommand.Config.stepper[i].id].inverted=0;
+                                                kehops.stepperWheel[AlgoidCommand.Config.stepper[i].id].config.motor->inverted = 0;
                                                     strcpy(AlgoidResponse[valCnt].CONFIGresponse.stepper[i].inverted, "off");
                                             }
                                             
-                                             sysConfig.stepper[AlgoidCommand.Config.stepper[i].id].ratio=AlgoidCommand.Config.stepper[i].ratio;
-                                             sysConfig.stepper[AlgoidCommand.Config.stepper[i].id].stepPerRot=AlgoidCommand.Config.stepper[i].stepsPerRot;
-
+                                            kehops.stepperWheel[AlgoidCommand.Config.stepper[i].id].config.motor->ratio = AlgoidCommand.Config.stepper[i].ratio;
+                                            kehops.stepperWheel[AlgoidCommand.Config.stepper[i].id].config.motor->steps = AlgoidCommand.Config.stepper[i].stepsPerRot;
                                             AlgoidResponse[valCnt].CONFIGresponse.stepper[i].id = AlgoidCommand.Config.stepper[i].id;
                                         }
                                         else
@@ -502,16 +501,16 @@ int processAlgoidCommand(void){
                                         
                                         // Check if led exist...
                                         if(AlgoidCommand.Config.led[i].id >= 0 && AlgoidCommand.Config.led[i].id <NBLED){
-                                            sysConfig.led[AlgoidCommand.Config.led[i].id].power=AlgoidCommand.Config.led[i].power;
+                                            kehops.led[AlgoidCommand.Config.led[i].id].config.defaultPower = AlgoidCommand.Config.led[i].power;
                                             AlgoidResponse[valCnt].CONFIGresponse.led[i].power=AlgoidCommand.Config.led[i].power;
                                             // Save config for led inversion
                                             if(!strcmp(AlgoidCommand.Config.led[i].state, "on")){
-                                                sysConfig.led[AlgoidCommand.Config.led[i].id].state=1;
+                                                kehops.led[AlgoidCommand.Config.led[i].id].config.defaultState = 1;
                                                 strcpy(AlgoidResponse[valCnt].CONFIGresponse.led[i].state, "on");
                                             }
                                             else if(!strcmp(AlgoidCommand.Config.led[i].state, "off")){
-                                                    sysConfig.led[AlgoidCommand.Config.led[i].id].state=0;
-                                                    strcpy(AlgoidResponse[valCnt].CONFIGresponse.led[i].state, "off");
+                                                kehops.led[AlgoidCommand.Config.led[i].id].config.defaultState = 0;
+                                                strcpy(AlgoidResponse[valCnt].CONFIGresponse.led[i].state, "off");
                                             }
 
                                             AlgoidResponse[valCnt].CONFIGresponse.led[i].id = AlgoidCommand.Config.led[i].id;
@@ -522,11 +521,11 @@ int processAlgoidCommand(void){
 
                                 // CONFIG COMMAND FOR SAVE
                                     if(!strcmp(AlgoidCommand.Config.config.save, "true"))
-                                        SaveConfig(&sysConfig, "kehops.cfg");
+                                        SaveConfig(&sysApp, "kehops.cfg");
 
                                 // CONFIG COMMAND FOR RESET
                                     if(!strcmp(AlgoidCommand.Config.config.reset, "true"))
-                                       sysConfig.config.reset=1;
+                                        sysApp.kehops.resetConfig = 1;
 
                         // Préparation des valeurs du message de réponse
                                 // GET STREAM CONFIG FOR RESPONSE
@@ -540,7 +539,7 @@ int processAlgoidCommand(void){
                                         strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.state, "off");
                                     else strcpy(AlgoidResponse[valCnt].CONFIGresponse.stream.state, "on");
 
-                                    if(sysConfig.config.reset==1) 
+                                    if(sysApp.kehops.resetConfig == 1) 
                                         strcpy(AlgoidResponse[valCnt].CONFIGresponse.config.reset, "true");
                                     else strcpy(AlgoidResponse[valCnt].CONFIGresponse.config.reset, "---");
                                     
@@ -698,7 +697,7 @@ int runMotorAction(void){
                         if(ID >= 0){
                             
                             // Effectue l'action sur la roue
-                            if(kehops.dcWheel[ID].target->distanceCM <= 0 && kehops.dcWheel[ID].target->time <= 0)
+                            if(kehops.dcWheel[ID].target->distanceCM <= 0 && kehops.dcWheel[ID].target->time <= 0){
                                 sprintf(reportBuffer, "ATTENTION: Action infinie, aucun parametre defini \"time\" ou \"cm\" pour l'action sur le moteur %d\n", ID);
 
                                 printf(reportBuffer);                                                             // Affichage du message dans le shell
@@ -1296,7 +1295,7 @@ int makeStatusRequest(int msgType){
                 AlgoidResponse[ptrData].MOTresponse.cm = rpmToPercent(i, kehops.dcWheel[i].measure.rpm);
                 // !!! RESPONSE VELOCITY TO CHECK...
                 //AlgoidResponse[ptrData].MOTresponse.velocity = rpmToPercent(0,sysConfig.motor[0].minRPM) + robot.motor[i].velocity;
-                AlgoidResponse[ptrData].MOTresponse.velocity = rpmToPercent(0,sysConfig.motor[0].minRPM) + kehops.dcWheel[i].motor->speed;
+                AlgoidResponse[ptrData].MOTresponse.velocity = rpmToPercent(0,kehops.dcWheel[i].config.rpmMin) + kehops.dcWheel[i].motor->speed;
 		ptrData++;
 	}
 

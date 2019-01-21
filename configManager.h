@@ -23,8 +23,8 @@ extern "C" {
 #define ERR_EXTRACT 2
 #define ERR_CREATE_TAB 3
 
-extern char LoadConfig(t_sysConfig * Config, char * fileName);
-extern char SaveConfig(t_sysConfig * Config, char * fileName);
+extern char LoadConfig(t_sysApp * Config, char * fileName);
+extern char SaveConfig(t_sysApp * Config, char * fileName);
 
 extern char * OpenConfigFromFile(char *filename);
 #ifdef __cplusplus

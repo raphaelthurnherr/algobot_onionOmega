@@ -102,7 +102,7 @@ char * OpenConfigFromFile(char *filename){
 // Get configuration file and load data into config structure
 // -----------------------------------------------------------------------------
 
-char LoadConfig(t_sysConfig * Config, char * fileName){
+char LoadConfig(t_sysApp * Config, char * fileName){
 	struct jReadElement cfg_devices_list;
         int nbOfDeviceInConf, deviceId;
 	int i;
@@ -115,26 +115,26 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
         if(srcDataBuffer != NULL){
     // EXTRACT STREAM SETTINGS FROM CONFIG
             // Load data for stream TIME
-            Config->dataStream.time_ms= jRead_int((char *) srcDataBuffer, FILE_KEY_CONFIG_STREAM_TIME, &i);
+            Config->communication.mqtt.stream.time_ms= jRead_int((char *) srcDataBuffer, FILE_KEY_CONFIG_STREAM_TIME, &i);
 
             // Load data for stream STATE
             jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_STREAM_STATE, dataValue, 15, &i );
 
             if(!strcmp(dataValue, "on")){
-                Config->dataStream.state = 1;
+                Config->communication.mqtt.stream.state = 1;
                 
             }else
                 if(!strcmp(dataValue, "off")){
-                    Config->dataStream.state = 0;
+                    Config->communication.mqtt.stream.state = 0;
                 }
 
             // Load data for stream ONEVENT
             jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_STREAM_ONEVENT, dataValue, 15, &i );
             if(!strcmp(dataValue, "on")){
-                Config->dataStream.onEvent = 1;
+                Config->communication.mqtt.stream.onEvent = 1;
             }else
                 if(!strcmp(dataValue, "off")){
-                    Config->dataStream.onEvent = 0;
+                    Config->communication.mqtt.stream.onEvent = 0;
                 }
 
     // EXTRACT MOTOR SETTINGS FROM CONFIG    
@@ -296,7 +296,7 @@ char LoadConfig(t_sysConfig * Config, char * fileName){
 // Save configuration to file
 // -----------------------------------------------------------------------------
 
-char SaveConfig(t_sysConfig * Config, char * fileName){
+char SaveConfig(t_sysApp * Config, char * fileName){
     char buffer[MAX_MQTT_BUFF];
     unsigned int buflen= MAX_MQTT_BUFF;
     int i;

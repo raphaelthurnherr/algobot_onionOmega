@@ -345,6 +345,7 @@ struct dcwheel_settarget{
 
 struct dc_wheel_config{
     struct s_pid pidReg;
+    struct s_motor_config *motor;
     int motorID;
     int counterID;
     int diameter;           // Config of wheel diameter in mm
@@ -355,6 +356,7 @@ struct dc_wheel_config{
 
 struct stepper_wheel_config{
     struct s_pid pidReg;
+    struct s_stepper_config *motor;
     int motorID;
     int diameter;           // Config of wheel diameter in mm
     int rpmMax;             // Config max supperted RPM of Wheel (motor)
@@ -487,7 +489,9 @@ struct s_pwm_action{
 
 struct s_led_config{
     int  doutID;
-    struct s_dout_config *mode;
+    int  defaultPower;
+    int  defaultState;
+    int  defaultmode;
 };
 
 
@@ -534,9 +538,15 @@ struct app_kehops{
     char resetConfig;
 };
 
+struct app_device{
+    struct s_motor_config *motor[NBMOTOR];
+    struct s_stepper_config *stepper[NBSTEPPER];
+};
+
 typedef struct systemApp{
     struct app_comm communication;
     struct app_kehops kehops;
+    struct app_device device;
     struct tInfosys info;
 }t_sysApp;
 
