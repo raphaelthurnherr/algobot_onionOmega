@@ -250,9 +250,9 @@ char LoadConfig(t_sysConf * Config, char * fileName){
     // EXTRACT LED SETTINGS FROM CONFIG    
           // Reset motor data config before reading
           for(i=0;i<NBLED;i++){
-            Config->led[i].power=-1;            
-            Config->led[i].state=-1;
-            Config->led[i].isServoMode=-1;
+//            Config->led[i].power=-1;            
+//            Config->led[i].state=-1;
+//            Config->led[i].isServoMode=-1;
           }
 
         // Les Setting
@@ -267,15 +267,15 @@ char LoadConfig(t_sysConf * Config, char * fileName){
                     deviceId=-1;
                     deviceId=jRead_long((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_ID, &i); 
 
-                   Config->led[deviceId].power = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_POWER, &i);                     
+//                   Config->led[deviceId].power = jRead_int((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_POWER, &i);                     
 
                     if(deviceId >= 0 && deviceId < NBLED){
                         jRead_string((char *)srcDataBuffer, FILE_KEY_CONFIG_LED_STATE, dataValue, 15, &i );
                         if(!strcmp(dataValue, "on")){
-                            Config->led[deviceId].state = 1;
+//                            Config->led[deviceId].state = 1;
                         }else
                             if(!strcmp(dataValue, "off")){
-                                Config->led[deviceId].state = 0;
+//                                Config->led[deviceId].state = 0;
                             }
                     }
                 }

@@ -298,14 +298,13 @@ void PCA9685_setServoPos(unsigned char smAddr, char position){
             position=100;
         
         if(position >= 0)
-            dutyCycleValue = 156+(position*2.72);
+            dutyCycleValue = 156 + (position*2.72);
         else dutyCycleValue = 0;                    // Turn off the servomotor (no refresh)   
 
 	dCLow = dutyCycleValue&0x00FF;;
 	dCHigh = (dutyCycleValue&0x0F00) >>8;
 
 //	Applique les nouvelles valeures
-
         i2c_write(0, PCA9685, smAddr, dCLow);
         i2c_write(0, PCA9685, smAddr+1, dCHigh);
 }

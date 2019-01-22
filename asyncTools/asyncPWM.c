@@ -90,7 +90,7 @@ int checkBlinkPwmCount(int actionNumber, int pwmName){
         static int PWMtoggleState[NBPWM];
          
         // Si mode blink actif, toggle sur PWM et comptage
-        if(robot.pwm[pwmName].state==BLINK){
+        if(robot.pwm[pwmName].state == BLINK){
             
             // Performe the PWM toggle
             if(PWMtoggleState[pwmName]>0){
@@ -104,7 +104,7 @@ int checkBlinkPwmCount(int actionNumber, int pwmName){
            
             // Consigned de clignotement atteinte ?
             if(blinkCount >= robot.pwm[pwmName].blinkCount-1){
-                robot.pwm[pwmName].state=PWMtoggleState[pwmName];      // Update the actual state of pPWM
+                robot.pwm[pwmName].state = PWMtoggleState[pwmName];      // Update the actual state of pPWM
                 endPwmAction(actionNumber, pwmName);
                 blinkCount=0;                                   // Reset le compteur
             }
